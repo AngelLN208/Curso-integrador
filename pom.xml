@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- ===== SPRING BOOT PARENT ===== -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.0</version>
+    <relativePath/>
+  </parent>
+
+  <!-- ===== IDENTIFICACIÓN DEL PROYECTO ===== -->
+  <groupId>pe.edu.utp</groupId>
+  <artifactId>clinica-stella-maris</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>clinica-stella-maris</name>
+  <description>Sistema de Gestión de Citas Médicas - Clínica Stella Maris</description>
+
+  <!-- ===== PROPIEDADES GLOBALES ===== -->
+  <properties>
+    <java.version>21</java.version>
+    <logback.version>1.4.14</logback.version>
+    <guava.version>33.2.0-jre</guava.version>
+    <commons-lang3.version>3.14.0</commons-lang3.version>
+    <poi.version>5.2.5</poi.version>
+    <springdoc.version>2.5.0</springdoc.version>
+    <jjwt.version>0.12.5</jjwt.version>
+  </properties>
+
+  <!-- ===== DEPENDENCIAS ===== -->
+  <dependencies>
+
+    <!-- Spring Boot Web (REST + MVC) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- Spring Data JPA (DAO layer) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <!-- Spring Security (autenticación y control de roles - RNF-01/02/03) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!-- Validación de entidades (Bean Validation - RNF-09) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- Envío de correos (RF-18, RF-20) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+
+    <!-- PostgreSQL Driver (RNF-15) -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Lombok (reduce boilerplate) -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JWT — JJWT (RNF-02 autenticación con JWT) -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>${jjwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Swagger / OpenAPI (Springdoc) -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${springdoc.version}</version>
+    </dependency>
+
+    <!-- Google Guava (utilidades — requerido por rúbrica) -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+
+    <!-- Apache Commons Lang3 (utilidades de texto y objetos) -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
+    </dependency>
+
+    <!-- Apache POI (exportar reportes a Excel — rúbrica) -->
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>${poi.version}</version>
+    </dependency>
+
+    <!-- Logback (logging — ya incluido por Spring Boot, se configura explícitamente) -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
+
+    <!-- DevTools (recarga automática en VS Code) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-devtools</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <!-- ===== PLUGINS ===== -->
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

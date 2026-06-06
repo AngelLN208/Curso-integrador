@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Configuración de Logback - Clínica Stella Maris
+    Requerido por rúbrica: uso de librería Logback
+    RNF-04: Los logs NO deben contener datos sensibles (DNI, correo, celular)
+-->
+<configuration>
+
+    <!-- Formato de log con fecha, nivel, hilo y clase -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- Salida por consola -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Salida a archivo con rotación diaria -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/clinica-stella-maris.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Un archivo por día, máximo 30 días (RNF-16 respaldo) -->
+            <fileNamePattern>logs/clinica-stella-maris.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger del proyecto en DEBUG durante desarrollo -->
+    <logger name="pe.edu.utp.clinica" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Logger raíz en INFO -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>
