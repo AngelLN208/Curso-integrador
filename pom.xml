@@ -22,9 +22,8 @@
 
   <!-- ===== PROPIEDADES GLOBALES ===== -->
   <properties>
-    <java.version>21</java.version>
-    <logback.version>1.4.14</logback.version>
-    <guava.version>33.2.0-jre</guava.version>
+    <java.version>22</java.version>
+        <guava.version>33.2.0-jre</guava.version>
     <commons-lang3.version>3.14.0</commons-lang3.version>
     <poi.version>5.2.5</poi.version>
     <springdoc.version>2.5.0</springdoc.version>
@@ -125,11 +124,7 @@
       <version>${poi.version}</version>
     </dependency>
 
-    <!-- Logback (logging — ya incluido por Spring Boot, se configura explícitamente) -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-    </dependency>
+   
 
     <!-- DevTools (recarga automática en VS Code) -->
     <dependency>
