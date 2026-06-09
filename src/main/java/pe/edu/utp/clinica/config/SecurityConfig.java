@@ -20,6 +20,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import pe.edu.utp.clinica.security.JwtAuthFilter;
 import pe.edu.utp.clinica.security.UserDetailsServiceImpl;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
+
 /**
  * Configuración central de Spring Security.
  *
@@ -77,16 +82,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Desactiva CSRF (API REST stateless no lo necesita)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ← agrega esto
             .csrf(AbstractHttpConfigurer::disable)
-
-            // Sesión stateless — cada petición trae su JWT
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            // Reglas de autorización por ruta
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas
                 .requestMatchers(
                     "/api/auth/**",
                     "/swagger-ui/**",
@@ -94,16 +94,34 @@ public class SecurityConfig {
                     "/api-docs/**",
                     "/v3/api-docs/**"
                 ).permitAll()
-                // Todo lo demás requiere autenticación
                 .anyRequest().authenticated()
             )
-
-            // Proveedor de autenticación
             .authenticationProvider(authenticationProvider())
-
-            // Filtro JWT antes del filtro estándar de usuario/contraseña
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of(
+            "http://localhost:5500",
+            "http://127.0.0.1:5500",
+            "http://localhost:8080"
+        ));
+
+        config.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+        ));
+
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
 }
