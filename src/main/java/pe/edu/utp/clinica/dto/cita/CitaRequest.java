@@ -3,6 +3,7 @@ package pe.edu.utp.clinica.dto.cita;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import pe.edu.utp.clinica.common.validation.ValidFechaCita;
 
 import java.time.LocalDateTime;
 
@@ -23,7 +24,7 @@ public class CitaRequest {
     private Long medicoId;
 
     @NotNull(message = "La fecha y hora son obligatorias")
-    @Future(message = "La fecha de la cita debe ser futura")
+    @ValidFechaCita
     private LocalDateTime fechaHora;
 
     /** Opcional (RF-13) */

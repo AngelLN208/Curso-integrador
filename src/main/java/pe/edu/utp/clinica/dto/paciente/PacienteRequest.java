@@ -2,6 +2,7 @@ package pe.edu.utp.clinica.dto.paciente;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import pe.edu.utp.clinica.common.validation.ValidDni;
 
 import java.time.LocalDate;
 
@@ -16,7 +17,7 @@ import java.time.LocalDate;
 public class PacienteRequest {
 
     @NotBlank(message = "El DNI es obligatorio")
-    @Pattern(regexp = "\\d{8}", message = "El DNI debe tener exactamente 8 dígitos")
+    @ValidDni
     private String dni;
 
     @NotBlank(message = "Los nombres son obligatorios")
