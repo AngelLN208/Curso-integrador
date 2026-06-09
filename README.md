@@ -1,5 +1,5 @@
-# 🏥 Sistema de Gestión de Citas Médicas
-### Clínica Aviva — Lima, Perú
+# Sistema de Gestión de Citas Médicas
+### Clínica Stella Maris — Lima, Perú
 
 ![Java](https://img.shields.io/badge/Java-22-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-green)
@@ -9,7 +9,7 @@
 
 ---
 
-## 📋 Descripción
+## Descripción
 
 Sistema web de gestión de citas médicas desarrollado para la Clínica Stella Maris,
 institución privada de salud ubicada en Pueblo Libre, Lima. El sistema digitaliza y
@@ -148,7 +148,7 @@ POST /api/auth/login
 
 ---
 
-## 📡 Endpoints principales
+## Endpoints principales
 
 ### Autenticación
 | Método | Endpoint | Descripción |
