@@ -77,6 +77,12 @@ src/
 
 ---
 
+## Consideraciones de seguridad
+
+En el avance actual, el sistema implementa autenticación con JWT, cifrado de contraseñas con BCrypt, validaciones de entrada y control de acceso por roles mediante Spring Security.
+
+Para la entrega final, las credenciales sensibles como la contraseña de la base de datos, la clave secreta JWT y las credenciales de correo serán externalizadas mediante variables de entorno, evitando que estos valores queden escritos directamente en el archivo `application.properties`.
+
 ##  Instalación y ejecución
 
 ### 1. Clonar el repositorio
