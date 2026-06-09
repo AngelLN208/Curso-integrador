@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Recepcionista</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../static/css/global.css">
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Sidebar -->
+        <aside class="col-md-2 sidebar">
+            <div class="logo-container">
+                <img src="../../../static/img/stella-maris-logo.png"
+                     alt="Stella Maris"
+                     class="img-fluid logo">
+            </div>
+            <nav class="menu">
+                <a href="dashboard.html" class="active">Inicio</a>
+                <a href="patients.html">Pacientes</a>
+                <a href="appointments.html">Citas</a>
+                <a href="payments.html">Pagos</a>
+                <a href="profile.html">Mi Perfil</a>
+                <a href="#" id="btnLogout">🚪 Cerrar Sesión</a>
+            </nav>
+        </aside>
+
+        <!-- Contenido -->
+        <main class="col-md-10 main-content">
+
+            <div class="page-header">
+                <div>
+                    <h2>Portal de Recepcionista</h2>
+                    <p id="bienvenida">Cargando...</p>
+                </div>
+            </div>
+
+            <!-- Alerta global -->
+            <div id="alerta-global" class="alert alert-dismissible fade show mx-1"
+                 style="display:none"></div>
+
+            <!-- Tarjetas -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card dashboard-card">
+                        <h1 id="total-citas-hoy">--</h1>
+                        <p>Citas de Hoy</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card dashboard-card">
+                        <h1 id="total-pacientes">--</h1>
+                        <p>Pacientes Registrados</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card dashboard-card">
+                        <h1 id="total-medicos">--</h1>
+                        <p>Médicos Disponibles</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Citas de hoy -->
+            <div class="card section-card">
+                <div class="card-header-custom">Citas de Hoy</div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Paciente</th>
+                                <th>Especialidad</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-citas-hoy">
+                            <tr>
+                                <td colspan="4" class="text-center">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Avisos -->
+            <div class="card section-card mt-4">
+                <div class="card-header-custom">Avisos Internos</div>
+                <div class="card-body">
+                    <ul>
+                        <li>La Dra. García inicia atención a las 10:00 AM.</li>
+                        <li>Recordar confirmar citas de mañana.</li>
+                        <li>Actualizar datos de pacientes pendientes.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/utils/ui.js"></script>
+<script src="../../js/services/api.js"></script>
+<script src="../../js/services/citaService.js"></script>
+<script src="../../js/services/pacienteService.js"></script>
+<script src="../../js/recepcionist/dashboard.js"></script>
+
+</body>
+</html>
