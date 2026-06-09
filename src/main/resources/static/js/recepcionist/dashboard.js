@@ -23,20 +23,19 @@ document.getElementById('btnLogout').addEventListener('click', (e) => {
 // ─── Cargar datos ────────────────────────────────────────────
 async function cargarDashboard() {
     try {
-        const [citas, pacientes] = await Promise.all([
+        const [citas, pacientes, medicos] = await Promise.all([
             CitaService.listar(),
-            PacienteService.listar()
+            PacienteService.listar(),
+            MedicoService.listar()
         ]);
 
-        // Filtra citas de hoy
         const hoy = new Date().toISOString().split('T')[0];
         const citasHoy = citas.filter(c => c.fechaHora.startsWith(hoy));
 
-        // Tarjetas
-        document.getElementById('total-citas-hoy').textContent  = citasHoy.length;
-        document.getElementById('total-pacientes').textContent  = pacientes.length;
+        document.getElementById('total-citas-hoy').textContent = citasHoy.length;
+        document.getElementById('total-pacientes').textContent = pacientes.length;
+        document.getElementById('total-medicos').textContent   = medicos.length;
 
-        // Tabla citas de hoy
         const tbody = document.getElementById('tabla-citas-hoy');
         tbody.innerHTML = '';
 

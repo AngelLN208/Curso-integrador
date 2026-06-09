@@ -2,434 +2,293 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Pacientes</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../../static/css/global.css">
-
 </head>
 
 <body>
 
 <div class="container-fluid">
-
     <div class="row">
 
         <!-- Sidebar -->
         <aside class="col-md-2 sidebar">
-
             <div class="logo-container">
-
-                <img src="../../../static/img/stella-maris-logo.png"
-                     alt="Stella Maris"
-                     class="img-fluid logo">
-
+                <img src="../../../static/img/stella-maris-logo.png" alt="Stella Maris" class="img-fluid logo">
             </div>
-
             <nav class="menu">
-
-                <a href="dashboard.html">
-                    Inicio
-                </a>
-
-                <a href="#" class="active">
-                    Pacientes
-                </a>
-
-                <a href="appointments.html">
-                    Citas
-                </a>
-
-                <a href="#">
-                    Pagos
-                </a>
-
-                <a href="profile.html">
-                    Mi Perfil
-                </a>
-
-                <a href="#">
-                    Cerrar Sesión
-                </a>
-
+                <a href="/views/recepcionist/dashboard.html">Inicio</a>
+                <a href="#" class="active">Pacientes</a>
+                <a href="/views/recepcionist/appointments.html">Citas</a>
+                <a href="/views/recepcionist/payments.html">Pagos</a>
+                <a href="/views/recepcionist/profile.html">Mi Perfil</a>
+                <a href="#" id="btnLogout">Cerrar Sesión</a>
             </nav>
-
         </aside>
 
         <!-- Contenido -->
         <main class="col-md-10 main-content">
 
             <div class="page-header">
-
                 <div>
                     <h2>Gestión de Pacientes</h2>
                     <p>Administrar pacientes registrados</p>
                 </div>
-
             </div>
+
+            <!-- Alerta global -->
+            <div id="alerta-global" class="alert alert-dismissible fade show mx-1"
+                 style="display:none"></div>
 
             <!-- Tarjetas -->
             <div class="row g-4 mb-4">
-
                 <div class="col-md-6">
-
                     <div class="card dashboard-card">
-
-                        <h1>350</h1>
-
+                        <h1 id="total-pacientes">--</h1>
                         <p>Total Pacientes</p>
-
                     </div>
-
                 </div>
-
                 <div class="col-md-6">
-
                     <div class="card dashboard-card">
-
-                        <h1>18</h1>
-
+                        <h1 id="nuevos-mes">--</h1>
                         <p>Nuevos este mes</p>
-
                     </div>
-
                 </div>
-
             </div>
 
             <!-- Barra de acciones -->
             <div class="card section-card mb-4">
-
                 <div class="card-body">
-
                     <div class="row g-3">
-
                         <div class="col-md-8">
-
-                            <input
-                                type="text"
-                                class="form-control"
-                                placeholder="Buscar por DNI o nombre">
-
+                            <input type="text"
+                                   id="buscar-input"
+                                   class="form-control"
+                                   placeholder="Buscar por DNI o nombre">
                         </div>
-
                         <div class="col-md-4 text-end">
-
-                            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-  + Registrar Paciente
-</button>
-
+                            <button class="btn btn-warning"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalRegistrar">
+                                + Registrar Paciente
+                            </button>
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
 
             <!-- Tabla -->
             <div class="card section-card">
-
-                <div class="card-header-custom">
-
-                    Lista de Pacientes
-
-                </div>
-
+                <div class="card-header-custom">Lista de Pacientes</div>
                 <div class="table-responsive">
-
                     <table class="table table-hover align-middle mb-0">
-
                         <thead>
-
-                        <tr>
-
-                            <th>DNI</th>
-
-                            <th>Nombre Completo</th>
-
-                            <th>Teléfono</th>
-
-                            <th>Correo</th>
-
-                            <th>Estado</th>
-
-                            <th>Acciones</th>
-
-                        </tr>
-
+                            <tr>
+                                <th>DNI</th>
+                                <th>Nombre Completo</th>
+                                <th>Teléfono</th>
+                                <th>Correo</th>
+                                <th>Acciones</th>
+                            </tr>
                         </thead>
-
-                        <tbody>
-
-                        <tr>
-
-                            <td>12345678</td>
-
-                            <td>Juan Pérez Gómez</td>
-
-                            <td>999888777</td>
-
-                            <td>juan@gmail.com</td>
-
-                            <td>
-
-                                <span class="badge bg-success">
-
-                                    Activo
-
-                                </span>
-
-                            </td>
-
-                            <td>
-
-<button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalVer">Ver</button>
-<button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalEditar">Editar</button>
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td>87654321</td>
-
-                            <td>Ana Torres Díaz</td>
-
-                            <td>988777666</td>
-
-                            <td>ana@gmail.com</td>
-
-                            <td>
-
-                                <span class="badge bg-success">
-
-                                    Activo
-
-                                </span>
-
-                            </td>
-
-                            <td>
-<button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalVer">Ver</button>
-<button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#modalEditar">Editar</button>
-
-                            </td>
-
-                        </tr>
-
+                        <tbody id="tabla-pacientes">
+                            <tr>
+                                <td colspan="5" class="text-center">Cargando...</td>
+                            </tr>
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
 
         </main>
-
     </div>
-
 </div>
+
 <!-- Modal: Registrar Paciente -->
 <div class="modal fade" id="modalRegistrar" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
-
-      <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
-        <h5 class="modal-title">Registrar Nuevo Paciente</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body p-4">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Nombres</label>
-            <input type="text" class="form-control" placeholder="Ej. Juan Carlos">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Apellidos</label>
-            <input type="text" class="form-control" placeholder="Ej. Pérez Gómez">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">DNI</label>
-            <input type="text" class="form-control" placeholder="12345678">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha de Nacimiento</label>
-            <input type="date" class="form-control">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Teléfono</label>
-            <input type="text" class="form-control" placeholder="999 888 777">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Correo</label>
-            <input type="email" class="form-control" placeholder="correo@mail.com">
-          </div>
-          <div class="col-md-12">
-            <label class="form-label">Dirección</label>
-            <input type="text" class="form-control" placeholder="Av. Lima 123, Miraflores">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Sexo</label>
-            <select class="form-select">
-              <option value="">Seleccionar...</option>
-              <option>Masculino</option>
-              <option>Femenino</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Seguro Médico</label>
-            <input type="text" class="form-control" placeholder="EsSalud / Particular...">
-          </div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
+            <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
+                <h5 class="modal-title">Registrar Nuevo Paciente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombres</label>
+                        <input type="text" id="pac-nombres" class="form-control" placeholder="Ej. Juan Carlos">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Apellidos</label>
+                        <input type="text" id="pac-apellidos" class="form-control" placeholder="Ej. Pérez Gómez">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">DNI</label>
+                        <input type="text" id="pac-dni" class="form-control" placeholder="12345678">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" id="pac-fechaNacimiento" class="form-control">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Celular</label>
+                        <input type="text" id="pac-celular" class="form-control" placeholder="999 888 777">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correo</label>
+                        <input type="email" id="pac-correo" class="form-control" placeholder="correo@mail.com">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Sexo</label>
+                        <select id="pac-sexo" class="form-select">
+                            <option value="">Seleccionar...</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border:none;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-warning"
+                        style="color:var(--primary); font-weight:600;"
+                        onclick="guardarPaciente()">
+                    Guardar Paciente
+                </button>
+            </div>
         </div>
-      </div>
-
-      <div class="modal-footer" style="border:none;">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-warning" style="color:var(--primary); font-weight:600;">Guardar Paciente</button>
-      </div>
-
     </div>
-  </div>
 </div>
-
 
 <!-- Modal: Ver Paciente -->
 <div class="modal fade" id="modalVer" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
-
-      <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
-        <h5 class="modal-title">Detalle del Paciente</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body p-4">
-        <div class="d-flex align-items-center gap-3 mb-4">
-          <div style="width:50px; height:50px; border-radius:50%; background:var(--secondary); color:white; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:16px;">
-            JP
-          </div>
-          <div>
-            <h6 class="mb-0">Juan Pérez Gómez</h6>
-            <small class="text-muted">DNI: 12345678</small>
-          </div>
-          <span class="badge bg-success ms-auto">Activo</span>
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
+            <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
+                <h5 class="modal-title">Detalle del Paciente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div id="ver-iniciales"
+                         style="width:50px; height:50px; border-radius:50%; background:var(--secondary); color:white; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:16px;">
+                    </div>
+                    <div>
+                        <h6 class="mb-0" id="ver-nombre"></h6>
+                        <small class="text-muted" id="ver-dni"></small>
+                    </div>
+                </div>
+                <table class="table table-borderless table-sm">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted" style="width:45%">Fecha de nacimiento</td>
+                            <td id="ver-fechaNacimiento"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Celular</td>
+                            <td id="ver-celular"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Correo</td>
+                            <td id="ver-correo"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Sexo</td>
+                            <td id="ver-sexo"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="border:none;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-warning"
+                        style="color:var(--primary); font-weight:600;"
+                        data-bs-dismiss="modal"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalEditar">
+                    Editar
+                </button>
+            </div>
         </div>
-
-        <table class="table table-borderless table-sm">
-          <tbody>
-            <tr>
-              <td class="text-muted" style="width:45%">Fecha de nacimiento</td>
-              <td>15/03/1988</td>
-            </tr>
-            <tr>
-              <td class="text-muted">Teléfono</td>
-              <td>999 888 777</td>
-            </tr>
-            <tr>
-              <td class="text-muted">Correo</td>
-              <td>juan@gmail.com</td>
-            </tr>
-            <tr>
-              <td class="text-muted">Dirección</td>
-              <td>Av. Lima 123, Miraflores</td>
-            </tr>
-            <tr>
-              <td class="text-muted">Seguro médico</td>
-              <td>EsSalud</td>
-            </tr>
-            <tr>
-              <td class="text-muted">Última cita</td>
-              <td>02/06/2026 — Cardiología</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="modal-footer" style="border:none;">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button class="btn btn-warning" style="color:var(--primary); font-weight:600;" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalEditar">Editar</button>
-      </div>
-
     </div>
-  </div>
 </div>
-
 
 <!-- Modal: Editar Paciente -->
 <div class="modal fade" id="modalEditar" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
-
-      <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
-        <h5 class="modal-title">Editar Paciente</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body p-4">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Nombres</label>
-            <input type="text" class="form-control" value="Juan Carlos">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Apellidos</label>
-            <input type="text" class="form-control" value="Pérez Gómez">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">DNI</label>
-            <input type="text" class="form-control" value="12345678">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Fecha de Nacimiento</label>
-            <input type="date" class="form-control" value="1988-03-15">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Teléfono</label>
-            <input type="text" class="form-control" value="999 888 777">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Correo</label>
-            <input type="email" class="form-control" value="juan@gmail.com">
-          </div>
-          <div class="col-md-12">
-            <label class="form-label">Dirección</label>
-            <input type="text" class="form-control" value="Av. Lima 123, Miraflores">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Estado</label>
-            <select class="form-select">
-              <option selected>Activo</option>
-              <option>Inactivo</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Seguro Médico</label>
-            <input type="text" class="form-control" value="EsSalud">
-          </div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
+            <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
+                <h5 class="modal-title">Editar Paciente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombres</label>
+                        <input type="text" id="edit-pac-nombres" class="form-control">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Apellidos</label>
+                        <input type="text" id="edit-pac-apellidos" class="form-control">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">DNI</label>
+                        <input type="text" id="edit-pac-dni" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" id="edit-pac-fechaNacimiento" class="form-control">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Celular</label>
+                        <input type="text" id="edit-pac-celular" class="form-control">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correo</label>
+                        <input type="email" id="edit-pac-correo" class="form-control">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Sexo</label>
+                        <select id="edit-pac-sexo" class="form-select">
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border:none;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-warning"
+                        style="color:var(--primary); font-weight:600;"
+                        onclick="guardarEdicion()">
+                    Guardar Cambios
+                </button>
+            </div>
         </div>
-      </div>
-
-      <div class="modal-footer" style="border:none;">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-warning" style="color:var(--primary); font-weight:600;">Guardar Cambios</button>
-      </div>
-
     </div>
-  </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/utils/ui.js"></script>
+<script src="../../js/utils/validator.js"></script>
+<script src="../../js/services/api.js"></script>
+<script src="../../js/services/pacienteService.js"></script>
+<script src="../../js/recepcionist/patients.js"></script>
+
 </body>
-
-
 </html>
