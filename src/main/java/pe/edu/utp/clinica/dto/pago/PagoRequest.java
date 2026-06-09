@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
+import pe.edu.utp.clinica.common.validation.ValidMonto;
 
 import java.math.BigDecimal;
 
@@ -21,6 +22,7 @@ public class PagoRequest {
 
     @NotNull(message = "El monto es obligatorio")
     @Positive(message = "El monto debe ser mayor a cero")
+    @ValidMonto
     private BigDecimal monto;
 
     @NotBlank(message = "El método de pago es obligatorio")

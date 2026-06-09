@@ -2,7 +2,9 @@ package pe.edu.utp.clinica.dto.paciente;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import pe.edu.utp.clinica.common.validation.ValidCelular;
 import pe.edu.utp.clinica.common.validation.ValidDni;
+import pe.edu.utp.clinica.common.validation.ValidEdad;
 
 import java.time.LocalDate;
 
@@ -16,6 +18,7 @@ import java.time.LocalDate;
 @Data
 public class PacienteRequest {
 
+    
     @NotBlank(message = "El DNI es obligatorio")
     @ValidDni
     private String dni;
@@ -28,9 +31,11 @@ public class PacienteRequest {
 
     @NotNull(message = "La fecha de nacimiento es obligatoria")
     @Past(message = "La fecha de nacimiento debe ser en el pasado")
+    @ValidEdad
     private LocalDate fechaNacimiento;
 
     @NotBlank(message = "El celular es obligatorio")
+    @ValidCelular
     private String celular;
 
     @Email(message = "El correo debe tener un formato válido")

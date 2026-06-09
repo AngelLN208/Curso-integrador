@@ -2,6 +2,8 @@ package pe.edu.utp.clinica.dto.medico;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import pe.edu.utp.clinica.common.validation.ValidCelular;
+import pe.edu.utp.clinica.common.validation.ValidDni;
 
 /**
  * DTO para registrar un médico.
@@ -14,6 +16,7 @@ public class MedicoRequest {
 
     @NotBlank(message = "El DNI es obligatorio")
     @Pattern(regexp = "\\d{8}", message = "El DNI debe tener exactamente 8 dígitos")
+    @ValidDni
     private String dni;
 
     @NotBlank(message = "Los nombres son obligatorios")
@@ -26,6 +29,7 @@ public class MedicoRequest {
     private Long especialidadId;
 
     @NotBlank(message = "El celular es obligatorio")
+    @ValidCelular
     private String celular;
 
     @NotBlank(message = "El correo es obligatorio")
