@@ -30,17 +30,7 @@ async function cargarPacientes(criterio = '') {
 
         const tbody = document.getElementById('tabla-pacientes');
         tbody.innerHTML = '';
-
-        document.getElementById('total-pacientes').textContent = pacientes.length;
-
-        const hoy = new Date();
-        const nuevos = pacientes.filter(p => {
-            const creado = new Date(p.creadoEn);
-            return creado.getMonth() === hoy.getMonth() &&
-                   creado.getFullYear() === hoy.getFullYear();
-        });
-        document.getElementById('nuevos-mes').textContent = nuevos.length;
-
+    
         if (pacientes.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -173,5 +163,19 @@ document.getElementById('buscar-input').addEventListener('input', (e) => {
     }, 400);
 });
 
+async function cargarContadores() {
+    const todos = await PacienteService.listar();
+    const hoy = new Date();
+    const nuevos = todos.filter(p => {
+        const creado = new Date(p.creadoEn);
+        return creado.getMonth() === hoy.getMonth() &&
+               creado.getFullYear() === hoy.getFullYear();
+    });
+    document.getElementById('total-pacientes').textContent = todos.length;
+    document.getElementById('nuevos-mes').textContent      = nuevos.length;
+}
+
+// Y al inicio solo se llama una vez
+cargarContadores()
 // ─── Init ────────────────────────────────────────────────────
 cargarPacientes();
