@@ -12,6 +12,7 @@ import pe.edu.utp.clinica.repository.PacienteRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Servicio para gestión de pacientes.
@@ -92,17 +93,22 @@ public class PacienteService {
      */
     @Transactional(readOnly = true)
     public List<PacienteResponse> buscar(String criterio) {
-        List<Paciente> resultados = pacienteRepository.buscarPorCriterio(criterio);
+        String criterioNormalizado = StringUtils.trimToEmpty(criterio);
+
+        if (StringUtils.isBlank(criterioNormalizado)) {
+            throw new IllegalArgumentException("El criterio de búsqueda no puede estar vacío");
+        }
+
+        List<Paciente> resultados = pacienteRepository.buscarPorCriterio(criterioNormalizado);
 
         if (resultados.isEmpty()) {
-            log.debug("No se encontraron pacientes con criterio: {}", criterio);
+            log.debug("No se encontraron pacientes con criterio: {}", criterioNormalizado);
         }
 
         return resultados.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
-
     /**
      * Lista todos los pacientes registrados.
      * RF-04: Lista completa con DNI, nombre, apellido, celular y correo.
