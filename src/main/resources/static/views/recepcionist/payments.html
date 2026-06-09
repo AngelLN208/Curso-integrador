@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stella Maris || Pagos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0F1D3A;
+            --secondary: #373761;
+            --accent: #F1BB86;
+            --light: #FFFFFF;
+        }
+        body { background: var(--primary); font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background: var(--secondary); min-height: 100vh; padding: 25px; }
+        .logo-container { text-align: center; margin-bottom: 40px; }
+        .logo { max-width: 130px; }
+        .menu { display: flex; flex-direction: column; gap: 10px; }
+        .menu a { color: white; text-decoration: none; padding: 12px; border-radius: 12px; transition: .3s; }
+        .menu a:hover, .menu .active { background: var(--accent); color: var(--primary); }
+        .main-content { padding: 30px; }
+        .page-header { color: white; margin-bottom: 30px; }
+        .page-header p { color: rgba(255,255,255,.6); margin: 0; }
+        .dashboard-card { border: none; border-radius: 20px; text-align: center; padding: 20px; }
+        .dashboard-card h1 { color: var(--secondary); font-weight: bold; font-size: 2rem; }
+        .dashboard-card p { color: #666; margin: 0; font-size: .9rem; }
+        .section-card { border: none; border-radius: 20px; overflow: hidden; }
+        .card-header-custom { background: var(--secondary); color: white; padding: 15px 20px; font-weight: 600; }
+        .table thead th { background: #f8f9fa; color: var(--secondary); font-size: .85rem; border: none; padding: 12px 16px; }
+        .table tbody td { padding: 12px 16px; vertical-align: middle; font-size: .9rem; border-color: #f0f0f0; }
+        .badge { font-weight: 500; font-size: .78rem; padding: 5px 10px; border-radius: 8px; }
+        .btn-warning { background: var(--accent); border: none; color: var(--primary); font-weight: 600; }
+        .btn-warning:hover { background: #e8aa6d; color: var(--primary); }
+        .form-control, .form-select { border-radius: 10px; border: 1px solid #dee2e6; font-size: .9rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--secondary); box-shadow: 0 0 0 .2rem rgba(55,55,97,.15); }
+        .estado-pagado { color: #198754; font-weight: 600; }
+        .estado-pendiente { color: #dc3545; font-weight: 600; }
+        #alerta-global { display: none; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Sidebar -->
+        <aside class="col-md-2 sidebar">
+            <div class="logo-container">
+                <img src="../../../static/img/stella-maris-logo.png" alt="Stella Maris" class="img-fluid logo">
+            </div>
+            <nav class="menu">
+                <a href="/views/recepcionist/dashboard.html">Inicio</a>
+                <a href="/views/recepcionist/patients.html">Pacientes</a>
+                <a href="/views/recepcionist/appointments.html">Citas</a>
+                <a href="#" class="active">Pagos</a>
+                <a href="/views/recepcionist/profile.html">Mi Perfil</a>
+                <a href="#" id="btnLogout">Cerrar Sesión</a>
+            </nav>
+        </aside>
+
+        <!-- Contenido -->
+        <main class="col-md-10 main-content">
+
+            <div class="page-header">
+                <h2 class="mb-1">Gestión de Pagos</h2>
+                <p>Registro y seguimiento de pagos por cita</p>
+            </div>
+
+            <!-- Alerta global -->
+            <div id="alerta-global" class="alert alert-dismissible fade show mx-1"></div>
+
+            <!-- KPIs -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card dashboard-card">
+                        <h1 id="total-recaudado">S/ 18,450</h1>
+                        <p>Recaudado este mes</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card dashboard-card">
+                        <h1 id="pagos-pendientes">12</h1>
+                        <p>Pagos pendientes</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card dashboard-card">
+                        <h1 id="pagos-hoy">S/ 960</h1>
+                        <p>Cobrado hoy</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card section-card mb-4">
+                <div class="card-header-custom">Filtrar Pagos</div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">Buscar paciente o cita</label>
+                            <input type="text" id="buscar-input" class="form-control" placeholder="Nombre, DNI o N° cita">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado</label>
+                            <select id="filtro-estado" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="PAGADO">Pagado</option>
+                                <option value="PENDIENTE">Pendiente</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" id="filtro-fecha" class="form-control">
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <button class="btn btn-warning w-100" onclick="aplicarFiltros()">Filtrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de pagos -->
+            <div class="card section-card">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <span>Lista de Pagos</span>
+                    <button class="btn btn-sm btn-warning" onclick="exportarCSV()">⬇ Exportar CSV</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>N° Cita</th>
+                                <th>Paciente</th>
+                                <th>Médico</th>
+                                <th>Fecha Cita</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-pagos">
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">Cargando pagos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- Modal: Registrar / Editar Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;border:none;">
+            <div class="modal-header" style="background:var(--secondary);color:white;border:none;">
+                <h5 class="modal-title" id="modal-pago-titulo">Registrar Pago</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">N° de Cita</label>
+                        <input type="text" id="pago-cita-id" class="form-control" placeholder="Ej. 087" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Paciente</label>
+                        <input type="text" id="pago-paciente" class="form-control" placeholder="Nombre del paciente" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Concepto</label>
+                        <input type="text" id="pago-concepto" class="form-control" placeholder="Ej. Consulta Cardiología">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Monto (S/)</label>
+                        <input type="number" id="pago-monto" class="form-control" placeholder="0.00" step="0.01">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Método de Pago</label>
+                        <select id="pago-metodo" class="form-select">
+                            <option value="">Seleccionar...</option>
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="TARJETA">Tarjeta</option>
+                            <option value="TRANSFERENCIA">Transferencia</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Estado</label>
+                        <select id="pago-estado" class="form-select">
+                            <option value="PENDIENTE">Pendiente</option>
+                            <option value="PAGADO">Pagado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Observaciones</label>
+                        <textarea id="pago-observaciones" class="form-control" rows="2" placeholder="Opcional..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border:none;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-warning" onclick="guardarPago()">Guardar Pago</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ver Comprobante -->
+<div class="modal fade" id="modalComprobante" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;border:none;">
+            <div class="modal-header" style="background:var(--secondary);color:white;border:none;">
+                <h5 class="modal-title">Comprobante de Pago</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <div style="font-size:2.5rem;">🧾</div>
+                    <h6 class="mt-2" id="comp-estado-badge"></h6>
+                </div>
+                <table class="table table-borderless table-sm">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted" style="width:45%">N° Cita</td>
+                            <td id="comp-cita"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Paciente</td>
+                            <td id="comp-paciente"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Concepto</td>
+                            <td id="comp-concepto"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Monto</td>
+                            <td id="comp-monto" style="font-weight:700;color:var(--secondary)"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Método</td>
+                            <td id="comp-metodo"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Fecha</td>
+                            <td id="comp-fecha"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="border:none;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-warning" onclick="imprimirComprobante()">🖨 Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/utils/ui.js"></script>
+<script src="../../js/utils/validator.js"></script>
+<script src="../../js/services/api.js"></script>
+<script src="../../js/services/pagoService.js"></script>
+<script src="../../js/recepcionist/payments.js"></script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stella Maris || Auditoría</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0F1D3A;
+            --secondary: #373761;
+            --accent: #F1BB86;
+            --light: #FFFFFF;
+        }
+        body { background: var(--primary); font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background: var(--secondary); min-height: 100vh; padding: 25px; }
+        .logo-container { text-align: center; margin-bottom: 40px; }
+        .logo { max-width: 130px; }
+        .menu { display: flex; flex-direction: column; gap: 10px; }
+        .menu a { color: white; text-decoration: none; padding: 12px; border-radius: 12px; transition: .3s; }
+        .menu a:hover, .menu .active { background: var(--accent); color: var(--primary); }
+        .main-content { padding: 30px; }
+        .page-header { color: white; margin-bottom: 30px; }
+        .page-header p { color: rgba(255,255,255,.6); margin: 0; }
+        .dashboard-card { border: none; border-radius: 20px; text-align: center; padding: 20px; }
+        .dashboard-card h1 { color: var(--secondary); font-weight: bold; font-size: 2rem; }
+        .dashboard-card p { color: #666; margin: 0; font-size: .9rem; }
+        .section-card { border: none; border-radius: 20px; overflow: hidden; }
+        .card-header-custom { background: var(--secondary); color: white; padding: 15px 20px; font-weight: 600; }
+        .table thead th { background: #f8f9fa; color: var(--secondary); font-size: .85rem; border: none; padding: 12px 16px; }
+        .table tbody td { padding: 12px 16px; vertical-align: middle; font-size: .9rem; border-color: #f0f0f0; }
+        .badge { font-weight: 500; font-size: .78rem; padding: 5px 10px; border-radius: 8px; }
+        .btn-warning { background: var(--accent); border: none; color: var(--primary); font-weight: 600; }
+        .btn-warning:hover { background: #e8aa6d; color: var(--primary); }
+        .form-control, .form-select { border-radius: 10px; border: 1px solid #dee2e6; font-size: .9rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--secondary); box-shadow: 0 0 0 .2rem rgba(55,55,97,.15); }
+        .timeline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+        .pagination .page-link { color: var(--secondary); border-radius: 8px; margin: 0 2px; border: 1px solid #dee2e6; }
+        .pagination .page-item.active .page-link { background: var(--secondary); border-color: var(--secondary); }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Sidebar -->
+        <aside class="col-md-2 sidebar">
+            <div class="logo-container">
+                <img src="../../../static/img/stella-maris-logo.png" alt="Stella Maris" class="img-fluid logo">
+            </div>
+            <nav class="menu">
+                <a href="/views/admin/dashboard.html">Inicio</a>
+                <a href="/views/admin/users.html">Usuarios</a>
+                <a href="/views/admin/doctors.html">Médicos</a>
+                <a href="/views/admin/access.html">Control de Acceso</a>
+                <a href="/views/admin/reports.html">Reportes</a>
+                <a href="#" class="active">Auditoría</a>
+                <a href="/views/admin/profile.html">Mi Perfil</a>
+                <a href="#" id="btnLogout">Cerrar Sesión</a>
+            </nav>
+        </aside>
+
+        <!-- Contenido -->
+        <main class="col-md-10 main-content">
+
+            <div class="page-header d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="mb-1">Registro de Auditoría</h2>
+                    <p>Historial completo de operaciones del sistema</p>
+                </div>
+                <button class="btn btn-warning" onclick="exportarAuditoria()">⬇ Exportar CSV</button>
+            </div>
+
+            <!-- KPIs -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1 id="total-eventos">3,841</h1>
+                        <p>Eventos registrados</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1 id="eventos-hoy">47</h1>
+                        <p>Eventos hoy</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1 id="alertas-seguridad" style="color:#dc3545;">3</h1>
+                        <p>Alertas de seguridad</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1 id="usuarios-activos">18</h1>
+                        <p>Usuarios activos hoy</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card section-card mb-4">
+                <div class="card-header-custom">Filtros de Búsqueda</div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Usuario</label>
+                            <input type="text" id="filtro-usuario" class="form-control" placeholder="correo@clinica.com">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Módulo</label>
+                            <select id="filtro-modulo" class="form-select">
+                                <option value="">Todos</option>
+                                <option>Pacientes</option>
+                                <option>Citas</option>
+                                <option>Pagos</option>
+                                <option>Usuarios</option>
+                                <option>Médicos</option>
+                                <option>Seguridad</option>
+                                <option>Sistema</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Acción</label>
+                            <select id="filtro-accion" class="form-select">
+                                <option value="">Todas</option>
+                                <option>CREACION</option>
+                                <option>EDICION</option>
+                                <option>ELIMINACION</option>
+                                <option>CONFIRMACION</option>
+                                <option>CANCELACION</option>
+                                <option>LOGIN</option>
+                                <option>LOGOUT</option>
+                                <option>ERROR</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Fecha inicio</label>
+                            <input type="date" id="filtro-fecha-inicio" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Fecha fin</label>
+                            <input type="date" id="filtro-fecha-fin" class="form-control">
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-warning w-100" onclick="aplicarFiltros()">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de auditoría -->
+            <div class="card section-card mb-4">
+                <div class="card-header-custom">Eventos del Sistema</div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Fecha y Hora</th>
+                                <th>Usuario</th>
+                                <th>Módulo</th>
+                                <th>Acción</th>
+                                <th>Descripción</th>
+                                <th>IP</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-auditoria">
+                            <tr>
+                                <td>3841</td>
+                                <td>09/06/2026 10:42</td>
+                                <td>maria.fernandez@clinica.com</td>
+                                <td><span class="badge" style="background:#e8f5e9;color:#2e7d32;">Pacientes</span></td>
+                                <td><span class="badge bg-primary">CREACION</span></td>
+                                <td>Registro de nuevo paciente: Juan Pérez Gómez (DNI 72345678)</td>
+                                <td class="text-muted" style="font-size:.8rem;">192.168.1.12</td>
+                                <td><button class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="verDetalle(3841)">Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>3840</td>
+                                <td>09/06/2026 10:15</td>
+                                <td>lucia.torres@clinica.com</td>
+                                <td><span class="badge" style="background:#fff8e1;color:#f57f17;">Citas</span></td>
+                                <td><span class="badge bg-danger">CANCELACION</span></td>
+                                <td>Cancelación de cita #087 — Dr. Ramírez / Cardiología</td>
+                                <td class="text-muted" style="font-size:.8rem;">192.168.1.8</td>
+                                <td><button class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="verDetalle(3840)">Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>3839</td>
+                                <td>09/06/2026 09:58</td>
+                                <td>admin@clinica.com</td>
+                                <td><span class="badge" style="background:#e3f2fd;color:#1565c0;">Médicos</span></td>
+                                <td><span class="badge bg-primary">CREACION</span></td>
+                                <td>Alta de nuevo médico: Dra. Sofía Vargas — Neurología</td>
+                                <td class="text-muted" style="font-size:.8rem;">192.168.1.2</td>
+                                <td><button class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="verDetalle(3839)">Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>3838</td>
+                                <td>09/06/2026 09:30</td>
+                                <td>sistema</td>
+                                <td><span class="badge" style="background:#f3e5f5;color:#6a1b9a;">Sistema</span></td>
+                                <td><span class="badge bg-success">BACKUP</span></td>
+                                <td>Backup automático nocturno completado (tamaño: 2.3 GB)</td>
+                                <td class="text-muted" style="font-size:.8rem;">localhost</td>
+                                <td><button class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="verDetalle(3838)">Ver</button></td>
+                            </tr>
+                            <tr style="background:#fff5f5;">
+                                <td>3837</td>
+                                <td>08/06/2026 23:10</td>
+                                <td>unknown</td>
+                                <td><span class="badge" style="background:#fce4ec;color:#b71c1c;">Seguridad</span></td>
+                                <td><span class="badge bg-danger">ERROR</span></td>
+                                <td>3 intentos de acceso fallidos consecutivos desde IP externa</td>
+                                <td class="text-muted" style="font-size:.8rem;">203.45.67.89</td>
+                                <td><button class="btn btn-sm btn-outline-danger" style="border-radius:8px;" onclick="verDetalle(3837)">Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>3836</td>
+                                <td>08/06/2026 18:45</td>
+                                <td>carlos.mendoza@clinica.com</td>
+                                <td><span class="badge" style="background:#e8f5e9;color:#2e7d32;">Pagos</span></td>
+                                <td><span class="badge bg-success">CONFIRMACION</span></td>
+                                <td>Pago registrado — Cita #085, S/ 150.00 (Transferencia)</td>
+                                <td class="text-muted" style="font-size:.8rem;">192.168.1.5</td>
+                                <td><button class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="verDetalle(3836)">Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td>3835</td>
+                                <td>08/06/2026 17:30</td>
+                                <td>maria.fernandez@clinica.com</td>
+                                <td><span class="badge" style="background:#e8eaf6;color:#283593;">Usuarios</span></td>
+                                <td><span class="badge" style="background:#ff9800;color:white;">EDICION</span></td>
+                                <td>Actualización de datos de usuario: lucia.torres@clinica.com</td>
+                                <td class="text-muted" style="font-size:.8rem;">192.168.1.12</td>
+                                <td><button class="btn btn-sm btn-outline-secondary" style="border-radius:8px;" onclick="verDetalle(3835)">Ver</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="card-body border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Mostrando 1–7 de 3,841 eventos</small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item disabled"><a class="page-link" href="#">‹</a></li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">…</a></li>
+                            <li class="page-item"><a class="page-link" href="#">549</a></li>
+                            <li class="page-item"><a class="page-link" href="#">›</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- Modal: Detalle de Evento -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;border:none;">
+            <div class="modal-header" style="background:var(--secondary);color:white;border:none;">
+                <h5 class="modal-title">Detalle del Evento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <table class="table table-borderless table-sm">
+                    <tbody>
+                        <tr><td class="text-muted" style="width:40%">ID Evento</td><td id="det-id" style="font-weight:600;font-family:monospace;"></td></tr>
+                        <tr><td class="text-muted">Fecha y hora</td><td id="det-fecha"></td></tr>
+                        <tr><td class="text-muted">Usuario</td><td id="det-usuario"></td></tr>
+                        <tr><td class="text-muted">Módulo</td><td id="det-modulo"></td></tr>
+                        <tr><td class="text-muted">Acción</td><td id="det-accion"></td></tr>
+                        <tr><td class="text-muted">Descripción</td><td id="det-descripcion"></td></tr>
+                        <tr><td class="text-muted">Dirección IP</td><td id="det-ip" style="font-family:monospace;"></td></tr>
+                        <tr><td class="text-muted">User-Agent</td><td id="det-ua" style="font-size:.8rem;color:#888;"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="border:none;">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/services/api.js"></script>
+<script src="../../js/admin/audit.js"></script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../static/css/global.css">
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Sidebar -->
+        <aside class="col-md-2 sidebar">
+            <div class="logo-container">
+                <img src="../../../static/img/stella-maris-logo.png"
+                     alt="Stella Maris" class="img-fluid logo">
+            </div>
+            <nav class="menu">
+                <a href="#">Inicio</a>
+                <a href="#">Usuarios</a>
+                <a href="#">Médicos</a>
+                <a href="#">Control de Acceso</a>
+                <a href="#" class="active">Reportes</a>
+                <a href="#">Mi Perfil</a>
+                <a href="#">Cerrar Sesión</a>
+            </nav>
+        </aside>
+
+        <!-- Contenido -->
+        <main class="col-md-10 main-content">
+
+            <div class="page-header">
+                <div>
+                    <h2>Reportes Administrativos</h2>
+                    <p>Generación y descarga de reportes del sistema</p>
+                </div>
+            </div>
+
+            <!-- Filtros generales -->
+            <div class="card section-card mb-4">
+                <div class="card-header-custom">Filtros</div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha Inicio</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha Fin</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Especialidad</label>
+                            <select class="form-select">
+                                <option value="">Todas</option>
+                                <option>Cardiología</option>
+                                <option>Pediatría</option>
+                                <option>Traumatología</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Médico</label>
+                            <select class="form-select">
+                                <option value="">Todos</option>
+                                <option>Dr. Ramírez</option>
+                                <option>Dra. García</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas resumen -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1>142</h1>
+                        <p>Total Citas</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1>S/ 18,450</h1>
+                        <p>Ingresos del Período</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1>350</h1>
+                        <p>Pacientes Atendidos</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <h1>94%</h1>
+                        <p>Tasa de Asistencia</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporte de Citas -->
+            <div class="card section-card mb-4">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <span>Reporte de Citas</span>
+                    <button class="btn btn-sm btn-warning"
+                            style="color:var(--primary); font-weight:600;">
+                        ⬇ Descargar CSV
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Paciente</th>
+                                <th>Médico</th>
+                                <th>Especialidad</th>
+                                <th>Estado</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>08/06/2026</td>
+                                <td>Juan Pérez Gómez</td>
+                                <td>Dr. Ramírez</td>
+                                <td>Cardiología</td>
+                                <td><span class="badge bg-success">Confirmada</span></td>
+                                <td>S/ 120.00</td>
+                            </tr>
+                            <tr>
+                                <td>08/06/2026</td>
+                                <td>Ana Torres Díaz</td>
+                                <td>Dra. García</td>
+                                <td>Pediatría</td>
+                                <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                                <td>S/ 80.00</td>
+                            </tr>
+                            <tr>
+                                <td>07/06/2026</td>
+                                <td>Carlos Ruiz</td>
+                                <td>Dr. Mendoza</td>
+                                <td>Traumatología</td>
+                                <td><span class="badge bg-danger">Cancelada</span></td>
+                                <td>S/ 0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reporte de Pagos -->
+            <div class="card section-card mb-4">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <span>Reporte de Pagos</span>
+                    <button class="btn btn-sm btn-warning"
+                            style="color:var(--primary); font-weight:600;">
+                        ⬇ Descargar CSV
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Paciente</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>08/06/2026</td>
+                                <td>Juan Pérez Gómez</td>
+                                <td>Consulta Cardiología</td>
+                                <td>S/ 120.00</td>
+                                <td><span class="badge bg-success">Pagado</span></td>
+                            </tr>
+                            <tr>
+                                <td>07/06/2026</td>
+                                <td>Rosa Mamani Cruz</td>
+                                <td>Consulta Neurología</td>
+                                <td>S/ 150.00</td>
+                                <td><span class="badge bg-success">Pagado</span></td>
+                            </tr>
+                            <tr>
+                                <td>06/06/2026</td>
+                                <td>Luis Castillo Ríos</td>
+                                <td>Consulta Dermatología</td>
+                                <td>S/ 90.00</td>
+                                <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reporte de Auditoría -->
+            <div class="card section-card">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <span>Auditoría de Citas</span>
+                    <button class="btn btn-sm btn-warning"
+                            style="color:var(--primary); font-weight:600;">
+                        ⬇ Descargar CSV
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha Acción</th>
+                                <th>Cita</th>
+                                <th>Acción</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>08/06/2026 09:15</td>
+                                <td>#001 — Juan Pérez</td>
+                                <td><span class="badge bg-success">CONFIRMACION</span></td>
+                                <td>maria.fernandez@clinica.com</td>
+                            </tr>
+                            <tr>
+                                <td>08/06/2026 08:30</td>
+                                <td>#001 — Juan Pérez</td>
+                                <td><span class="badge bg-primary">CREACION</span></td>
+                                <td>maria.fernandez@clinica.com</td>
+                            </tr>
+                            <tr>
+                                <td>07/06/2026 14:00</td>
+                                <td>#003 — Carlos Ruiz</td>
+                                <td><span class="badge bg-danger">CANCELACION</span></td>
+                                <td>lucia.torres@clinica.com</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
