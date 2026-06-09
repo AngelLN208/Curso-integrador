@@ -1,4 +1,7 @@
 console.log('patients.js cargado');
+console.log('token:', localStorage.getItem('token'));
+console.log('usuario:', localStorage.getItem('usuario'));
+
 // ─── Guard ───────────────────────────────────────────────────
 const usuario = JSON.parse(localStorage.getItem('usuario'));
 if (!localStorage.getItem('token') || !usuario) {
@@ -15,7 +18,6 @@ document.getElementById('btnLogout').addEventListener('click', (e) => {
 
 let pacienteActivoId = null;
 
-
 // ─── Cargar tabla ────────────────────────────────────────────
 async function cargarPacientes(criterio = '') {
     console.log('cargarPacientes ejecutado');
@@ -24,10 +26,11 @@ async function cargarPacientes(criterio = '') {
             ? await PacienteService.buscar(criterio)
             : await PacienteService.listar();
 
+        console.log('pacientes recibidos:', pacientes);
+
         const tbody = document.getElementById('tabla-pacientes');
         tbody.innerHTML = '';
 
-        // Tarjetas
         document.getElementById('total-pacientes').textContent = pacientes.length;
 
         const hoy = new Date();
@@ -65,6 +68,7 @@ async function cargarPacientes(criterio = '') {
         });
 
     } catch (err) {
+        console.error('Error en cargarPacientes:', err);
         UI.mostrarError(err);
     }
 }
@@ -76,13 +80,13 @@ async function abrirVer(id) {
         const p = await PacienteService.getById(id);
 
         const iniciales = (p.nombres[0] + p.apellidos[0]).toUpperCase();
-        document.getElementById('ver-iniciales').textContent      = iniciales;
-        document.getElementById('ver-nombre').textContent         = `${p.nombres} ${p.apellidos}`;
-        document.getElementById('ver-dni').textContent            = `DNI: ${p.dni}`;
+        document.getElementById('ver-iniciales').textContent       = iniciales;
+        document.getElementById('ver-nombre').textContent          = `${p.nombres} ${p.apellidos}`;
+        document.getElementById('ver-dni').textContent             = `DNI: ${p.dni}`;
         document.getElementById('ver-fechaNacimiento').textContent = UI.formatFecha(p.fechaNacimiento);
-        document.getElementById('ver-celular').textContent        = p.celular;
-        document.getElementById('ver-correo').textContent         = p.correo ?? '-';
-        document.getElementById('ver-sexo').textContent           = p.sexo === 'M' ? 'Masculino' : 'Femenino';
+        document.getElementById('ver-celular').textContent         = p.celular;
+        document.getElementById('ver-correo').textContent          = p.correo ?? '-';
+        document.getElementById('ver-sexo').textContent            = p.sexo === 'M' ? 'Masculino' : 'Femenino';
 
         new bootstrap.Modal(document.getElementById('modalVer')).show();
     } catch (err) {
@@ -112,17 +116,15 @@ async function abrirEditar(id) {
 
 async function guardarEdicion() {
     const form = {
-        dni:              document.getElementById('edit-pac-dni').value,
-        nombres:          document.getElementById('edit-pac-nombres').value,
-        apellidos:        document.getElementById('edit-pac-apellidos').value,
-        fechaNacimiento:  document.getElementById('edit-pac-fechaNacimiento').value,
-        celular:          document.getElementById('edit-pac-celular').value,
-        correo:           document.getElementById('edit-pac-correo').value,
-        sexo:             document.getElementById('edit-pac-sexo').value
+        dni:             document.getElementById('edit-pac-dni').value,
+        nombres:         document.getElementById('edit-pac-nombres').value,
+        apellidos:       document.getElementById('edit-pac-apellidos').value,
+        fechaNacimiento: document.getElementById('edit-pac-fechaNacimiento').value,
+        celular:         document.getElementById('edit-pac-celular').value,
+        correo:          document.getElementById('edit-pac-correo').value,
+        sexo:            document.getElementById('edit-pac-sexo').value
     };
 
-    // Reutiliza los validators pero con los IDs del modal editar
-    // Validación manual simple aquí para no colisionar con el modal registrar
     if (!form.nombres || !form.apellidos || !form.celular) {
         UI.mostrarAlerta('Completa los campos obligatorios', 'danger');
         return;
@@ -172,4 +174,4 @@ document.getElementById('buscar-input').addEventListener('input', (e) => {
 });
 
 // ─── Init ────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', cargarPacientes);
+cargarPacientes();
