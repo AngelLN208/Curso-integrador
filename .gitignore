@@ -1,38 +1,24 @@
-# ============================================================
-# .gitignore - Sistema de Gestión de Citas Médicas
-# Clínica Aviva - UTP 2026
-# ============================================================
-
 # Maven
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+backend/target/
 
-# VS Code
-.vscode/
-*.code-workspace
-
-# IntelliJ IDEA (por si alguien del equipo lo usa)
-.idea/
-*.iws
-*.iml
-*.ipr
-
-# Logs generados por Logback
+# Logs
 logs/
 *.log
 
-# Sistema operativo
-.DS_Store
-Thumbs.db
-
-# Variables de entorno y configuración sensible
+# Variables de entorno — NUNCA subir
 .env
-application-prod.properties
+backend/src/main/resources/application-prod.properties
 
-# Archivos compilados
-*.class
-*.jar
-*.war
-*.ear
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
