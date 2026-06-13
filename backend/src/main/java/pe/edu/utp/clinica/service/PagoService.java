@@ -1,5 +1,12 @@
 package pe.edu.utp.clinica.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.Year;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,20 +19,25 @@ import pe.edu.utp.clinica.dto.pago.PagoResponse;
 import pe.edu.utp.clinica.model.*;
 import pe.edu.utp.clinica.repository.*;
 
-import java.time.LocalDateTime;
-import java.time.Year;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Servicio para gestión de pagos y comprobantes.
  *
  * RF-14: Registrar pago con monto, fecha y método.
  * RF-15: Confirmar cita al validar pago.
+ * RF-16: Aplicar cobertura del seguro del paciente al monto final.
  * RF-17: Actualizar estado del pago a PAGADO.
- * RF-18: Generar comprobante automáticamente.
+ * RF-18: Generar comprobante automáticamente con número único.
  * RF-19: Restringir pago en cita cancelada.
+ * RF-35: Listar pagos por paciente (query JPQL, no findAll).
  * RNF-08: Comprobante disponible antes de respuesta HTTP.
+ *
+ * BUGS CORREGIDOS:
+ *  - BUG 1 (RF-35): listarPorPaciente() hacía findAll() + filter en memoria.
+ *    Corregido: usa query JPQL directo en PagoRepository.
+ *  - BUG 2 (RF-18): generarComprobante() usaba count()+1, race condition.
+ *    Corregido: usa el ID del pago (único por BD) como base del número.
+ *  - BUG 3 (RF-16): seguro nunca se consultaba, montoFinal = monto siempre.
+ *    Corregido: se busca seguro activo y se aplica cobertura con BigDecimal.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -34,17 +46,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PagoService {
 
-    private final PagoRepository pagoRepository;
-    private final ComprobanteRepository comprobanteRepository;
-    private final CitaService citaService;
+    private final PagoRepository           pagoRepository;
+    private final ComprobanteRepository    comprobanteRepository;
+    private final PacienteSeguroRepository pacienteSeguroRepository;
+    private final CitaService              citaService;
 
     /**
-     * Registra el pago de una cita y genera el comprobante.
-     * RF-14, RF-15, RF-17, RF-18, RF-19.
+     * Registra el pago de una cita, aplica el seguro si existe,
+     * confirma la cita y genera el comprobante.
      *
-     * @param request datos del pago
-     * @param username usuario que realiza el cobro
-     * @return pago registrado
+     * @param request  datos del pago (citaId, monto, metodoPago)
+     * @param username usuario que registra el cobro (recepcionista)
+     * @return PagoResponse con todos los datos del pago
      */
     @Transactional
     public PagoResponse registrarPago(PagoRequest request, String username) {
@@ -53,21 +66,26 @@ public class PagoService {
         // RF-19: No se puede pagar una cita cancelada
         if (cita.getEstado() == EstadoCita.CANCELADA) {
             throw new IllegalStateException(
-                    "No se puede registrar el pago de una cita cancelada.");
+                "No se puede registrar el pago de una cita cancelada.");
         }
 
         Pago pago = pagoRepository.findByCita(cita)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No se encontró el pago asociado a la cita ID: "
-                        + request.getCitaId()));
+                    "No se encontró el pago asociado a la cita ID: "
+                    + request.getCitaId()));
 
         if (pago.getEstado() == EstadoPago.PAGADO) {
-            throw new IllegalStateException("Esta cita ya tiene un pago registrado.");
+            throw new IllegalStateException(
+                "Esta cita ya tiene un pago registrado.");
         }
+
+        // RF-16: Calcular monto final aplicando cobertura del seguro con BigDecimal
+        BigDecimal montoFinal = calcularMontoConSeguro(
+                request.getMonto(), cita.getPaciente());
 
         // RF-17: Actualizar estado del pago a PAGADO
         pago.setMonto(request.getMonto());
-        pago.setMontoFinal(request.getMonto());
+        pago.setMontoFinal(montoFinal);
         pago.setMetodoPago(request.getMetodoPago());
         pago.setFechaPago(LocalDateTime.now());
         pago.setEstado(EstadoPago.PAGADO);
@@ -79,36 +97,59 @@ public class PagoService {
         // RF-18: Generar comprobante automáticamente (RNF-08)
         generarComprobante(pago);
 
-        log.debug("Pago registrado para cita ID: {}", cita.getId());
+        log.info("Pago registrado — cita ID: {} | monto: {} | montoFinal: {}",
+                cita.getId(), request.getMonto(), montoFinal);
         return toResponse(pago);
     }
 
     /**
-     * Lista los pagos de un paciente.
-     * RF-35: Muestra cita asociada, monto y estado.
+     * Lista todos los pagos de un paciente específico.
+     * RF-35: Query JPQL directo — evita findAll() + filter en memoria.
      *
      * @param pacienteId ID del paciente
+     * @return lista de pagos del paciente ordenados por fecha descendente
      */
     @Transactional(readOnly = true)
     public List<PagoResponse> listarPorPaciente(Long pacienteId) {
-        // Usamos findAll y filtramos por paciente
-        return pagoRepository.findAll()
+        return pagoRepository.findByCitaPacienteId(pacienteId)
                 .stream()
-                .filter(p -> p.getCita().getPaciente().getId().equals(pacienteId))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    // ─── Métodos internos ─────────────────────────────────────────────
+    // ─── Métodos privados ─────────────────────────────────────────────────────
+
+    /**
+     * Calcula el monto final aplicando la cobertura del seguro (RF-16).
+     * Usa BigDecimal para evitar errores de precisión en operaciones monetarias.
+     * Ejemplo: monto=100.00, cobertura=30% → montoFinal=70.00
+     */
+    private BigDecimal calcularMontoConSeguro(BigDecimal montoBruto, Paciente paciente) {
+        return pacienteSeguroRepository
+                .findFirstByPacienteAndActivoTrue(paciente)
+                .map(ps -> {
+                    BigDecimal cobertura  = ps.getSeguro().getPorcentajeCobertura();
+                    BigDecimal descuento  = montoBruto
+                            .multiply(cobertura)
+                            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                    BigDecimal montoFinal = montoBruto.subtract(descuento);
+                    log.info("Seguro aplicado — paciente ID: {} | cobertura: {}% | "
+                            + "bruto: {} | descuento: {} | final: {}",
+                            paciente.getId(), cobertura,
+                            montoBruto, descuento, montoFinal);
+                    return montoFinal;
+                })
+                .orElse(montoBruto);
+    }
 
     /**
      * Genera el comprobante de pago con número único.
-     * RF-18: Número formato COMP-{año}-{id con ceros}.
-     * RNF-08: Se genera antes de retornar la respuesta HTTP.
+     * RF-18: Formato COMP-{año}-{id con ceros}.
+     * CORRECCIÓN: usa pago.getId() en lugar de count()+1 — sin race condition.
      */
     private void generarComprobante(Pago pago) {
-        long total = comprobanteRepository.count() + 1;
-        String numero = String.format("COMP-%d-%06d", Year.now().getValue(), total);
+        String numero = String.format("COMP-%d-%06d",
+                Year.now().getValue(), pago.getId());
 
         Comprobante comprobante = Comprobante.builder()
                 .numero(numero)
@@ -118,7 +159,7 @@ public class PagoService {
                 .build();
 
         comprobanteRepository.save(comprobante);
-        log.debug("Comprobante generado: {}", numero);
+        log.info("Comprobante generado: {}", numero);
     }
 
     private PagoResponse toResponse(Pago p) {
