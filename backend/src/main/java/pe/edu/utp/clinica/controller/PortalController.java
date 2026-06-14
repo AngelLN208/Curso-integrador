@@ -1,5 +1,7 @@
 package pe.edu.utp.clinica.controller;
 
+import pe.edu.utp.clinica.service.HistorialPdfService;
+import pe.edu.utp.clinica.service.PortalPagoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -38,6 +40,8 @@ public class PortalController {
 
         private final PortalService portalService;
         private final ChatbotService chatbotService;
+        private final HistorialPdfService historialPdfService;
+        private final PortalPagoService portalPagoService;
 
         // ─── RF-52: Directorio público ────────────────────────────────────────────
 
@@ -124,5 +128,51 @@ public class PortalController {
                         @AuthenticationPrincipal UserDetails userDetails) {
                 ChatbotResponse respuesta = chatbotService.responder(request, userDetails.getUsername());
                 return ResponseEntity.ok(ApiResponse.success("Respuesta generada correctamente", respuesta));
+        }
+        // ─── RF-53: Historial en PDF ──────────────────────────────────────────────
+
+        /**
+         * Descarga el historial médico completo del paciente en PDF.
+         * RF-53: Incluye todas las consultas con diagnóstico y tratamiento.
+         * RNF-19: Generado en menos de 3 segundos.
+         *
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @GetMapping(value = "/historial/pdf", produces = "application/pdf")
+        @Operation(summary = "Descargar historial médico en PDF", description = "Requiere autenticación. Genera y descarga el historial clínico completo en PDF.")
+        public ResponseEntity<byte[]> descargarHistorialPdf(
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                byte[] pdf = historialPdfService.generarHistorial(
+                                userDetails.getUsername());
+
+                return ResponseEntity.ok()
+                                .header("Content-Disposition",
+                                                "attachment; filename=\"historial-medico.pdf\"")
+                                .header("Content-Length", String.valueOf(pdf.length))
+                                .body(pdf);
+        }
+
+        // ─── RF-56: Pago desde portal ─────────────────────────────────────────────
+
+        /**
+         * El paciente paga su cita directamente desde el portal.
+         * RF-56: Solo puede pagar citas propias en estado PENDIENTE.
+         * Valida algoritmo de Luhn si el método es TARJETA.
+         *
+         * @param request     datos del pago
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @PostMapping("/pagos")
+        @Operation(summary = "Pagar cita desde el portal", description = "Requiere autenticación. El paciente paga su cita con validación de ownership.")
+        public ResponseEntity<ApiResponse<pe.edu.utp.clinica.dto.pago.PagoResponse>> pagarCita(
+                        @Valid @RequestBody PagoPortalRequest request,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                pe.edu.utp.clinica.dto.pago.PagoResponse pago = portalPagoService.pagarDesdePortal(
+                                request, userDetails.getUsername());
+
+                return ResponseEntity.ok(ApiResponse.success(
+                                "Pago registrado correctamente", pago));
         }
 }
