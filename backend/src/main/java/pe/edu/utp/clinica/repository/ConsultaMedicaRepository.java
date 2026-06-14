@@ -32,4 +32,11 @@ public interface ConsultaMedicaRepository extends JpaRepository<ConsultaMedica, 
      * RF-26 y RF-27.
      */
     List<ConsultaMedica> findByCitaPacienteOrderByCitaFechaHoraDesc(Paciente paciente);
+
+    /**
+     * Busca la consulta más reciente de un paciente.
+     * RF-51: Último diagnóstico mostrado en el dashboard.
+     */
+    Optional<ConsultaMedica> findTopByCitaPacienteOrderByCitaFechaHoraDesc(
+            Paciente paciente);
 }

@@ -24,4 +24,7 @@ public interface EspecialidadRepository extends JpaRepository<Especialidad, Long
 
     /** Busca especialidad por nombre exacto */
     Optional<Especialidad> findByNombreIgnoreCase(String nombre);
+
+    
+    
 }

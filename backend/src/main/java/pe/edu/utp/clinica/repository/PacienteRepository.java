@@ -31,10 +31,16 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
      * Usa ILIKE para búsqueda insensible a mayúsculas en PostgreSQL.
      */
     @Query("""
-        SELECT p FROM Paciente p
-        WHERE p.dni LIKE %:criterio%
-           OR LOWER(p.nombres) LIKE LOWER(CONCAT('%', :criterio, '%'))
-           OR LOWER(p.apellidos) LIKE LOWER(CONCAT('%', :criterio, '%'))
-        """)
+            SELECT p FROM Paciente p
+            WHERE p.dni LIKE %:criterio%
+               OR LOWER(p.nombres) LIKE LOWER(CONCAT('%', :criterio, '%'))
+               OR LOWER(p.apellidos) LIKE LOWER(CONCAT('%', :criterio, '%'))
+            """)
     List<Paciente> buscarPorCriterio(@Param("criterio") String criterio);
+
+    /**
+     * Busca paciente por correo para autenticación del portal.
+     * RF-29: El paciente se autentica con correo y contraseña.
+     */
+    Optional<Paciente> findByCorreo(String correo);
 }

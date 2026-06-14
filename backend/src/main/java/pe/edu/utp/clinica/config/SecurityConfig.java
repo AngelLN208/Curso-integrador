@@ -33,15 +33,15 @@ import java.util.List;
  * RNF-03: Control de acceso por rol con @PreAuthorize.
  *
  * Rutas públicas (sin token):
- *   - POST /api/auth/login
- *   - GET  /swagger-ui/**
- *   - GET  /api-docs/**
+ * - POST /api/auth/login
+ * - GET /swagger-ui/**
+ * - GET /api-docs/**
  *
  * @author Equipo Curso Integrador UTP 2026
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity   // Habilita @PreAuthorize en los controllers
+@EnableMethodSecurity // Habilita @PreAuthorize en los controllers
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -82,22 +82,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ← agrega esto
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/auth/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/api-docs/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ← agrega esto
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/api-docs/**",
+                                "/v3/api-docs/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -107,14 +105,13 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
-            "http://localhost:5500",
-            "http://127.0.0.1:5500",
-            "http://localhost:8080"
-        ));
+                "http://localhost:5500",
+                "http://localhost:5501",
+                "http://127.0.0.1:5500",
+                "http://127.0.0.1:5501"));
 
         config.setAllowedMethods(List.of(
-            "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-        ));
+                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

@@ -28,4 +28,10 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
     /** Lista todos los médicos activos */
     List<Medico> findByActivoTrue();
+
+    /**
+     * Lista médicos activos de una especialidad.
+     * RF-52: Usado en el directorio público del portal paciente.
+     */
+    List<Medico> findByEspecialidadIdAndActivoTrue(Long especialidadId);
 }

@@ -17,8 +17,8 @@ import java.util.Optional;
  * RF-14: Registro del pago de una cita.
  * RF-17: Actualización del estado a PAGADO.
  * RF-35: Listar pagos por paciente (CORRECCIÓN: query JPQL directo,
- *         antes se usaba findAll() + filter en Java lo que cargaba
- *         toda la tabla en memoria).
+ * antes se usaba findAll() + filter en Java lo que cargaba
+ * toda la tabla en memoria).
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -38,4 +38,17 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
      */
     @Query("SELECT p FROM Pago p WHERE p.cita.paciente.id = :pacienteId ORDER BY p.creadoEn DESC")
     List<Pago> findByCitaPacienteId(@Param("pacienteId") Long pacienteId);
+
+    /**
+     * Busca el pago pendiente más reciente de un paciente.
+     * RF-51: Acceso rápido a pagar desde el dashboard.
+     */
+    @Query("""
+            SELECT p FROM Pago p
+            WHERE p.cita.paciente.id = :pacienteId
+              AND p.estado = 'PENDIENTE'
+            ORDER BY p.creadoEn DESC
+            """)
+    java.util.Optional<Pago> findFirstPendientePorPaciente(
+            @Param("pacienteId") Long pacienteId);
 }
