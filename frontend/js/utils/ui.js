@@ -1,31 +1,46 @@
+/**
+ * ui.js — Utilidades de interfaz compartidas
+ * Requiere: global.css con las clases .badge-*
+ */
 const UI = {
-    badgeEstado: (estado) => {
-        const clases = {
-            'CONFIRMADA': 'bg-success',
-            'PENDIENTE':  'bg-warning text-dark',
-            'CANCELADA':  'bg-danger',
-            'REPROGRAMADA': 'bg-info text-dark'
-        };
-        return `<span class="badge ${clases[estado] || 'bg-secondary'}">${estado}</span>`;
-    },
 
-    formatFecha: (isoDate) => {
-        if (!isoDate) return '-';
-        const [y, m, d] = isoDate.split('-');
-        return `${d}/${m}/${y}`;
-    },
+  badgeEstado: (estado) => {
+    const map = {
+      'CONFIRMADA':   ['badge-confirmada',   '✓ Confirmada'],
+      'PENDIENTE':    ['badge-pendiente',    '⏳ Pendiente'],
+      'CANCELADA':    ['badge-cancelada',    '✕ Cancelada'],
+      'REPROGRAMADA': ['badge-reprogramada', '↺ Reprogramada'],
+      'ATENDIDA':     ['badge-atendida',     '★ Atendida'],
+    };
+    const [cls, label] = map[estado] || ['badge-pendiente', estado];
+    return `<span class="badge ${cls}">${label}</span>`;
+  },
 
-    mostrarAlerta: (mensaje, tipo = 'success') => {
-        const alerta = document.getElementById('alerta-global');
-        if (!alerta) return;
-        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
-        alerta.innerHTML = `${mensaje}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-        alerta.style.display = 'block';
-        setTimeout(() => alerta.style.display = 'none', 4000);
-    },
+  formatFecha: (isoDate) => {
+    if (!isoDate) return '—';
+    const [y, m, d] = isoDate.split('-');
+    return `${d}/${m}/${y}`;
+  },
 
-    mostrarError: (err) => {
-        UI.mostrarAlerta(err.message || 'Ocurrió un error', 'danger');
+  mostrarAlerta: (mensaje, tipo = 'success') => {
+    // buscar o crear contenedor de alertas
+    let box = document.getElementById('alerta-global');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'alerta-global';
+      box.style.cssText = 'position:fixed;top:20px;right:24px;z-index:9999;min-width:300px';
+      document.body.appendChild(box);
     }
+    const cls = tipo === 'success' ? 'alert-success'
+              : tipo === 'danger'  ? 'alert-danger'
+              :                      'alert-warning';
+    box.innerHTML = `<div class="alert ${cls}" style="box-shadow:0 4px 16px rgba(0,0,0,.12)">
+      ${mensaje}
+    </div>`;
+    setTimeout(() => box.innerHTML = '', 4000);
+  },
+
+  mostrarError: (err) => {
+    UI.mostrarAlerta(err?.message || 'Ocurrió un error inesperado', 'danger');
+  }
 };

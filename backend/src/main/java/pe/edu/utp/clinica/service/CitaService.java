@@ -1,9 +1,12 @@
 package pe.edu.utp.clinica.service;
+
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 import pe.edu.utp.clinica.common.enums.EstadoCita;
 import pe.edu.utp.clinica.common.enums.EstadoPago;
@@ -62,11 +65,19 @@ public class CitaService {
                 Medico medico = medicoService.buscarEntidadPorId(request.getMedicoId());
                 Usuario usuario = buscarUsuario(username);
 
-                // RF-10: Validar disponibilidad del médico
+                // RF-10: Validar disponibilidad del médico (hora exacta)
                 if (citaRepository.existeConflictoHorario(medico, request.getFechaHora())) {
                         throw new IllegalStateException(
-                                        "El médico no tiene disponibilidad en el horario seleccionado. "
-                                                        + "Por favor elija otro horario.");
+                                        "El médico no tiene disponibilidad en el horario seleccionado.");
+                }
+
+                // Separación mínima de 45 minutos entre citas del mismo médico
+                LocalDateTime desde = request.getFechaHora().minusMinutes(44);
+                LocalDateTime hasta = request.getFechaHora().plusMinutes(44);
+                if (citaRepository.existeCitaCercana(medico, desde, hasta)) {
+                        throw new IllegalStateException(
+                                        "Debe haber al menos 45 minutos entre citas del mismo médico. "
+                                                        + "Por favor elige otro horario.");
                 }
 
                 CitaMedica cita = CitaMedica.builder()

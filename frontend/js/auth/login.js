@@ -1,95 +1,56 @@
-document.getElementById('loginForm').addEventListener('submit', handleLogin);
+/**
+ * login.js — Lógica del formulario de inicio de sesión
+ * Requiere: config.js, api.js
+ */
 
-async function handleLogin(event) {
-    event.preventDefault();
+const form = document.getElementById('loginForm');
+const btnLogin = document.getElementById('btnLogin');
+const errorMsg = document.getElementById('error-msg');
+const errorTxt = document.getElementById('error-text');
 
-    const username = document.getElementById('email').value.trim();
+// ── Submit ────────────────────────────────────────────────────
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    ocultarError();
+
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    const btnLogin = document.querySelector('.btn-login');
 
-    // Validaciones
-    if (isEmpty(username)) {
-        mostrarError('El correo es obligatorio');
-        return;
-    }
-    if (!isValidEmail(username)) {
-        mostrarError('El correo no tiene un formato válido');
-        return;
-    }
-    if (isEmpty(password)) {
-        mostrarError('La contraseña es obligatoria');
-        return;
-    }
+    // Validaciones cliente
+    if (!email) return mostrarError('El correo es obligatorio');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return mostrarError('El correo no tiene un formato válido');
+    if (!password) return mostrarError('La contraseña es obligatoria');
 
     // Loading
+    btnLogin.classList.add('loading');
     btnLogin.disabled = true;
-    btnLogin.textContent = 'Iniciando sesión...';
 
     try {
-        const data = await login(username, password);
-
-        // Guarda token y datos del usuario
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('usuario', JSON.stringify({
-            username:       data.username,        // correo
-            nombreCompleto: data.nombreCompleto,  // para mostrar en el dashboard "Bienvenida, María"
-            rol:            data.rol              // ROLE_RECEPCIONISTA / ROLE_MEDICO / ROLE_ADMINISTRADOR
-        }));
-
-        // Redirige según rol
-        redirigirPorRol(data.rol);
-
+        await AuthService.login(email, password);
+        // AuthService redirige automáticamente según el rol
     } catch (err) {
-        mostrarError(err.message);
+        mostrarError(err.message || 'Credenciales incorrectas. Intenta de nuevo.');
     } finally {
+        btnLogin.classList.remove('loading');
         btnLogin.disabled = false;
-        btnLogin.textContent = 'Iniciar sesión';
     }
-}
+});
 
-function redirigirPorRol(rol) {
-    const rutas = {
-        'ROLE_RECEPCIONISTA': '/src/main/resources/static/views/recepcionist/dashboard.html',
-        'ROLE_MEDICO':        '/src/main/resources/static/views/medico/dashboard.html',
-        'ROLE_ADMINISTRADOR': '/src/main/resources/static/views/admin/dashboard.html'
-    };
-    const ruta = rutas[rol];
-    if (ruta) {
-        window.location.href = ruta;
-    } else {
-        mostrarError('Rol no reconocido: ' + rol);
-    }
-}
-
-// ─── Helpers ─────────────────────────────────────────────────
-
-function mostrarError(mensaje) {
-    let alerta = document.getElementById('login-error');
-    if (!alerta) {
-        alerta = document.createElement('div');
-        alerta.id = 'login-error';
-        alerta.className = 'alert alert-danger mt-3';
-        document.getElementById('loginForm').prepend(alerta);
-    }
-    alerta.textContent = mensaje;
-    alerta.style.display = 'block';
-}
-
-function isEmpty(valor) {
-    return !valor || valor.trim() === '';
-}
-
-function isValidEmail(valor) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
-}
-
-// ─── Toggle password ─────────────────────────────────────────
-
+// ── Toggle contraseña ─────────────────────────────────────────
 document.getElementById('togglePassword').addEventListener('click', () => {
     const input = document.getElementById('password');
-    const icon  = document.querySelector('#togglePassword i');
-    const esPassword = input.type === 'password';
-    input.type = esPassword ? 'text' : 'password';
-    icon.classList.toggle('bi-eye',       !esPassword);
-    icon.classList.toggle('bi-eye-slash',  esPassword);
+    const icon = document.getElementById('toggle-icon');
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
 });
+
+// ── Helpers ───────────────────────────────────────────────────
+function mostrarError(msg) {
+    errorTxt.textContent = msg;
+    errorMsg.classList.add('visible');
+}
+function ocultarError() {
+    errorMsg.classList.remove('visible');
+}

@@ -90,6 +90,7 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/portal/directorio",
                                 "/api/portal/directorio/**",
+                                "/api/disponibilidad/**", // ← agregar esta línea
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/api-docs/**",
