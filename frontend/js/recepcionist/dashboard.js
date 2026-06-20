@@ -1,16 +1,9 @@
 /**
  * dashboard.js — Panel de recepcionista
  */
-
 AuthService.requireAuth();
 const usuario = Auth.getUsuario();
-
-// ── Info usuario ──────────────────────────────────────────────
-document.getElementById('user-name').textContent   = usuario.nombreCompleto;
-document.getElementById('user-email').textContent  = usuario.username;
-document.getElementById('user-avatar').textContent = usuario.nombreCompleto.charAt(0).toUpperCase();
-document.getElementById('sidebar-role').textContent =
-  usuario.rol === 'ROLE_ADMINISTRADOR' ? 'Administrador' : 'Recepcionista';
+iniciarSidebar('Dashboard');
 
 // ── Saludo y fecha ────────────────────────────────────────────
 const horaActual = new Date().getHours();
@@ -19,9 +12,6 @@ document.getElementById('greeting').textContent =
   `${saludo}, ${usuario.nombreCompleto.split(' ')[0]}`;
 document.getElementById('fecha-hoy').textContent =
   new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' });
-
-// ── Logout ────────────────────────────────────────────────────
-document.getElementById('btnLogout').addEventListener('click', () => AuthService.logout());
 
 // ── Tema ──────────────────────────────────────────────────────
 const themeToggle = document.getElementById('themeToggle');
@@ -35,27 +25,7 @@ aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
   aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
-// ── Modal perfil ──────────────────────────────────────────────
-document.getElementById('sidebar-user-btn').addEventListener('click', () => {
-  document.getElementById('perfil-avatar').textContent = usuario.nombreCompleto.charAt(0).toUpperCase();
-  document.getElementById('perfil-nombre').textContent = usuario.nombreCompleto;
-  document.getElementById('perfil-correo').textContent = usuario.username;
-  document.getElementById('perfil-cargo').textContent  =
-    usuario.rol === 'ROLE_ADMINISTRADOR' ? 'Administrador' :
-    usuario.rol === 'ROLE_MEDICO'        ? 'Médico' : 'Recepcionista';
-  document.getElementById('perfil-rol').textContent =
-    usuario.rol.replace('ROLE_', '').charAt(0) +
-    usuario.rol.replace('ROLE_', '').slice(1).toLowerCase();
-  document.getElementById('modalPerfil').classList.add('open');
-});
-document.getElementById('cerrarPerfil').addEventListener('click', () =>
-  document.getElementById('modalPerfil').classList.remove('open'));
-document.getElementById('modalPerfil').addEventListener('click', e => {
-  if (e.target === document.getElementById('modalPerfil'))
-    document.getElementById('modalPerfil').classList.remove('open');
-});
-
-// ── Estado global (accesible desde HTML) ─────────────────────
+// ── Estado global ─────────────────────────────────────────────
 let todasLasCitas = [];
 
 // ── Filtro calendario próximas citas ─────────────────────────
@@ -65,20 +35,16 @@ document.getElementById('filtro-fecha-proximas').addEventListener('change', () =
 function renderProximas(citas) {
   const hoyStr      = new Date().toISOString().split('T')[0];
   const filtroFecha = document.getElementById('filtro-fecha-proximas').value;
-
   let proximas = citas.filter(c => {
     const fechaCita = c.fechaHora.split('T')[0];
     return fechaCita > hoyStr
       && ['PENDIENTE','CONFIRMADA'].includes(c.estado)
       && (!filtroFecha || fechaCita === filtroFecha);
   });
-
   proximas = proximas
     .sort((a, b) => new Date(a.fechaHora) - new Date(b.fechaHora))
     .slice(0, 8);
-
   const el = document.getElementById('proximas-citas');
-
   if (!proximas.length) {
     el.innerHTML = `<div class="empty-row">
       <i class="bi bi-calendar2-check"
@@ -87,7 +53,6 @@ function renderProximas(citas) {
     </div>`;
     return;
   }
-
   el.innerHTML = proximas.map(c => {
     const partes   = c.fechaHora.split('T');
     const fechaStr = partes[0];
@@ -95,7 +60,6 @@ function renderProximas(citas) {
     const [h, m]   = horaStr.split(':');
     const fechaDisp = new Date(fechaStr + 'T12:00:00')
       .toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short' });
-
     return `<div class="appt-item">
       <div class="appt-time">
         <div class="appt-time-h">${h}</div>
@@ -120,20 +84,16 @@ async function cargarDashboard() {
       CitaService.listar(),
       PacienteService.listar(),
     ]);
-
-    todasLasCitas = citas; // guardar global para el filtro
-
+    todasLasCitas = citas;
     const hoyStr   = new Date().toISOString().split('T')[0];
     const citasHoy = citas.filter(c => {
-      const fechaCita   = c.fechaHora.split('T')[0];
+      const fechaCita    = c.fechaHora.split('T')[0];
       const estadoValido = ['PENDIENTE','CONFIRMADA','CANCELADA'].includes(c.estado);
       return fechaCita === hoyStr && estadoValido;
     });
-
     const confirmadas = citas.filter(c => c.estado === 'CONFIRMADA');
     const pendientes  = citas.filter(c => c.estado === 'PENDIENTE');
 
-    // Métricas
     document.getElementById('m-citas-hoy').textContent   = citasHoy.length;
     document.getElementById('m-confirmadas').textContent = confirmadas.length;
     document.getElementById('m-pendientes').textContent  = pendientes.length;
@@ -146,7 +106,6 @@ async function cargarDashboard() {
         `${pct}% de hoy confirmadas`;
     }
 
-    // Tabla citas de hoy — solo hoy, solo PENDIENTE/CONFIRMADA/CANCELADA
     const tbody = document.getElementById('tabla-citas-hoy');
     if (!citasHoy.length) {
       tbody.innerHTML = `<tr><td colspan="4" class="empty-row">No hay citas para hoy</td></tr>`;
@@ -163,10 +122,7 @@ async function cargarDashboard() {
           </tr>`;
         }).join('');
     }
-
-    // Próximas citas
     renderProximas(citas);
-
   } catch (err) {
     console.error('Error cargando dashboard:', err);
   }

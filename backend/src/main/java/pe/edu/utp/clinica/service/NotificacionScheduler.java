@@ -134,7 +134,7 @@ public class NotificacionScheduler {
          * Ejemplo: cita a las 15:00 → se cancela automáticamente a las 15:15
          * si aún está en PENDIENTE o CONFIRMADA.
          */
-        @Scheduled(fixedDelay = 300_000) // cada 5 minutos
+        // @Scheduled(fixedDelay = 300_000) // DESACTIVADO — cancelación manual para proyecto académico
         @Transactional
         public void cancelarCitasVencidas() {
                 // Límite = ahora - 15 minutos de tolerancia

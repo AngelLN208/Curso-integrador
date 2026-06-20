@@ -19,6 +19,7 @@ public class PagoResponse {
     private Long id;
     private Long citaId;
     private String pacienteNombre;
+    private String medicoNombre;   
     private BigDecimal monto;
     private BigDecimal montoFinal;
     private String metodoPago;

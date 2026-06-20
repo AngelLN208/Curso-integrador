@@ -4,6 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.utp.clinica.repository.PacienteSeguroRepository;
+import pe.edu.utp.clinica.model.PacienteSeguro;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import pe.edu.utp.clinica.dto.paciente.PacienteRequest;
 import pe.edu.utp.clinica.dto.paciente.PacienteResponse;
@@ -30,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 public class PacienteService {
 
     private final PacienteRepository pacienteRepository;
+    private final PacienteSeguroRepository pacienteSeguroRepository;
 
     /**
      * Registra un nuevo paciente.
@@ -109,6 +114,7 @@ public class PacienteService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
     /**
      * Lista todos los pacientes registrados.
      * RF-04: Lista completa con DNI, nombre, apellido, celular y correo.
@@ -144,6 +150,22 @@ public class PacienteService {
     }
 
     private PacienteResponse toResponse(Paciente p) {
+        // RF-50: Cargar seguros vinculados al paciente
+        List<PacienteResponse.SeguroPacienteDTO> seguros = pacienteSeguroRepository.findByPacienteAndActivoTrue(p)
+                .stream()
+                .map(ps -> PacienteResponse.SeguroPacienteDTO.builder()
+                        .id(ps.getId()) // ← agregar esta línea
+                        .seguroId(ps.getSeguro().getId())
+                        .nombre(ps.getSeguro().getNombre())
+                        .tipo(ps.getSeguro().getTipo())
+                        .porcentajeCobertura(ps.getSeguro().getPorcentajeCobertura())
+                        .deducible(ps.getSeguro().getDeducible())
+                        .convenioActivo(ps.getSeguro().isConvenioActivo())
+                        .activo(ps.isActivo())
+                        .numeroPoliza(ps.getNumeroPoliza())
+                        .build())
+                .collect(Collectors.toList());
+
         return PacienteResponse.builder()
                 .id(p.getId())
                 .dni(p.getDni())
@@ -154,6 +176,7 @@ public class PacienteService {
                 .correo(p.getCorreo())
                 .sexo(p.getSexo())
                 .creadoEn(p.getCreadoEn())
+                .seguros(seguros)
                 .build();
     }
 }

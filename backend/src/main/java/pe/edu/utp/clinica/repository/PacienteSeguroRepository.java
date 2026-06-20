@@ -24,7 +24,7 @@ public interface PacienteSeguroRepository extends JpaRepository<PacienteSeguro, 
      * Verifica si el paciente ya tiene ese seguro vinculado.
      * RF-50: Evita duplicados al asociar seguros.
      */
-    boolean existsByPacienteAndSeguro(Paciente paciente, SeguroMedico seguro);
+    boolean existsByPacienteAndSeguroAndActivoTrue(Paciente paciente, SeguroMedico seguro);
 
     /**
      * Lista todos los seguros activos de un paciente.
@@ -35,10 +35,16 @@ public interface PacienteSeguroRepository extends JpaRepository<PacienteSeguro, 
     /**
      * Busca el primer seguro activo del paciente para aplicar al pago.
      * RF-16: Usado por PagoService.calcularMontoConSeguro() para
-     *         descontar el porcentaje de cobertura del monto bruto.
+     * descontar el porcentaje de cobertura del monto bruto.
      *
      * @param paciente paciente del cual buscar el seguro
      * @return Optional con el primer seguro activo, o vacío si no tiene
      */
     Optional<PacienteSeguro> findFirstByPacienteAndActivoTrue(Paciente paciente);
+
+    /** Busca el vínculo entre paciente y seguro, sin filtrar por estado activo */
+    Optional<PacienteSeguro> findByPacienteAndSeguro(Paciente paciente, SeguroMedico seguro);
+
+    /** Busca un vínculo específico por paciente e ID del vínculo */
+    Optional<PacienteSeguro> findByIdAndPacienteId(Long id, Long pacienteId);
 }

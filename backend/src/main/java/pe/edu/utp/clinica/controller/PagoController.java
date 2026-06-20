@@ -38,12 +38,11 @@ public class PagoController {
     private final PagoService pagoService;
 
     @PostMapping
-    @Operation(summary = "Registrar pago de cita",
-               description = "RF-14: Registra pago. "
-                           + "RF-15: Confirma la cita. "
-                           + "RF-17: Estado PAGADO. "
-                           + "RF-18: Genera comprobante. "
-                           + "RF-19: No aplica en citas canceladas.")
+    @Operation(summary = "Registrar pago de cita", description = "RF-14: Registra pago. "
+            + "RF-15: Confirma la cita. "
+            + "RF-17: Estado PAGADO. "
+            + "RF-18: Genera comprobante. "
+            + "RF-19: No aplica en citas canceladas.")
     public ResponseEntity<ApiResponse<PagoResponse>> registrarPago(
             @Valid @RequestBody PagoRequest request,
             Authentication auth) {
@@ -54,13 +53,22 @@ public class PagoController {
     }
 
     @GetMapping("/paciente/{pacienteId}")
-    @Operation(summary = "Listar pagos de un paciente",
-               description = "RF-35: Muestra cita, monto y estado.")
+    @Operation(summary = "Listar pagos de un paciente", description = "RF-35: Muestra cita, monto y estado.")
     public ResponseEntity<ApiResponse<List<PagoResponse>>> listarPorPaciente(
             @PathVariable Long pacienteId) {
 
         List<PagoResponse> response = pagoService.listarPorPaciente(pacienteId);
         return ResponseEntity.ok(
                 ApiResponse.success("Pagos obtenidos correctamente", response));
+    }
+
+    @GetMapping("/cita/{citaId}/previsualizar")
+    @Operation(summary = "Previsualizar cálculo de pago", description = "RF-16: Muestra el descuento de seguro ANTES de confirmar el cobro.")
+    public ResponseEntity<ApiResponse<pe.edu.utp.clinica.dto.pago.PrevisualizarPagoResponse>> previsualizar(
+            @PathVariable Long citaId) {
+
+        var response = pagoService.previsualizarPago(citaId);
+        return ResponseEntity.ok(
+                ApiResponse.success("Cálculo obtenido correctamente", response));
     }
 }

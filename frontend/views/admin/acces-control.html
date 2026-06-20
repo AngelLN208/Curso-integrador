@@ -1,232 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Acceso</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../../static/css/global.css">
+    <title>Control de Accesos — Clínica Stella Maris</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../css/global.css">
 </head>
+
 <body>
 
-<div class="container-fluid">
-    <div class="row">
+    <div class="app-shell">
+        <div id="sidebar-placeholder"></div>
 
-        <!-- Sidebar -->
-        <aside class="col-md-2 sidebar">
-            <div class="logo-container">
-                <img src="../../../static/img/stella-maris-logo.png"
-                     alt="Stella Maris" class="img-fluid logo">
-            </div>
-            <nav class="menu">
-                <a href="#">Inicio</a>
-                <a href="#">Usuarios</a>
-                <a href="#">Médicos</a>
-                <a href="#" class="active">Control de Acceso</a>
-                <a href="#">Reportes</a>
-                <a href="#">Mi Perfil</a>
-                <a href="#">Cerrar Sesión</a>
-            </nav>
-        </aside>
+        <main class="main-content">
 
-        <!-- Contenido -->
-        <main class="col-md-10 main-content">
-
-            <div class="page-header">
+            <header class="topbar">
                 <div>
-                    <h2>Control de Acceso</h2>
-                    <p>Gestión de roles y permisos del sistema</p>
+                    <h1 class="page-title">Control de accesos</h1>
+                    <p class="page-sub">Administra las cuentas del sistema</p>
                 </div>
-            </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="abrirModalCrear()">
+                        <i class="bi bi-person-plus"></i> Nueva cuenta
+                    </button>
+                    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+                        <i class="bi bi-moon-stars" id="theme-icon"></i>
+                    </button>
+                </div>
+            </header>
 
-            <!-- Tarjetas -->
-            <div class="row g-4 mb-4">
-                <div class="col-md-4">
-                    <div class="card dashboard-card">
-                        <h1>3</h1>
-                        <p>Roles del Sistema</p>
+            <!-- Métricas -->
+            <section class="metrics-grid" style="grid-template-columns:repeat(4,1fr)">
+                <div class="metric-card">
+                    <div class="metric-icon indigo"><i class="bi bi-people"></i></div>
+                    <div class="metric-body">
+                        <div class="metric-value" id="m-total">—</div>
+                        <div class="metric-label">Total cuentas</div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card dashboard-card">
-                        <h1>8</h1>
-                        <p>Usuarios Activos</p>
+                <div class="metric-card">
+                    <div class="metric-icon green"><i class="bi bi-check-circle"></i></div>
+                    <div class="metric-body">
+                        <div class="metric-value" id="m-activas">—</div>
+                        <div class="metric-label">Cuentas activas</div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card dashboard-card">
-                        <h1>2</h1>
-                        <p>Usuarios Inactivos</p>
+                <div class="metric-card">
+                    <div class="metric-icon red"><i class="bi bi-slash-circle"></i></div>
+                    <div class="metric-body">
+                        <div class="metric-value" id="m-inactivas">—</div>
+                        <div class="metric-label">Cuentas inactivas</div>
                     </div>
                 </div>
-            </div>
+                <div class="metric-card">
+                    <div class="metric-icon amber"><i class="bi bi-shield-lock"></i></div>
+                    <div class="metric-body">
+                        <div class="metric-value" id="m-admins">—</div>
+                        <div class="metric-label">Administradores</div>
+                    </div>
+                </div>
+            </section>
 
-            <!-- Tabla de usuarios -->
-            <div class="card section-card mb-4">
-                <div class="card-header-custom">Usuarios del Sistema</div>
-                <div class="card-body pb-2">
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <input type="text" class="form-control"
-                                   placeholder="Buscar por nombre o correo...">
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select">
-                                <option value="">Todos los roles</option>
-                                <option>ADMINISTRADOR</option>
-                                <option>RECEPCIONISTA</option>
-                                <option>MEDICO</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 text-end">
-                            <button class="btn btn-warning"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalNuevoUsuario">
-                                + Nuevo Usuario
-                            </button>
-                        </div>
+            <!-- Filtros -->
+            <div class="card" style="margin-bottom:20px">
+                <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div>
+                        <label class="form-label">Buscar por nombre o correo</label>
+                        <input type="text" id="filtro-buscar" class="form-control" placeholder="Buscar...">
                     </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Correo / Username</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
-                                <th>Creado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>María Fernández López</td>
-                                <td>maria.fernandez@clinica.com</td>
-                                <td><span class="badge bg-primary">RECEPCIONISTA</span></td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                                <td>01/01/2026</td>
-                                <td>
-                                    <button class="btn btn-sm btn-secondary"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalEditarRol">
-                                        Cambiar Rol
-                                    </button>
-                                    <button class="btn btn-sm btn-danger">
-                                        Desactivar
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Dr. Carlos Ramírez Vega</td>
-                                <td>carlos.ramirez@clinica.com</td>
-                                <td><span class="badge bg-info text-dark">MEDICO</span></td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                                <td>01/01/2026</td>
-                                <td>
-                                    <button class="btn btn-sm btn-secondary"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalEditarRol">
-                                        Cambiar Rol
-                                    </button>
-                                    <button class="btn btn-sm btn-danger">
-                                        Desactivar
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Admin Sistema</td>
-                                <td>admin@clinica.com</td>
-                                <td><span class="badge bg-dark">ADMINISTRADOR</span></td>
-                                <td><span class="badge bg-success">Activo</span></td>
-                                <td>01/01/2026</td>
-                                <td>
-                                    <button class="btn btn-sm btn-secondary" disabled>
-                                        Cambiar Rol
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" disabled>
-                                        Desactivar
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Resumen de roles -->
-            <div class="card section-card">
-                <div class="card-header-custom">Resumen de Roles</div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #dee2e6">
-                                <h6 class="fw-bold">ADMINISTRADOR</h6>
-                                <ul class="mb-0 small text-muted">
-                                    <li>Gestión de médicos y especialidades</li>
-                                    <li>Asignación de horarios</li>
-                                    <li>Registro de seguros</li>
-                                    <li>Acceso a auditoría</li>
-                                    <li>Control de acceso</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #dee2e6">
-                                <h6 class="fw-bold">📋 RECEPCIONISTA</h6>
-                                <ul class="mb-0 small text-muted">
-                                    <li>Registro y edición de pacientes</li>
-                                    <li>Gestión de citas</li>
-                                    <li>Registro de pagos</li>
-                                    <li>Consulta de horarios</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #dee2e6">
-                                <h6 class="fw-bold">👨‍⚕️ MÉDICO</h6>
-                                <ul class="mb-0 small text-muted">
-                                    <li>Registro de triaje</li>
-                                    <li>Registro de consulta</li>
-                                    <li>Historial del paciente</li>
-                                    <li>Ver su horario</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-</div>
-
-<!-- Modal: Nuevo Usuario -->
-<div class="modal fade" id="modalNuevoUsuario" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
-            <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
-                <h5 class="modal-title">Nuevo Usuario</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="row g-3">
-                    <div class="col-md-12">
-                        <label class="form-label">Nombre Completo</label>
-                        <input type="text" class="form-control" placeholder="Ej. Juan Pérez">
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Correo / Username</label>
-                        <input type="email" class="form-control" placeholder="correo@clinica.com">
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" placeholder="Mínimo 8 caracteres">
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">Rol</label>
-                        <select class="form-select">
-                            <option value="">Seleccionar...</option>
+                    <div>
+                        <label class="form-label">Filtrar por rol</label>
+                        <select id="filtro-rol" class="form-control">
+                            <option value="">Todos los roles</option>
                             <option value="ROLE_ADMINISTRADOR">Administrador</option>
                             <option value="ROLE_RECEPCIONISTA">Recepcionista</option>
                             <option value="ROLE_MEDICO">Médico</option>
@@ -234,43 +83,83 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="border:none;">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-warning" style="color:var(--primary); font-weight:600;">
-                    Crear Usuario
+
+            <!-- Tabla -->
+            <div class="card">
+                <div class="card-head">
+                    <h2 class="card-title">Cuentas del sistema</h2>
+                    <span class="metric-delta neutral" id="total-mostrados"></span>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre completo</th>
+                                <th>Correo</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Creado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-usuarios">
+                            <tr>
+                                <td colspan="6" class="empty-row">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Crear cuenta -->
+    <div class="modal-backdrop" id="modalCrearCuenta">
+        <div class="modal-box" style="max-width:480px">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="bi bi-person-plus"></i> Nueva cuenta</h3>
+                <button class="modal-close" onclick="cerrarModal('modalCrearCuenta')"><i class="bi bi-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre completo *</label>
+                    <input type="text" id="cuenta-nombre" class="form-control" placeholder="Ej: Patricia Salas Vega">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Correo (será el usuario) *</label>
+                    <input type="email" id="cuenta-correo" class="form-control" placeholder="ejemplo@clinica.pe">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña *</label>
+                    <input type="password" id="cuenta-password" class="form-control" placeholder="Mínimo 8 caracteres">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rol *</label>
+                    <select id="cuenta-rol" class="form-control">
+                        <option value="ROLE_RECEPCIONISTA">Recepcionista</option>
+                        <option value="ROLE_ADMINISTRADOR">Administrador</option>
+                    </select>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:4px">
+                        Para registrar médicos, usa la sección "Médicos" (requiere especialidad).
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="cerrarModal('modalCrearCuenta')">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarCuenta()">
+                    <i class="bi bi-check-lg"></i> Crear cuenta
                 </button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal: Cambiar Rol -->
-<div class="modal fade" id="modalEditarRol" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content" style="border-radius:20px; overflow:hidden; border:none;">
-            <div class="modal-header" style="background:var(--secondary); color:white; border:none;">
-                <h5 class="modal-title">Cambiar Rol</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <p class="text-muted mb-3">Usuario: <strong>María Fernández López</strong></p>
-                <label class="form-label">Nuevo Rol</label>
-                <select class="form-select">
-                    <option value="ROLE_ADMINISTRADOR">Administrador</option>
-                    <option value="ROLE_RECEPCIONISTA" selected>Recepcionista</option>
-                    <option value="ROLE_MEDICO">Médico</option>
-                </select>
-            </div>
-            <div class="modal-footer" style="border:none;">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-warning" style="color:var(--primary); font-weight:600;">
-                    Guardar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/services/api.js"></script>
+    <script src="/js/services/adminService.js"></script>
+    <script src="/js/utils/ui.js"></script>
+    <script src="/js/utils/sidebar.js"></script>
+    <script src="/js/admin/acces-control.js"></script>
 </body>
+
 </html>

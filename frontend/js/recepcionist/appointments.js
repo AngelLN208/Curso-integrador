@@ -4,13 +4,7 @@
 
 AuthService.requireAuth();
 const usuario = Auth.getUsuario();
-
-document.getElementById('user-name').textContent   = usuario.nombreCompleto;
-document.getElementById('user-email').textContent  = usuario.username;
-document.getElementById('user-avatar').textContent = usuario.nombreCompleto.charAt(0).toUpperCase();
-document.getElementById('sidebar-role').textContent =
-  usuario.rol === 'ROLE_ADMINISTRADOR' ? 'Administrador' : 'Recepcionista';
-document.getElementById('btnLogout').addEventListener('click', () => AuthService.logout());
+iniciarSidebar('Citas');
 
 // ── Tema ──────────────────────────────────────────────────────
 const themeToggle = document.getElementById('themeToggle');

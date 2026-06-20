@@ -15,44 +15,7 @@
 
   <div class="app-shell">
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo">🏥</div>
-        <div>
-          <div class="sidebar-brand">Stella Maris</div>
-          <div class="sidebar-role" id="sidebar-role">Recepcionista</div>
-        </div>
-      </div>
-      <nav class="sidebar-nav">
-        <div class="nav-section-label">Principal</div>
-        <a href="/views/recepcionist/dashboard.html" class="nav-item">
-          <i class="bi bi-grid-1x2"></i> Dashboard
-        </a>
-        <a href="/views/recepcionist/appointments.html" class="nav-item active">
-          <i class="bi bi-calendar3"></i> Citas
-        </a>
-        <a href="/views/recepcionist/patients.html" class="nav-item">
-          <i class="bi bi-people"></i> Pacientes
-        </a>
-        <a href="/views/recepcionist/payments.html" class="nav-item">
-          <i class="bi bi-receipt"></i> Pagos
-        </a>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="sidebar-user">
-          <div class="user-avatar" id="user-avatar">U</div>
-          <div class="user-info">
-            <div class="user-name" id="user-name">Usuario</div>
-            <div class="user-email" id="user-email">—</div>
-          </div>
-        </div>
-        <button class="btn-logout" id="btnLogout" title="Cerrar sesión">
-          <i class="bi bi-box-arrow-right"></i>
-        </button>
-      </div>
-    </aside>
-
+    <div id="sidebar-placeholder"></div>
     <!-- Main -->
     <main class="main-content">
 
@@ -172,7 +135,7 @@
     </main>
   </div>
 
-  
+
   <!-- Modal Nueva Cita -->
   <div class="modal-backdrop" id="modalNuevaCita">
     <div class="modal-box" style="max-width:620px">
@@ -366,6 +329,7 @@
   <script src="/js/services/pacienteService.js"></script>
   <script src="/js/utils/ui.js"></script>
   <script src="/js/utils/validator.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
   <script src="/js/recepcionist/appointments.js"></script>
 </body>
 
