@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
  * Servicio para gestión de médicos.
  *
  * RF-37: Registrar médico con datos profesionales y especialidad.
- *        El DNI no puede estar duplicado.
- *        Solo el administrador puede realizar esta acción.
+ * El DNI no puede estar duplicado.
+ * Solo el administrador puede realizar esta acción.
  * RF-38: Base para asignación de horarios.
  *
  * @author Equipo Curso Integrador UTP 2026
@@ -118,6 +118,22 @@ public class MedicoService {
     @Transactional(readOnly = true)
     public MedicoResponse obtenerPorId(Long id) {
         return toResponse(buscarEntidadPorId(id));
+    }
+
+    @Transactional
+    public void activar(Long id) {
+        Medico medico = buscarEntidadPorId(id);
+        medico.setActivo(true);
+        medicoRepository.save(medico);
+        log.debug("Médico activado con ID: {}", id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MedicoResponse> listarTodos() {
+        return medicoRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     /**

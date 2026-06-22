@@ -5,13 +5,13 @@
  */
 
 const Auth = {
-  getToken:      ()  => localStorage.getItem('token'),
-  setToken:      (t) => localStorage.setItem('token', t),
-  removeToken:   ()  => localStorage.removeItem('token'),
-  isLoggedIn:    ()  => !!localStorage.getItem('token'),
-  getUsuario:    ()  => JSON.parse(localStorage.getItem('usuario') || 'null'),
-  setUsuario:    (u) => localStorage.setItem('usuario', JSON.stringify(u)),
-  removeUsuario: ()  => localStorage.removeItem('usuario'),
+  getToken: () => localStorage.getItem('token'),
+  setToken: (t) => localStorage.setItem('token', t),
+  removeToken: () => localStorage.removeItem('token'),
+  isLoggedIn: () => !!localStorage.getItem('token'),
+  getUsuario: () => JSON.parse(localStorage.getItem('usuario') || 'null'),
+  setUsuario: (u) => localStorage.setItem('usuario', JSON.stringify(u)),
+  removeUsuario: () => localStorage.removeItem('usuario'),
 };
 
 async function apiFetch(endpoint, options = {}) {
@@ -43,9 +43,10 @@ const AuthService = {
     const data = json.data ?? json;
     Auth.setToken(data.token);
     Auth.setUsuario({
-      username:       data.username,
+      username: data.username,
       nombreCompleto: data.nombreCompleto,
-      rol:            data.rol
+      rol: data.rol,
+      medicoId: data.medicoId ?? null
     });
     AuthService._redirigir(data.rol);
   },
@@ -63,7 +64,7 @@ const AuthService = {
   _redirigir: (rol) => {
     const destinos = {
       ROLE_RECEPCIONISTA: CONFIG.ROUTES.RECEP_DASHBOARD,
-      ROLE_MEDICO:        CONFIG.ROUTES.RECEP_DASHBOARD,
+      ROLE_MEDICO:        CONFIG.ROUTES.MEDICO_DASHBOARD,
       ROLE_ADMINISTRADOR: CONFIG.ROUTES.ADMIN_DASHBOARD,
     };
     if (destinos[rol]) window.location.href = destinos[rol];

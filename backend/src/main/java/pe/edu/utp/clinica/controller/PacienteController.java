@@ -18,11 +18,10 @@ import java.util.List;
 /**
  * Controlador para gestión de pacientes.
  *
- * RF-01: Registrar paciente.
- * RF-02: Actualizar paciente.
- * RF-03: Buscar paciente por DNI, nombre o apellido.
- * RF-04: Listar todos los pacientes.
- * Actor principal: RECEPCIONISTA.
+ * RF-01: Registrar paciente. Solo RECEPCIONISTA/ADMINISTRADOR.
+ * RF-02: Actualizar paciente. Solo RECEPCIONISTA/ADMINISTRADOR.
+ * RF-03: Buscar paciente. Todos los roles (médico busca para ver historial).
+ * RF-04: Listar pacientes. Solo RECEPCIONISTA/ADMINISTRADOR.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -30,62 +29,63 @@ import java.util.List;
 @RequestMapping("/api/pacientes")
 @RequiredArgsConstructor
 @Tag(name = "Pacientes", description = "Gestión de pacientes de la clínica")
-@PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ADMINISTRADOR')")
 public class PacienteController {
 
-    private final PacienteService pacienteService;
+        private final PacienteService pacienteService;
 
-    @PostMapping
-    @Operation(summary = "Registrar paciente",
-               description = "RF-01: DNI único de 8 dígitos, campos obligatorios.")
-    public ResponseEntity<ApiResponse<PacienteResponse>> registrar(
-            @Valid @RequestBody PacienteRequest request) {
+        @PostMapping
+        @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ADMINISTRADOR')")
+        @Operation(summary = "Registrar paciente", description = "RF-01: DNI único de 8 dígitos, campos obligatorios.")
+        public ResponseEntity<ApiResponse<PacienteResponse>> registrar(
+                        @Valid @RequestBody PacienteRequest request) {
 
-        PacienteResponse response = pacienteService.registrar(request);
-        return ResponseEntity.status(201)
-                .body(ApiResponse.created("Paciente registrado correctamente", response));
-    }
+                PacienteResponse response = pacienteService.registrar(request);
+                return ResponseEntity.status(201)
+                                .body(ApiResponse.created("Paciente registrado correctamente", response));
+        }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Actualizar paciente",
-               description = "RF-02: No se puede modificar el DNI.")
-    public ResponseEntity<ApiResponse<PacienteResponse>> actualizar(
-            @PathVariable Long id,
-            @Valid @RequestBody PacienteRequest request) {
+        @PutMapping("/{id}")
+        @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ADMINISTRADOR')")
+        @Operation(summary = "Actualizar paciente", description = "RF-02: No se puede modificar el DNI.")
+        public ResponseEntity<ApiResponse<PacienteResponse>> actualizar(
+                        @PathVariable Long id,
+                        @Valid @RequestBody PacienteRequest request) {
 
-        PacienteResponse response = pacienteService.actualizar(id, request);
-        return ResponseEntity.ok(
-                ApiResponse.success("Paciente actualizado correctamente", response));
-    }
+                PacienteResponse response = pacienteService.actualizar(id, request);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Paciente actualizado correctamente", response));
+        }
 
-    @GetMapping("/buscar")
-    @Operation(summary = "Buscar paciente",
-               description = "RF-03: Busca por DNI, nombre o apellido.")
-    public ResponseEntity<ApiResponse<List<PacienteResponse>>> buscar(
-            @RequestParam String criterio) {
+        @GetMapping("/buscar")
+        @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ADMINISTRADOR', 'MEDICO')")
+        @Operation(summary = "Buscar paciente", description = "RF-03: Busca por DNI, nombre o apellido. "
+                        + "El médico lo usa para consultar historial médico.")
+        public ResponseEntity<ApiResponse<List<PacienteResponse>>> buscar(
+                        @RequestParam String criterio) {
 
-        List<PacienteResponse> response = pacienteService.buscar(criterio);
-        return ResponseEntity.ok(
-                ApiResponse.success("Búsqueda completada", response));
-    }
+                List<PacienteResponse> response = pacienteService.buscar(criterio);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Búsqueda completada", response));
+        }
 
-    @GetMapping
-    @Operation(summary = "Listar todos los pacientes",
-               description = "RF-04: Lista completa de pacientes.")
-    public ResponseEntity<ApiResponse<List<PacienteResponse>>> listar() {
+        @GetMapping
+        @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ADMINISTRADOR')")
+        @Operation(summary = "Listar todos los pacientes", description = "RF-04: Lista completa de pacientes.")
+        public ResponseEntity<ApiResponse<List<PacienteResponse>>> listar() {
 
-        List<PacienteResponse> response = pacienteService.listarTodos();
-        return ResponseEntity.ok(
-                ApiResponse.success("Pacientes obtenidos correctamente", response));
-    }
+                List<PacienteResponse> response = pacienteService.listarTodos();
+                return ResponseEntity.ok(
+                                ApiResponse.success("Pacientes obtenidos correctamente", response));
+        }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Obtener paciente por ID")
-    public ResponseEntity<ApiResponse<PacienteResponse>> obtenerPorId(
-            @PathVariable Long id) {
+        @GetMapping("/{id}")
+        @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ADMINISTRADOR', 'MEDICO')")
+        @Operation(summary = "Obtener paciente por ID")
+        public ResponseEntity<ApiResponse<PacienteResponse>> obtenerPorId(
+                        @PathVariable Long id) {
 
-        PacienteResponse response = pacienteService.obtenerPorId(id);
-        return ResponseEntity.ok(
-                ApiResponse.success("Paciente obtenido correctamente", response));
-    }
+                PacienteResponse response = pacienteService.obtenerPorId(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Paciente obtenido correctamente", response));
+        }
 }

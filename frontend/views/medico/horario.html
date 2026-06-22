@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Horario — Clínica Stella Maris</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../css/global.css">
+</head>
+
+<body>
+
+    <div class="app-shell">
+        <div id="sidebar-placeholder"></div>
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <h1 class="page-title">Mi horario</h1>
+                    <p class="page-sub">Días y horas de atención asignados</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+                        <i class="bi bi-moon-stars" id="theme-icon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Métricas -->
+            <section class="metrics-grid" style="grid-template-columns:repeat(3,1fr)">
+                <div class="metric-card">
+                    <div class="metric-icon indigo"><i class="bi bi-calendar-week"></i></div>
+                    <div class="metric-body">
+                        <div class="metric-value" id="m-dias-activos">—</div>
+                        <div class="metric-label">Días de atención</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon green"><i class="bi bi-clock"></i></div>
+                    <div class="metric-body">
+                        <div class="metric-value" id="m-horas-semana">—</div>
+                        <div class="metric-label">Horas semanales</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon amber"><i class="bi bi-people"></i></div>
+                    <div class="metric-body">
+                        <div class="metric-value" id="m-slots-disponibles">—</div>
+                        <div class="metric-label">Slots de 45 min por semana</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendario semanal -->
+            <div class="card">
+                <div class="card-head">
+                    <h2 class="card-title"><i class="bi bi-calendar3" style="color:var(--indigo)"></i> Horario semanal
+                    </h2>
+                </div>
+                <div id="grid-horario" style="padding:20px">
+                    <div class="empty-row">Cargando...</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:16px;background:var(--indigo-lt);border:none">
+                <div
+                    style="padding:14px 20px;font-size:13px;color:var(--indigo);display:flex;align-items:center;gap:8px">
+                    <i class="bi bi-info-circle"></i>
+                    Si necesitas modificar tu horario, contacta al administrador de la clínica.
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/services/api.js"></script>
+    <script src="/js/services/horarioService.js"></script>
+    <script src="/js/utils/ui.js"></script>
+    <script src="/js/utils/sidebar.js"></script>
+    <script src="/js/medico/horario.js"></script>
+</body>
+
+</html>

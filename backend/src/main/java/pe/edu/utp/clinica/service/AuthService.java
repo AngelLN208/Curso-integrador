@@ -14,6 +14,8 @@ import pe.edu.utp.clinica.model.Usuario;
 import pe.edu.utp.clinica.repository.UsuarioRepository;
 import pe.edu.utp.clinica.security.JwtUtil;
 
+import pe.edu.utp.clinica.repository.MedicoRepository;
+
 /**
  * Servicio de autenticación del sistema.
  *
@@ -28,43 +30,53 @@ import pe.edu.utp.clinica.security.JwtUtil;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
-    private final UsuarioRepository usuarioRepository;
-    private final JwtUtil jwtUtil;
+        private final AuthenticationManager authenticationManager;
+        private final UserDetailsService userDetailsService;
+        private final UsuarioRepository usuarioRepository;
+        private final JwtUtil jwtUtil;
 
-    /**
-     * Autentica al usuario y genera el token JWT.
-     *
-     * @param request credenciales de login
-     * @return token JWT y datos básicos del usuario
-     */
-    public LoginResponse login(LoginRequest request) {
-        // Spring Security valida las credenciales
-        // Lanza BadCredentialsException si son inválidas
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        private final MedicoRepository medicoRepository;
 
-        log.debug("Autenticación exitosa para usuario");
+        /**
+         * Autentica al usuario y genera el token JWT.
+         *
+         * @param request credenciales de login
+         * @return token JWT y datos básicos del usuario
+         */
+        public LoginResponse login(LoginRequest request) {
+                // Spring Security valida las credenciales
+                // Lanza BadCredentialsException si son inválidas
+                authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(
+                                                request.getUsername(),
+                                                request.getPassword()));
 
-        UserDetails userDetails = userDetailsService
-                .loadUserByUsername(request.getUsername());
+                log.debug("Autenticación exitosa para usuario");
 
-        String token = jwtUtil.generateToken(userDetails);
+                UserDetails userDetails = userDetailsService
+                                .loadUserByUsername(request.getUsername());
 
-        Usuario usuario = usuarioRepository
-                .findByUsername(request.getUsername())
-                .orElseThrow();
+                String token = jwtUtil.generateToken(userDetails);
 
-        return LoginResponse.builder()
-                .token(token)
-                .username(usuario.getUsername())
-                .nombreCompleto(usuario.getNombreCompleto())
-                .rol(usuario.getRol().name())
-                .build();
-    }
+                Usuario usuario = usuarioRepository
+                                .findByUsername(request.getUsername())
+                                .orElseThrow();
+
+                // RF-40 extendido: si el usuario es médico, incluimos su medicoId
+                // para que el frontend pueda filtrar "mis citas" sin búsquedas extra.
+                Long medicoId = null;
+                if ("ROLE_MEDICO".equals(usuario.getRol().name())) {
+                        medicoId = medicoRepository.findByUsuario(usuario)
+                                        .map(m -> m.getId())
+                                        .orElse(null);
+                }
+
+                return LoginResponse.builder()
+                                .token(token)
+                                .username(usuario.getUsername())
+                                .nombreCompleto(usuario.getNombreCompleto())
+                                .rol(usuario.getRol().name())
+                                .medicoId(medicoId)
+                                .build();
+        }
 }

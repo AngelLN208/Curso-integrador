@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Clínica Stella Maris</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../../css/global.css">
+</head>
+
+<body>
+
+  <div class="app-shell">
+    <div id="sidebar-placeholder"></div>
+
+    <main class="main-content">
+
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">Mi panel</h1>
+          <p class="page-sub" id="greeting">Resumen de tu día</p>
+        </div>
+        <div class="topbar-right">
+          <div class="date-badge">
+            <i class="bi bi-calendar3"></i>
+            <span id="fecha-hoy"></span>
+          </div>
+          <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+            <i class="bi bi-moon-stars" id="theme-icon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Métricas -->
+      <section class="metrics-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="metric-card">
+          <div class="metric-icon blue"><i class="bi bi-calendar-day"></i></div>
+          <div class="metric-body">
+            <div class="metric-value" id="m-citas-hoy">—</div>
+            <div class="metric-label">Citas hoy</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon amber"><i class="bi bi-hourglass-split"></i></div>
+          <div class="metric-body">
+            <div class="metric-value" id="m-pendientes">—</div>
+            <div class="metric-label">Pendientes por atender</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon purple"><i class="bi bi-clipboard-check"></i></div>
+          <div class="metric-body">
+            <div class="metric-value" id="m-atendidas-mes">—</div>
+            <div class="metric-label">Atendidas este mes</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon green"><i class="bi bi-people"></i></div>
+          <div class="metric-body">
+            <div class="metric-value" id="m-pacientes-mes">—</div>
+            <div class="metric-label">Pacientes este mes</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Citas de hoy -->
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">
+            <i class="bi bi-calendar-event" style="color:var(--indigo);margin-right:6px"></i>
+            Mi agenda de hoy
+          </h2>
+          <a href="/views/medico/citas.html" class="card-link">Ver todas mis citas</a>
+        </div>
+        <div class="appt-list" id="lista-citas-hoy">
+          <div class="empty-row">Cargando...</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/services/api.js"></script>
+  <script src="/js/services/citaService.js"></script>
+  <script src="/js/utils/ui.js"></script>
+  <script src="/js/utils/sidebar.js"></script>
+  <script src="/js/medico/dashboard.js"></script>
+</body>
+
+</html>

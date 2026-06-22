@@ -9,6 +9,7 @@ import pe.edu.utp.clinica.common.enums.EstadoCita;
 import pe.edu.utp.clinica.common.enums.TipoAccion;
 import pe.edu.utp.clinica.dto.atencion.ConsultaRequest;
 import pe.edu.utp.clinica.dto.atencion.ConsultaResponse;
+import pe.edu.utp.clinica.dto.atencion.ConsultaEditarRequest;
 import pe.edu.utp.clinica.dto.atencion.TriajeRequest;
 import pe.edu.utp.clinica.model.*;
 import pe.edu.utp.clinica.repository.*;
@@ -27,6 +28,11 @@ import java.util.stream.Collectors;
  * RF-26: Consultar historial médico del paciente.
  * RF-27: Historial ordenado por fecha descendente.
  *
+ * Edición de consultas: solo el médico que atendió la cita puede editar
+ * diagnóstico/tratamiento, y solo dentro de los 45 minutos posteriores
+ * a la hora programada de la cita. Cada edición queda registrada en
+ * auditoria_consultas con los valores anteriores y nuevos.
+ *
  * @author Equipo Curso Integrador UTP 2026
  */
 @Slf4j
@@ -38,8 +44,11 @@ public class AtencionService {
         private final ConsultaMedicaRepository consultaRepository;
         private final CitaMedicaRepository citaMedicaRepository;
         private final AuditoriaCitaRepository auditoriaRepository;
+        private final AuditoriaConsultaRepository auditoriaConsultaRepository;
         private final CitaService citaService;
         private final PacienteService pacienteService;
+        private final MedicoRepository medicoRepository;
+        private final UsuarioRepository usuarioRepository;
 
         /**
          * Registra el triaje de un paciente antes de la consulta.
@@ -53,14 +62,12 @@ public class AtencionService {
         public Triaje registrarTriaje(TriajeRequest request) {
                 CitaMedica cita = citaService.buscarEntidadPorId(request.getCitaId());
 
-                // RF-21: Solo citas CONFIRMADAS pueden iniciar atención
                 if (cita.getEstado() != EstadoCita.CONFIRMADA) {
                         throw new IllegalStateException(
                                         "Solo se puede registrar triaje en citas con estado CONFIRMADA. " +
                                                         "Estado actual: " + cita.getEstado());
                 }
 
-                // RF-22: Solo un triaje por cita
                 if (triajeRepository.existsByCita(cita)) {
                         throw new IllegalStateException(
                                         "Ya existe un triaje registrado para esta cita (ID: " + cita.getId() + ").");
@@ -84,8 +91,6 @@ public class AtencionService {
          * RF-23: Registrar diagnóstico y tratamiento.
          * RF-24: Consulta queda asociada a la cita.
          * RF-25: Solo una consulta por cita.
-         * BUG CORREGIDO: se agrega citaMedicaRepository.save(cita) para
-         * persistir el cambio de estado a ATENDIDA en la base de datos.
          *
          * @param request datos de la consulta (citaId, diagnóstico, tratamiento)
          * @return DTO con los datos de la consulta registrada
@@ -96,21 +101,18 @@ public class AtencionService {
         public ConsultaResponse registrarConsulta(ConsultaRequest request) {
                 CitaMedica cita = citaService.buscarEntidadPorId(request.getCitaId());
 
-                // RF-21: Solo citas CONFIRMADAS
                 if (cita.getEstado() != EstadoCita.CONFIRMADA) {
                         throw new IllegalStateException(
                                         "Solo se puede registrar una consulta en citas con estado CONFIRMADA. " +
                                                         "Estado actual: " + cita.getEstado());
                 }
 
-                // RF-25: Impedir múltiples consultas por cita
                 if (consultaRepository.existsByCita(cita)) {
                         throw new IllegalStateException(
                                         "Ya existe una consulta médica registrada para esta cita (ID: " + cita.getId()
                                                         + ").");
                 }
 
-                // Guardar consulta
                 ConsultaMedica consulta = ConsultaMedica.builder()
                                 .cita(cita)
                                 .diagnostico(request.getDiagnostico())
@@ -119,14 +121,10 @@ public class AtencionService {
                                 .build();
                 consulta = consultaRepository.save(consulta);
 
-                // RF-23: Marcar cita como ATENDIDA y PERSISTIR el cambio
-                // CORRECCIÓN: antes faltaba esta línea — el estado se cambiaba
-                // en memoria pero nunca se guardaba en la base de datos.
                 EstadoCita estadoAnterior = cita.getEstado();
                 cita.setEstado(EstadoCita.ATENDIDA);
-                citaMedicaRepository.save(cita); // ← línea crítica que faltaba
+                citaMedicaRepository.save(cita);
 
-                // Registrar en auditoría el cambio de estado
                 AuditoriaCita auditoria = AuditoriaCita.builder()
                                 .cita(cita)
                                 .tipoAccion(TipoAccion.ATENDIDA)
@@ -137,6 +135,112 @@ public class AtencionService {
 
                 log.info("Consulta registrada — cita ID: {} → estado ATENDIDA", cita.getId());
                 return toResponse(consulta);
+        }
+
+        /**
+         * Edita una consulta médica ya registrada.
+         * Solo permitido si:
+         * - El médico autenticado es el mismo que registró la consulta original.
+         * - Está dentro de los 45 minutos posteriores a la hora de la cita.
+         * Registra el cambio en auditoria_consultas con valores antes/después.
+         *
+         * @param citaId   ID de la cita cuya consulta se va a editar
+         * @param request  nuevos valores de diagnóstico/tratamiento/observaciones
+         * @param username usuario autenticado que realiza la edición
+         * @return DTO actualizado de la consulta
+         */
+        @Transactional
+        public ConsultaResponse editarConsulta(Long citaId, ConsultaEditarRequest request, String username) {
+                CitaMedica cita = citaService.buscarEntidadPorId(citaId);
+
+                ConsultaMedica consulta = consultaRepository.findByCita(cita)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "No existe una consulta registrada para la cita ID: " + citaId));
+
+                Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
+                                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+                Medico medicoAutenticado = medicoRepository.findByUsuario(usuarioAutenticado)
+                                .orElseThrow(() -> new IllegalStateException(
+                                                "El usuario autenticado no tiene un perfil de médico asociado."));
+
+                if (!cita.getMedico().getId().equals(medicoAutenticado.getId())) {
+                        throw new IllegalStateException(
+                                        "Solo el médico que atendió esta cita puede editar la consulta.");
+                }
+
+                if (!esEditable(cita)) {
+                        throw new IllegalStateException(
+                                        "El tiempo para editar esta consulta ha expirado. "
+                                                        + "Solo se permite editar hasta 45 minutos después de la hora de la cita.");
+                }
+
+                String diagnosticoAnterior = consulta.getDiagnostico();
+                String tratamientoAnterior = consulta.getTratamiento();
+
+                consulta.setDiagnostico(request.getDiagnostico());
+                consulta.setTratamiento(request.getTratamiento());
+                consulta.setObservaciones(request.getObservaciones());
+                consulta = consultaRepository.save(consulta);
+
+                AuditoriaConsulta auditoria = AuditoriaConsulta.builder()
+                                .consulta(consulta)
+                                .medico(medicoAutenticado)
+                                .diagnosticoAnterior(diagnosticoAnterior)
+                                .diagnosticoNuevo(request.getDiagnostico())
+                                .tratamientoAnterior(tratamientoAnterior)
+                                .tratamientoNuevo(request.getTratamiento())
+                                .build();
+                auditoriaConsultaRepository.save(auditoria);
+
+                log.info("Consulta editada — cita ID: {} por médico ID: {}", citaId, medicoAutenticado.getId());
+                return toResponse(consulta);
+        }
+
+        /**
+         * Edita el triaje de una cita ya registrado.
+         * Misma regla que editarConsulta: solo el médico que atendió la cita,
+         * y solo dentro de los 45 minutos posteriores a la hora de la cita.
+         *
+         * @param citaId   ID de la cita cuyo triaje se va a editar
+         * @param request  nuevos valores de presión/temperatura/peso
+         * @param username usuario autenticado que realiza la edición
+         * @return entidad Triaje actualizada
+         */
+        @Transactional
+        public Triaje editarTriaje(Long citaId, pe.edu.utp.clinica.dto.atencion.TriajeEditarRequest request,
+                        String username) {
+                CitaMedica cita = citaService.buscarEntidadPorId(citaId);
+
+                Triaje triaje = triajeRepository.findByCita(cita)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "No existe un triaje registrado para la cita ID: " + citaId));
+
+                Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
+                                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+                Medico medicoAutenticado = medicoRepository.findByUsuario(usuarioAutenticado)
+                                .orElseThrow(() -> new IllegalStateException(
+                                                "El usuario autenticado no tiene un perfil de médico asociado."));
+
+                if (!cita.getMedico().getId().equals(medicoAutenticado.getId())) {
+                        throw new IllegalStateException(
+                                        "Solo el médico que atendió esta cita puede editar el triaje.");
+                }
+
+                if (!esEditable(cita)) {
+                        throw new IllegalStateException(
+                                        "El tiempo para editar este triaje ha expirado. "
+                                                        + "Solo se permite editar hasta 45 minutos después de la hora de la cita.");
+                }
+
+                triaje.setPresionArterial(request.getPresionArterial());
+                triaje.setTemperatura(request.getTemperatura());
+                triaje.setPeso(request.getPeso());
+                triaje = triajeRepository.save(triaje);
+
+                log.info("Triaje editado — cita ID: {} por médico ID: {}", citaId, medicoAutenticado.getId());
+                return triaje;
         }
 
         /**
@@ -166,9 +270,13 @@ public class AtencionService {
         // ─── Métodos privados ─────────────────────────────────────────────────────
 
         private ConsultaResponse toResponse(ConsultaMedica c) {
+                Triaje triaje = triajeRepository.findByCita(c.getCita()).orElse(null);
+                boolean editable = esEditable(c.getCita());
+
                 return ConsultaResponse.builder()
                                 .id(c.getId())
                                 .citaId(c.getCita().getId())
+                                .medicoId(c.getCita().getMedico().getId())
                                 .pacienteNombre(c.getCita().getPaciente().getNombres()
                                                 + " " + c.getCita().getPaciente().getApellidos())
                                 .medicoNombre(c.getCita().getMedico().getNombres()
@@ -178,6 +286,20 @@ public class AtencionService {
                                 .tratamiento(c.getTratamiento())
                                 .observaciones(c.getObservaciones())
                                 .registradoEn(c.getRegistradoEn())
+                                .presionArterial(triaje != null ? triaje.getPresionArterial() : null)
+                                .temperatura(triaje != null ? triaje.getTemperatura() : null)
+                                .peso(triaje != null ? triaje.getPeso() : null)
+                                .editable(editable)
                                 .build();
+        }
+
+        /**
+         * Determina si una consulta aún puede editarse.
+         * Regla de negocio: solo dentro de los 45 minutos posteriores a la
+         * hora programada de la cita (misma ventana usada para separar citas).
+         */
+        private boolean esEditable(CitaMedica cita) {
+                java.time.LocalDateTime limite = cita.getFechaHora().plusMinutes(45);
+                return java.time.LocalDateTime.now().isBefore(limite);
         }
 }

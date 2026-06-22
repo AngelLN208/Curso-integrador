@@ -21,4 +21,7 @@ public class LoginResponse {
     private String username;
     private String nombreCompleto;
     private String rol;
+
+    /** ID del registro Médico asociado, solo presente si rol = ROLE_MEDICO */
+    private Long medicoId;
 }

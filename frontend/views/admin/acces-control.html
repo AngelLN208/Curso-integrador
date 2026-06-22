@@ -132,7 +132,15 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Contraseña *</label>
-                    <input type="password" id="cuenta-password" class="form-control" placeholder="Mínimo 8 caracteres">
+                    <div style="position:relative">
+                        <input type="password" id="cuenta-password" class="form-control"
+                            placeholder="Mínimo 8 caracteres" style="padding-right:40px">
+                        <button type="button" onclick="UI.togglePassword('cuenta-password','icon-cuenta-password')"
+                            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                         background:none;border:none;cursor:pointer;color:var(--text-3);padding:4px">
+                            <i class="bi bi-eye" id="icon-cuenta-password"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Rol *</label>

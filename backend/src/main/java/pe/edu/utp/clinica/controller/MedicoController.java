@@ -28,59 +28,73 @@ import java.util.List;
 @Tag(name = "Médicos", description = "Gestión de médicos de la clínica")
 public class MedicoController {
 
-    private final MedicoService medicoService;
+        private final MedicoService medicoService;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    @Operation(summary = "Registrar médico",
-               description = "RF-37: Solo ADMINISTRADOR. DNI único.")
-    public ResponseEntity<ApiResponse<MedicoResponse>> registrar(
-            @Valid @RequestBody MedicoRequest request) {
+        @PostMapping
+        @PreAuthorize("hasRole('ADMINISTRADOR')")
+        @Operation(summary = "Registrar médico", description = "RF-37: Solo ADMINISTRADOR. DNI único.")
+        public ResponseEntity<ApiResponse<MedicoResponse>> registrar(
+                        @Valid @RequestBody MedicoRequest request) {
 
-        MedicoResponse response = medicoService.registrar(request);
-        return ResponseEntity.status(201)
-                .body(ApiResponse.created("Médico registrado correctamente", response));
-    }
+                MedicoResponse response = medicoService.registrar(request);
+                return ResponseEntity.status(201)
+                                .body(ApiResponse.created("Médico registrado correctamente", response));
+        }
 
-    @GetMapping
-    @Operation(summary = "Listar médicos activos",
-               description = "Todos los roles pueden consultar.")
-    public ResponseEntity<ApiResponse<List<MedicoResponse>>> listar() {
+        @GetMapping
+        @Operation(summary = "Listar médicos activos", description = "Todos los roles pueden consultar.")
+        public ResponseEntity<ApiResponse<List<MedicoResponse>>> listar() {
 
-        List<MedicoResponse> response = medicoService.listarActivos();
-        return ResponseEntity.ok(
-                ApiResponse.success("Médicos obtenidos correctamente", response));
-    }
+                List<MedicoResponse> response = medicoService.listarActivos();
+                return ResponseEntity.ok(
+                                ApiResponse.success("Médicos obtenidos correctamente", response));
+        }
 
-    @GetMapping("/especialidad/{especialidadId}")
-    @Operation(summary = "Listar médicos por especialidad",
-               description = "Filtra médicos activos por especialidad.")
-    public ResponseEntity<ApiResponse<List<MedicoResponse>>> listarPorEspecialidad(
-            @PathVariable Long especialidadId) {
+        @GetMapping("/especialidad/{especialidadId}")
+        @Operation(summary = "Listar médicos por especialidad", description = "Filtra médicos activos por especialidad.")
+        public ResponseEntity<ApiResponse<List<MedicoResponse>>> listarPorEspecialidad(
+                        @PathVariable Long especialidadId) {
 
-        List<MedicoResponse> response = medicoService.listarPorEspecialidad(especialidadId);
-        return ResponseEntity.ok(
-                ApiResponse.success("Médicos obtenidos correctamente", response));
-    }
+                List<MedicoResponse> response = medicoService.listarPorEspecialidad(especialidadId);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Médicos obtenidos correctamente", response));
+        }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Obtener médico por ID")
-    public ResponseEntity<ApiResponse<MedicoResponse>> obtenerPorId(
-            @PathVariable Long id) {
+        @GetMapping("/{id}")
+        @Operation(summary = "Obtener médico por ID")
+        public ResponseEntity<ApiResponse<MedicoResponse>> obtenerPorId(
+                        @PathVariable Long id) {
 
-        MedicoResponse response = medicoService.obtenerPorId(id);
-        return ResponseEntity.ok(
-                ApiResponse.success("Médico obtenido correctamente", response));
-    }
+                MedicoResponse response = medicoService.obtenerPorId(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Médico obtenido correctamente", response));
+        }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    @Operation(summary = "Desactivar médico",
-               description = "Solo ADMINISTRADOR.")
-    public ResponseEntity<ApiResponse<Void>> desactivar(@PathVariable Long id) {
+        @PutMapping("/{id}/activar")
+        @PreAuthorize("hasRole('ADMINISTRADOR')")
+        @Operation(summary = "Reactivar médico", description = "Solo ADMINISTRADOR.")
+        public ResponseEntity<ApiResponse<Void>> activar(@PathVariable Long id) {
+                medicoService.activar(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Médico activado correctamente"));
+        }
 
-        medicoService.desactivar(id);
-        return ResponseEntity.ok(
-                ApiResponse.success("Médico desactivado correctamente"));
-    }
+        @GetMapping("/todos")
+        @PreAuthorize("hasRole('ADMINISTRADOR')")
+        @Operation(summary = "Listar todos los médicos (activos e inactivos)", description = "Solo ADMINISTRADOR. Para el panel de gestión.")
+        public ResponseEntity<ApiResponse<List<MedicoResponse>>> listarTodos() {
+                List<MedicoResponse> response = medicoService.listarTodos();
+                return ResponseEntity.ok(
+                                ApiResponse.success("Médicos obtenidos correctamente", response));
+        }
+
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasRole('ADMINISTRADOR')")
+        @Operation(summary = "Desactivar médico", description = "Solo ADMINISTRADOR.")
+        public ResponseEntity<ApiResponse<Void>> desactivar(@PathVariable Long id) {
+
+                medicoService.desactivar(id);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Médico desactivado correctamente"));
+        }
 }

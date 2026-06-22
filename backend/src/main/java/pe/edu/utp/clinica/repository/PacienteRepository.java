@@ -29,12 +29,18 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     /**
      * Búsqueda flexible por DNI, nombre o apellido (RF-03).
      * Usa ILIKE para búsqueda insensible a mayúsculas en PostgreSQL.
+     *
+     * MEJORA: además de buscar nombres y apellidos por separado, también
+     * busca sobre la concatenación "nombres apellidos", ya que el usuario
+     * (ej. un médico) suele escribir el nombre completo del paciente,
+     * lo cual antes no coincidía si el criterio abarcaba ambos campos.
      */
     @Query("""
             SELECT p FROM Paciente p
             WHERE p.dni LIKE %:criterio%
                OR LOWER(p.nombres) LIKE LOWER(CONCAT('%', :criterio, '%'))
                OR LOWER(p.apellidos) LIKE LOWER(CONCAT('%', :criterio, '%'))
+               OR LOWER(CONCAT(p.nombres, ' ', p.apellidos)) LIKE LOWER(CONCAT('%', :criterio, '%'))
             """)
     List<Paciente> buscarPorCriterio(@Param("criterio") String criterio);
 

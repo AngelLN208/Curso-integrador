@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pe.edu.utp.clinica.model.Especialidad;
 import pe.edu.utp.clinica.model.Medico;
+import pe.edu.utp.clinica.model.Usuario;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,4 +35,7 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
      * RF-52: Usado en el directorio público del portal paciente.
      */
     List<Medico> findByEspecialidadIdAndActivoTrue(Long especialidadId);
+
+    /** Busca el médico asociado a un usuario del sistema (usado en login) */
+    Optional<Medico> findByUsuario(Usuario usuario);
 }

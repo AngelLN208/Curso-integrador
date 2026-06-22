@@ -13,6 +13,7 @@ function iniciarSidebar(paginaActiva) {
   if (!usuario) return;
 
   const esAdmin = usuario.rol === 'ROLE_ADMINISTRADOR';
+  const esMedico = usuario.rol === 'ROLE_MEDICO';
 
   const navRecepcionista = [
     { href: '/views/recepcionist/dashboard.html', icon: 'bi-grid-1x2', label: 'Dashboard' },
@@ -20,11 +21,18 @@ function iniciarSidebar(paginaActiva) {
     { href: '/views/recepcionist/patients.html', icon: 'bi-people', label: 'Pacientes' },
     { href: '/views/recepcionist/payments.html', icon: 'bi-receipt', label: 'Pagos' },
   ];
+  const navMedico = [
+    { href: '/views/medico/dashboard.html', icon: 'bi-grid-1x2', label: 'Dashboard', section: 'Principal' },
+    { href: '/views/medico/citas.html', icon: 'bi-calendar3', label: 'Mis citas', section: 'Atención' },
+    { href: '/views/medico/historial-medico.html', icon: 'bi-file-medical', label: 'Hist. médico', section: 'Atención' },
+    { href: '/views/medico/horario.html', icon: 'bi-clock', label: 'Mi horario', section: 'Atención' },
+  ];
 
   const navAdmin = [
     { href: '/views/admin/dashboard.html', icon: 'bi-grid-1x2', label: 'Dashboard', section: 'Principal' },
     { href: '/views/admin/appointments.html', icon: 'bi-calendar3', label: 'Citas', section: 'Operación' },
     { href: '/views/admin/patients.html', icon: 'bi-people', label: 'Pacientes', section: 'Operación' },
+    { href: '/views/admin/medicos.html', icon: 'bi-person-badge', label: 'Médicos', section: 'Operación' },
     { href: '/views/admin/payments.html', icon: 'bi-receipt', label: 'Pagos', section: 'Operación' },
     { href: '/views/admin/historial-medico.html', icon: 'bi-file-medical', label: 'Hist. médico', section: 'Operación' },
     { href: '/views/admin/audit.html', icon: 'bi-shield-check', label: 'Auditoría', section: 'Administración' },
@@ -33,14 +41,16 @@ function iniciarSidebar(paginaActiva) {
     { href: '/views/admin/acces-control.html', icon: 'bi-key', label: 'Accesos', section: 'Administración' },
   ];
 
-  const nav = esAdmin ? navAdmin : navRecepcionista;
+  const nav = esAdmin ? navAdmin : esMedico ? navMedico : navRecepcionista;
 
   // Construir HTML con secciones (solo admin tiene secciones múltiples)
   let navHtml = '';
   let seccionActual = null;
 
+  const usaSecciones = esAdmin || esMedico;
+
   nav.forEach(item => {
-    if (esAdmin && item.section !== seccionActual) {
+    if (usaSecciones && item.section !== seccionActual) {
       seccionActual = item.section;
       navHtml += `<div class="nav-section-label">${seccionActual}</div>`;
     }
@@ -50,7 +60,7 @@ function iniciarSidebar(paginaActiva) {
       </a>`;
   });
 
-  if (!esAdmin) {
+  if (!usaSecciones) {
     navHtml = `<div class="nav-section-label">Principal</div>${navHtml}`;
   }
 

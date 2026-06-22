@@ -231,8 +231,10 @@ public class CitaService {
          * Busca citas por filtros múltiples.
          * RF-07: Filtra por paciente, médico, fecha o estado.
          *
-         * CORRECCIÓN: el parámetro fecha se convertía a LocalDateTime correctamente
-         * y se pasaba al repository (antes siempre se enviaba null).
+         * CORRECCIÓN: se separó la consulta en dos métodos de repositorio
+         * (buscarSinFecha / buscarConFecha) para evitar el bug de PostgreSQL
+         * con parámetros de tipo fecha en null (errores 42846 y 42P18).
+         * Así nunca se envía un parámetro de fecha null a la base de datos.
          *
          * @param pacienteId ID del paciente (opcional)
          * @param medicoId   ID del médico (opcional)
@@ -242,15 +244,19 @@ public class CitaService {
         @Transactional(readOnly = true)
         public List<CitaResponse> buscarPorFiltros(Long pacienteId, Long medicoId,
                         EstadoCita estado, String fecha) {
-                // CORRECCIÓN: convertir String "yyyy-MM-dd" a LocalDateTime para el query
-                // Antes: siempre se pasaba null al repository, ignorando el filtro de fecha
-                LocalDateTime fechaDateTime = null;
+                List<CitaMedica> citas;
+
                 if (fecha != null && !fecha.isBlank()) {
-                        fechaDateTime = java.time.LocalDate.parse(fecha).atStartOfDay();
+                        java.time.LocalDate dia = java.time.LocalDate.parse(fecha);
+                        LocalDateTime fechaInicio = dia.atStartOfDay();
+                        LocalDateTime fechaFin = dia.atTime(23, 59, 59);
+                        citas = citaRepository.buscarConFecha(
+                                        pacienteId, medicoId, estado, fechaInicio, fechaFin);
+                } else {
+                        citas = citaRepository.buscarSinFecha(pacienteId, medicoId, estado);
                 }
 
-                return citaRepository.buscarPorFiltros(pacienteId, medicoId, estado, fechaDateTime)
-                                .stream()
+                return citas.stream()
                                 .map(this::toResponse)
                                 .collect(Collectors.toList());
         }

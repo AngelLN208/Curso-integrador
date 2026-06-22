@@ -17,6 +17,10 @@ import pe.edu.utp.clinica.service.AtencionService;
 
 import java.util.List;
 
+import pe.edu.utp.clinica.dto.atencion.ConsultaEditarRequest;
+import org.springframework.security.core.Authentication;
+
+import pe.edu.utp.clinica.dto.atencion.TriajeEditarRequest;
 /**
  * Controlador para portal del médico.
  *
@@ -34,42 +38,53 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('MEDICO', 'ADMINISTRADOR')")
 public class AtencionController {
 
-    private final AtencionService atencionService;
+        private final AtencionService atencionService;
 
-    @PostMapping("/triaje")
-    @Operation(summary = "Registrar triaje",
-               description = "RF-22: Presión, temperatura y peso. "
-                           + "RF-21: Solo citas CONFIRMADAS.")
-    public ResponseEntity<ApiResponse<Triaje>> registrarTriaje(
-            @Valid @RequestBody TriajeRequest request) {
+        @PostMapping("/triaje")
+        @Operation(summary = "Registrar triaje", description = "RF-22: Presión, temperatura y peso. "
+                        + "RF-21: Solo citas CONFIRMADAS.")
+        public ResponseEntity<ApiResponse<Triaje>> registrarTriaje(
+                        @Valid @RequestBody TriajeRequest request) {
 
-        Triaje response = atencionService.registrarTriaje(request);
-        return ResponseEntity.status(201)
-                .body(ApiResponse.created("Triaje registrado correctamente", response));
-    }
+                Triaje response = atencionService.registrarTriaje(request);
+                return ResponseEntity.status(201)
+                                .body(ApiResponse.created("Triaje registrado correctamente", response));
+        }
 
-    @PostMapping("/consulta")
-    @Operation(summary = "Registrar consulta médica",
-               description = "RF-23: Diagnóstico y tratamiento. "
-                           + "RF-25: Solo una consulta por cita.")
-    public ResponseEntity<ApiResponse<ConsultaResponse>> registrarConsulta(
-            @Valid @RequestBody ConsultaRequest request) {
+        @PostMapping("/consulta")
+        @Operation(summary = "Registrar consulta médica", description = "RF-23: Diagnóstico y tratamiento. "
+                        + "RF-25: Solo una consulta por cita.")
+        public ResponseEntity<ApiResponse<ConsultaResponse>> registrarConsulta(
+                        @Valid @RequestBody ConsultaRequest request) {
 
-        ConsultaResponse response = atencionService.registrarConsulta(request);
-        return ResponseEntity.status(201)
-                .body(ApiResponse.created("Consulta registrada correctamente", response));
-    }
+                ConsultaResponse response = atencionService.registrarConsulta(request);
+                return ResponseEntity.status(201)
+                                .body(ApiResponse.created("Consulta registrada correctamente", response));
+        }
 
-    @GetMapping("/historial/{pacienteId}")
-    @PreAuthorize("hasAnyRole('MEDICO', 'ADMINISTRADOR', 'RECEPCIONISTA')")
-    @Operation(summary = "Historial médico del paciente",
-               description = "RF-26 y RF-27: Lista consultas ordenadas "
-                           + "por fecha descendente.")
-    public ResponseEntity<ApiResponse<List<ConsultaResponse>>> historial(
-            @PathVariable Long pacienteId) {
+        @GetMapping("/historial/{pacienteId}")
+        @PreAuthorize("hasAnyRole('MEDICO', 'ADMINISTRADOR', 'RECEPCIONISTA')")
+        @Operation(summary = "Historial médico del paciente", description = "RF-26 y RF-27: Lista consultas ordenadas "
+                        + "por fecha descendente.")
+        public ResponseEntity<ApiResponse<List<ConsultaResponse>>> historial(
+                        @PathVariable Long pacienteId) {
 
-        List<ConsultaResponse> response = atencionService.obtenerHistorial(pacienteId);
-        return ResponseEntity.ok(
-                ApiResponse.success("Historial obtenido correctamente", response));
-    }
+                List<ConsultaResponse> response = atencionService.obtenerHistorial(pacienteId);
+                return ResponseEntity.ok(
+                                ApiResponse.success("Historial obtenido correctamente", response));
+        }
+
+        @PutMapping("/consulta/{citaId}")
+        @Operation(summary = "Editar consulta médica", description = "Solo el médico que atendió la cita puede editar, "
+                        + "y únicamente dentro de los 45 minutos posteriores a la hora de la cita.")
+        public ResponseEntity<ApiResponse<ConsultaResponse>> editarConsulta(
+                        @PathVariable Long citaId,
+                        @Valid @RequestBody ConsultaEditarRequest request,
+                        Authentication auth) {
+
+                ConsultaResponse response = atencionService.editarConsulta(citaId, request, auth.getName());
+                return ResponseEntity.ok(
+                                ApiResponse.success("Consulta actualizada correctamente", response));
+        }
+        
 }
