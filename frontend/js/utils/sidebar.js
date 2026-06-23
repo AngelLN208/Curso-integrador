@@ -177,4 +177,42 @@ function iniciarSidebar(paginaActiva) {
     if (e.target === document.getElementById('modalPerfil'))
       document.getElementById('modalPerfil').classList.remove('open');
   });
+
+  // ── Responsive: botón hamburguesa + overlay ──────────────────
+  // Se inyecta automáticamente en el topbar de cada página sin
+  // necesidad de modificar cada HTML individualmente.
+  const topbarLeft = document.querySelector('.topbar > div:first-child');
+  if (topbarLeft && !document.getElementById('menu-toggle-btn')) {
+    const btnMenu = document.createElement('button');
+    btnMenu.id = 'menu-toggle-btn';
+    btnMenu.className = 'menu-toggle';
+    btnMenu.innerHTML = '<i class="bi bi-list"></i>';
+    btnMenu.style.marginRight = '12px';
+    topbarLeft.parentElement.insertBefore(btnMenu, topbarLeft);
+    topbarLeft.parentElement.style.display = 'flex';
+    topbarLeft.parentElement.style.alignItems = 'center';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    overlay.id = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+
+    const sidebarEl = document.querySelector('.sidebar');
+
+    function abrirSidebarMovil() {
+      sidebarEl.classList.add('open');
+      overlay.classList.add('open');
+    }
+    function cerrarSidebarMovil() {
+      sidebarEl.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+
+    btnMenu.addEventListener('click', abrirSidebarMovil);
+    overlay.addEventListener('click', cerrarSidebarMovil);
+
+    // Cierra el sidebar al navegar a otra sección (mejor UX en móvil)
+    document.querySelectorAll('.nav-item').forEach(item =>
+      item.addEventListener('click', cerrarSidebarMovil));
+  }
 }
