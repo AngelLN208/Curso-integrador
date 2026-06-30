@@ -90,4 +90,12 @@ window.PortalService = {
         });
         return json.data ?? json;
     },
+
+    cambiarPassword: async (data) => {
+        const json = await portalFetch('/portal/perfil/password', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        return json.data ?? json;
+    },
 };

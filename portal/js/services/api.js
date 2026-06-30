@@ -3,13 +3,13 @@
  */
 
 const PortalAuth = {
-  getToken:      ()  => localStorage.getItem('portal_token'),
-  setToken:      (t) => localStorage.setItem('portal_token', t),
-  removeToken:   ()  => localStorage.removeItem('portal_token'),
-  isLoggedIn:    ()  => !!localStorage.getItem('portal_token'),
-  getPaciente:   ()  => JSON.parse(localStorage.getItem('portal_paciente') || 'null'),
-  setPaciente:   (p) => localStorage.setItem('portal_paciente', JSON.stringify(p)),
-  removePaciente:()  => localStorage.removeItem('portal_paciente'),
+  getToken: () => localStorage.getItem('portal_token'),
+  setToken: (t) => localStorage.setItem('portal_token', t),
+  removeToken: () => localStorage.removeItem('portal_token'),
+  isLoggedIn: () => !!localStorage.getItem('portal_token'),
+  getPaciente: () => JSON.parse(localStorage.getItem('portal_paciente') || 'null'),
+  setPaciente: (p) => localStorage.setItem('portal_paciente', JSON.stringify(p)),
+  removePaciente: () => localStorage.removeItem('portal_paciente'),
 };
 
 async function portalFetch(endpoint, options = {}) {
@@ -20,10 +20,18 @@ async function portalFetch(endpoint, options = {}) {
   const res = await fetch(`${PORTAL_CONFIG.API_URL}${endpoint}`, { ...options, headers });
 
   if (res.status === 401) {
-    PortalAuth.removeToken();
-    PortalAuth.removePaciente();
-    window.location.href = PORTAL_CONFIG.ROUTES.LOGIN;
-    return;
+    // Solo redirigir al login si hay un token activo (sesión expirada).
+    // Si NO hay token, es un intento de login fallido — no redirigir,
+    // dejar que el catch del caller maneje el error y muestre el mensaje.
+    if (PortalAuth.getToken()) {
+      PortalAuth.removeToken();
+      PortalAuth.removePaciente();
+      window.location.href = PORTAL_CONFIG.ROUTES.LOGIN;
+      return;
+    }
+    // Sin token: propagar el error normalmente para que el formulario lo muestre
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || 'Credenciales inválidas');
   }
   if (res.status === 204) return null;
 
@@ -61,7 +69,7 @@ const PortalAuthService = {
 
     PortalAuth.setToken(data.token);
     PortalAuth.setPaciente({
-      username:       data.username,
+      username: data.username,
       nombreCompleto: data.nombreCompleto,
     });
     window.location.href = PORTAL_CONFIG.ROUTES.DASHBOARD;
@@ -76,7 +84,7 @@ const PortalAuthService = {
 
     PortalAuth.setToken(data.token);
     PortalAuth.setPaciente({
-      username:       data.correo,
+      username: data.correo,
       nombreCompleto: data.nombreCompleto,
     });
     window.location.href = PORTAL_CONFIG.ROUTES.DASHBOARD;

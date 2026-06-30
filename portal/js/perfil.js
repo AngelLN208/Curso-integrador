@@ -106,4 +106,56 @@ document.getElementById('form-perfil').addEventListener('submit', async function
     }
 });
 
+async function cambiarPassword() {
+    const actual = document.getElementById('pwd-actual').value;
+    const nueva = document.getElementById('pwd-nueva').value;
+    const confirmacion = document.getElementById('pwd-confirmacion').value;
+
+    if (!actual || !nueva || !confirmacion) {
+        return PortalNotify.error('Completa todos los campos de contraseña');
+    }
+
+    if (nueva.length < 6) {
+        return PortalNotify.error('La nueva contraseña debe tener al menos 6 caracteres');
+    }
+
+    if (nueva !== confirmacion) {
+        return PortalNotify.error('La nueva contraseña y su confirmación no coinciden');
+    }
+
+    const btn = document.getElementById('btn-cambiar-pwd');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Cambiando...';
+
+    try {
+        await PortalService.cambiarPassword({
+            passwordActual: actual,
+            passwordNueva: nueva,
+            passwordNuevaConfirmacion: confirmacion
+        });
+
+        PortalNotify.success('Contraseña actualizada correctamente');
+        document.getElementById('pwd-actual').value = '';
+        document.getElementById('pwd-nueva').value = '';
+        document.getElementById('pwd-confirmacion').value = '';
+
+    } catch (err) {
+        PortalNotify.error(err.message || 'No se pudo cambiar la contraseña');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-shield-check"></i> Cambiar contraseña';
+    }
+}
+
+function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
 cargarPerfil();

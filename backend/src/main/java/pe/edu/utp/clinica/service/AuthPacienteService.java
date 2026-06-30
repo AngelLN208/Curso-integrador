@@ -15,6 +15,9 @@ import pe.edu.utp.clinica.repository.PacienteRepository;
 import pe.edu.utp.clinica.repository.UsuarioRepository;
 import pe.edu.utp.clinica.security.JwtUtil;
 
+
+import pe.edu.utp.clinica.dto.portal.CambiarPasswordRequest;
+import pe.edu.utp.clinica.repository.UsuarioRepository;
 /**
  * Servicio para el registro e inicio de sesión de pacientes en el portal.
  *
@@ -136,5 +139,44 @@ public class AuthPacienteService {
                                 .token(token)
                                 .mensaje("Registro exitoso. ¡Bienvenido a la Clínica Stella Maris!")
                                 .build();
+        }
+
+        /**
+         * Cambia la contraseña del paciente autenticado desde el portal.
+         * Requiere la contraseña actual para verificar identidad antes
+         * de permitir el cambio — evita que sesiones abiertas sin
+         * supervisión puedan cambiar la contraseña sin saberla.
+         *
+         * @param username correo del paciente autenticado (username del token)
+         * @param request  contraseña actual + nueva + confirmación
+         */
+        @Transactional
+        public void cambiarPassword(String username, CambiarPasswordRequest request) {
+                Usuario usuario = usuarioRepository.findByUsername(username)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Usuario no encontrado: " + username));
+
+                // Verificar que la contraseña actual es correcta
+                if (!passwordEncoder.matches(request.getPasswordActual(), usuario.getPassword())) {
+                        throw new IllegalStateException(
+                                        "La contraseña actual no es correcta.");
+                }
+
+                // Verificar que la nueva contraseña y su confirmación coinciden
+                if (!request.getPasswordNueva().equals(request.getPasswordNuevaConfirmacion())) {
+                        throw new IllegalStateException(
+                                        "La nueva contraseña y su confirmación no coinciden.");
+                }
+
+                // Verificar que la nueva contraseña es distinta a la actual
+                if (passwordEncoder.matches(request.getPasswordNueva(), usuario.getPassword())) {
+                        throw new IllegalStateException(
+                                        "La nueva contraseña debe ser diferente a la actual.");
+                }
+
+                usuario.setPassword(passwordEncoder.encode(request.getPasswordNueva()));
+                usuarioRepository.save(usuario);
+
+                log.info("Contraseña actualizada para usuario: {}", username);
         }
 }

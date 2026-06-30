@@ -22,7 +22,7 @@
                 <div class="auth-sub">Inicia sesión para gestionar tus citas en Clínica Stella Maris</div>
             </div>
 
-            <form id="form-login" onsubmit="manejarLogin(event)">
+            <form id="form-login" onsubmit="manejarLogin(event); return false;">
                 <div class="form-group">
                     <label class="form-label">Correo electrónico</label>
                     <input type="email" id="login-correo" class="form-control" placeholder="tu@correo.com" required>

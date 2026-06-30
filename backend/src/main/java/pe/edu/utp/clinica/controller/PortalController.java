@@ -23,6 +23,8 @@ import pe.edu.utp.clinica.dto.portal.CitaPortalRequest;
 import pe.edu.utp.clinica.dto.cita.CitaResponse;
 import pe.edu.utp.clinica.service.CitaService;
 
+import pe.edu.utp.clinica.service.AuthPacienteService;
+
 /**
  * Controller para el portal del paciente.
  *
@@ -50,6 +52,7 @@ public class PortalController {
         private final CitaService citaService;
         private final PacienteService pacienteService;
 
+        private final AuthPacienteService authPacienteService;
         // ─── RF-52: Directorio público ────────────────────────────────────────────
 
         /**
@@ -327,5 +330,22 @@ public class PortalController {
 
                 var paciente = pacienteService.obtenerPorCorreo(userDetails.getUsername());
                 return ResponseEntity.ok(ApiResponse.success("Perfil obtenido correctamente", paciente));
+        }
+
+        /**
+         * El paciente cambia su contraseña desde el portal.
+         * Requiere la contraseña actual para verificar identidad.
+         *
+         * @param request     contraseña actual + nueva + confirmación
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @PutMapping("/perfil/password")
+        @Operation(summary = "Cambiar contraseña", description = "Requiere autenticación. El paciente cambia su contraseña verificando la actual primero.")
+        public ResponseEntity<ApiResponse<Void>> cambiarPassword(
+                        @Valid @RequestBody CambiarPasswordRequest request,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                authPacienteService.cambiarPassword(userDetails.getUsername(), request);
+                return ResponseEntity.ok(ApiResponse.success("Contraseña actualizada correctamente", null));
         }
 }

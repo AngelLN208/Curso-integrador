@@ -100,6 +100,53 @@
             </form>
         </div>
 
+        <!-- Cambiar contraseña -->
+        <div class="card" style="margin-top:18px">
+            <div
+                style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+                <i class="bi bi-shield-lock" style="color:var(--primary)"></i>
+                <span style="font-weight:700;font-size:14.5px">Cambiar contraseña</span>
+            </div>
+            <div class="card-pad">
+                <div class="form-group">
+                    <label class="form-label">Contraseña actual</label>
+                    <div style="position:relative">
+                        <input type="password" id="pwd-actual" class="form-control" placeholder="Tu contraseña actual"
+                            style="padding-right:42px">
+                        <button type="button" onclick="togglePwd('pwd-actual', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                                   background:none;border:none;cursor:pointer;color:var(--text-3);font-size:15px">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nueva contraseña</label>
+                    <div style="position:relative">
+                        <input type="password" id="pwd-nueva" class="form-control" placeholder="Mínimo 6 caracteres"
+                            style="padding-right:42px">
+                        <button type="button" onclick="togglePwd('pwd-nueva', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                                   background:none;border:none;cursor:pointer;color:var(--text-3);font-size:15px">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirmar nueva contraseña</label>
+                    <div style="position:relative">
+                        <input type="password" id="pwd-confirmacion" class="form-control"
+                            placeholder="Repite la nueva contraseña" style="padding-right:42px">
+                        <button type="button" onclick="togglePwd('pwd-confirmacion', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                                   background:none;border:none;cursor:pointer;color:var(--text-3);font-size:15px">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="cambiarPassword()" id="btn-cambiar-pwd">
+                    <i class="bi bi-shield-check"></i> Cambiar contraseña
+                </button>
+            </div>
+        </div>
+
         <!-- Seguros vinculados (solo lectura) -->
         <div class="card" style="margin-top:18px" id="card-seguros" style="display:none">
             <div
