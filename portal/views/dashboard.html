@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel — Clínica Stella Maris</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/portal.css">
+</head>
+
+<body>
+
+    <header class="portal-topbar">
+        <a href="dashboard.html" class="portal-logo">
+            <div class="portal-logo-icon">🏥</div>
+            <div class="portal-logo-text">Clínica <span>Stella Maris</span></div>
+        </a>
+        <nav class="portal-nav">
+            <a href="dashboard.html" class="active">Mi panel</a>
+            <a href="directorio.html">Médicos</a>
+            <a href="citas.html">Mis citas</a>
+            <a href="chatbot.html">Asistente</a>
+        </nav>
+        <div style="display:flex;align-items:center;gap:10px">
+            <a href="perfil.html" class="btn btn-ghost btn-sm" style="text-decoration:none" title="Mi perfil">
+                <i class="bi bi-person-circle"></i>
+            </a>
+            <span style="font-size:13px;color:var(--text-2)" id="saludo-usuario"></span>
+            <button class="btn btn-ghost btn-sm" onclick="PortalAuthService.logout()">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <div style="margin-bottom:24px">
+            <h1 style="font-size:24px;font-weight:800" id="bienvenida">Hola 👋</h1>
+            <p style="color:var(--text-2);font-size:14px">Este es el resumen de tu actividad en la clínica</p>
+        </div>
+
+        <!-- Próxima cita -->
+        <div class="card" style="margin-bottom:20px" id="card-proxima-cita">
+            <div class="card-pad">
+                <div class="empty-row">Cargando...</div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" id="grid-secundario">
+
+            <!-- Último diagnóstico -->
+            <div class="card">
+                <div
+                    style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+                    <i class="bi bi-file-medical" style="color:var(--primary)"></i>
+                    <span style="font-weight:700;font-size:14.5px">Último diagnóstico</span>
+                </div>
+                <div class="card-pad" id="card-diagnostico">
+                    <div class="empty-row">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- Pago pendiente -->
+            <div class="card">
+                <div
+                    style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+                    <i class="bi bi-credit-card" style="color:var(--amber)"></i>
+                    <span style="font-weight:700;font-size:14.5px">Pago pendiente</span>
+                </div>
+                <div class="card-pad" id="card-pago-pendiente">
+                    <div class="empty-row">Cargando...</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Resumen de citas -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px" id="resumen-citas">
+            <div class="card card-pad" style="text-align:center">
+                <div style="font-size:24px;font-weight:800;color:var(--primary)" id="m-total">—</div>
+                <div style="font-size:12px;color:var(--text-2);margin-top:4px">Total citas</div>
+            </div>
+            <div class="card card-pad" style="text-align:center">
+                <div style="font-size:24px;font-weight:800;color:var(--amber)" id="m-pendientes">—</div>
+                <div style="font-size:12px;color:var(--text-2);margin-top:4px">Pendientes</div>
+            </div>
+            <div class="card card-pad" style="text-align:center">
+                <div style="font-size:24px;font-weight:800;color:var(--green)" id="m-confirmadas">—</div>
+                <div style="font-size:12px;color:var(--text-2);margin-top:4px">Confirmadas</div>
+            </div>
+            <div class="card card-pad" style="text-align:center">
+                <div style="font-size:24px;font-weight:800;color:var(--accent)" id="m-atendidas">—</div>
+                <div style="font-size:12px;color:var(--text-2);margin-top:4px">Atendidas</div>
+            </div>
+        </div>
+
+        <!-- Accesos rápidos -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:24px">
+            <a href="directorio.html" class="card card-pad"
+                style="text-decoration:none;display:flex;align-items:center;gap:12px;color:var(--text)">
+                <div
+                    style="width:42px;height:42px;background:var(--primary-lt);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--primary)">
+                    <i class="bi bi-calendar-plus"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:13.5px">Agendar cita</div>
+                    <div style="font-size:11.5px;color:var(--text-3)">Busca un médico disponible</div>
+                </div>
+            </a>
+            <a href="#" onclick="descargarHistorial(event)" class="card card-pad"
+                style="text-decoration:none;display:flex;align-items:center;gap:12px;color:var(--text)">
+                <div
+                    style="width:42px;height:42px;background:var(--accent-lt);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent)">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:13.5px">Descargar historial</div>
+                    <div style="font-size:11.5px;color:var(--text-3)">Tu historial médico en PDF</div>
+                </div>
+            </a>
+            <a href="chatbot.html" class="card card-pad"
+                style="text-decoration:none;display:flex;align-items:center;gap:12px;color:var(--text)">
+                <div
+                    style="width:42px;height:42px;background:#FEF3C7;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--amber)">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:13.5px">Asistente virtual</div>
+                    <div style="font-size:11.5px;color:var(--text-3)">Resuelve tus dudas al instante</div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils/notify.js"></script>
+    <script src="../js/services/api.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+
+</html>

@@ -15,8 +15,13 @@ import pe.edu.utp.clinica.common.ApiResponse;
 import pe.edu.utp.clinica.dto.portal.*;
 import pe.edu.utp.clinica.service.ChatbotService;
 import pe.edu.utp.clinica.service.PortalService;
+import pe.edu.utp.clinica.service.PacienteService;
 
 import java.util.List;
+
+import pe.edu.utp.clinica.dto.portal.CitaPortalRequest;
+import pe.edu.utp.clinica.dto.cita.CitaResponse;
+import pe.edu.utp.clinica.service.CitaService;
 
 /**
  * Controller para el portal del paciente.
@@ -42,6 +47,8 @@ public class PortalController {
         private final ChatbotService chatbotService;
         private final HistorialPdfService historialPdfService;
         private final PortalPagoService portalPagoService;
+        private final CitaService citaService;
+        private final PacienteService pacienteService;
 
         // ─── RF-52: Directorio público ────────────────────────────────────────────
 
@@ -174,5 +181,151 @@ public class PortalController {
 
                 return ResponseEntity.ok(ApiResponse.success(
                                 "Pago registrado correctamente", pago));
+        }
+
+        /**
+         * Previsualiza el descuento de seguro antes de pagar.
+         * RF-16 (extendido): el paciente ve el cálculo (monto, descuento,
+         * monto final) antes de confirmar el cobro, igual que recepcionista.
+         *
+         * @param citaId      ID de la cita a previsualizar
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @GetMapping("/pagos/cita/{citaId}/previsualizar")
+        @Operation(summary = "Previsualizar pago desde el portal", description = "Requiere autenticación. Muestra el descuento de seguro antes de confirmar el cobro.")
+        public ResponseEntity<ApiResponse<pe.edu.utp.clinica.dto.pago.PrevisualizarPagoResponse>> previsualizarPagoPortal(
+                        @PathVariable Long citaId,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                var calculo = portalPagoService.previsualizarDesdePortal(citaId, userDetails.getUsername());
+                return ResponseEntity.ok(ApiResponse.success("Cálculo obtenido correctamente", calculo));
+        }
+
+        /**
+         * Obtiene el comprobante de pago de una cita para mostrarlo en el portal.
+         * RF-18 (extendido): el paciente ve su boleta, validando ownership.
+         *
+         * @param citaId      ID de la cita
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @GetMapping("/pagos/cita/{citaId}/comprobante")
+        @Operation(summary = "Ver comprobante de pago", description = "Requiere autenticación. Muestra los datos de la boleta de una cita pagada.")
+        public ResponseEntity<ApiResponse<pe.edu.utp.clinica.dto.pago.PagoResponse>> obtenerComprobantePortal(
+                        @PathVariable Long citaId,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                var pago = portalPagoService.obtenerComprobanteDesdePortal(citaId, userDetails.getUsername());
+                return ResponseEntity.ok(ApiResponse.success("Comprobante obtenido correctamente", pago));
+        }
+
+        // ─── Agendar cita desde el portal ─────────────────────────────────────────
+
+        /**
+         * El paciente agenda su propia cita desde el portal.
+         * El pacienteId se deriva del usuario autenticado, nunca del request,
+         * para evitar que un paciente agende a nombre de otro.
+         *
+         * @param request     médico, fecha/hora y motivo
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @PostMapping("/citas")
+        @Operation(summary = "Agendar cita desde el portal", description = "Requiere autenticación. El paciente agenda su propia cita; "
+                        + "se valida disponibilidad del médico y separación mínima de 45 min.")
+        public ResponseEntity<ApiResponse<CitaResponse>> agendarCita(
+                        @Valid @RequestBody CitaPortalRequest request,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                CitaResponse cita = citaService.registrarDesdePortal(
+                                request.getMedicoId(), request.getFechaHora(),
+                                request.getMotivo(), userDetails.getUsername());
+
+                return ResponseEntity.status(201)
+                                .body(ApiResponse.created("Cita registrada correctamente", cita));
+        }
+
+        /**
+         * El paciente cancela su propia cita desde el portal.
+         * RF-09 (extendido): valida ownership en el service.
+         *
+         * @param citaId      ID de la cita a cancelar
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @PutMapping("/citas/{citaId}/cancelar")
+        @Operation(summary = "Cancelar mi cita", description = "Requiere autenticación. El paciente cancela su propia cita.")
+        public ResponseEntity<ApiResponse<CitaResponse>> cancelarMiCita(
+                        @PathVariable Long citaId,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                CitaResponse cita = citaService.cancelarDesdePortal(citaId, userDetails.getUsername());
+                return ResponseEntity.ok(ApiResponse.success("Cita cancelada correctamente", cita));
+        }
+
+        /**
+         * El paciente reprograma su propia cita desde el portal.
+         * RF-06 (extendido): valida ownership y disponibilidad en el service.
+         *
+         * @param citaId      ID de la cita a reprogramar
+         * @param request     nueva fecha y hora
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @PutMapping("/citas/{citaId}/reprogramar")
+        @Operation(summary = "Reprogramar mi cita", description = "Requiere autenticación. El paciente reprograma su propia cita validando disponibilidad.")
+        public ResponseEntity<ApiResponse<CitaResponse>> reprogramarMiCita(
+                        @PathVariable Long citaId,
+                        @Valid @RequestBody pe.edu.utp.clinica.dto.cita.CitaReprogramarRequest request,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                CitaResponse cita = citaService.reprogramarDesdePortal(
+                                citaId, request.getNuevaFechaHora(), userDetails.getUsername());
+                return ResponseEntity.ok(ApiResponse.success("Cita reprogramada correctamente", cita));
+        }
+
+        /**
+         * Lista todas las citas del paciente autenticado.
+         * RF-51 (extendido): sección "Mis citas" — historial completo,
+         * sin importar el estado (pendiente, confirmada, atendida, cancelada).
+         *
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @GetMapping("/citas")
+        @Operation(summary = "Listar mis citas", description = "Requiere autenticación. Devuelve el historial completo de citas del paciente autenticado.")
+        public ResponseEntity<ApiResponse<List<CitaResponse>>> misCitas(
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                List<CitaResponse> citas = citaService.listarPorPaciente(userDetails.getUsername());
+                return ResponseEntity.ok(ApiResponse.success("Citas obtenidas correctamente", citas));
+        }
+
+        /**
+         * El paciente actualiza su propio perfil desde el portal.
+         * RF-02 (extendido): el DNI nunca se puede modificar. Si cambia
+         * el correo, se sincroniza automáticamente con su cuenta de login.
+         *
+         * @param request     nuevos datos del perfil
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @PutMapping("/perfil")
+        @Operation(summary = "Actualizar mi perfil", description = "Requiere autenticación. El paciente edita su propia información, excepto el DNI.")
+        public ResponseEntity<ApiResponse<pe.edu.utp.clinica.dto.paciente.PacienteResponse>> actualizarMiPerfil(
+                        @Valid @RequestBody PerfilPacienteRequest request,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                var paciente = pacienteService.actualizarPerfilPropio(userDetails.getUsername(), request);
+                return ResponseEntity.ok(ApiResponse.success("Perfil actualizado correctamente", paciente));
+        }
+
+        /**
+         * Obtiene el perfil completo del paciente autenticado.
+         * RF-02 (extendido): usado para precargar el formulario de edición.
+         *
+         * @param userDetails usuario autenticado extraído del token JWT
+         */
+        @GetMapping("/perfil")
+        @Operation(summary = "Ver mi perfil", description = "Requiere autenticación. Devuelve los datos completos del paciente autenticado.")
+        public ResponseEntity<ApiResponse<pe.edu.utp.clinica.dto.paciente.PacienteResponse>> obtenerMiPerfil(
+                        @AuthenticationPrincipal UserDetails userDetails) {
+
+                var paciente = pacienteService.obtenerPorCorreo(userDetails.getUsername());
+                return ResponseEntity.ok(ApiResponse.success("Perfil obtenido correctamente", paciente));
         }
 }

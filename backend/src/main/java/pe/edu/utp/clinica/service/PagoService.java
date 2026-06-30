@@ -143,6 +143,24 @@ public class PagoService {
         }
 
         /**
+         * Obtiene los datos completos del pago asociado a una cita.
+         * Usado para mostrar el comprobante/boleta.
+         *
+         * @param citaId ID de la cita
+         * @return datos del pago
+         */
+        @Transactional(readOnly = true)
+        public PagoResponse obtenerPorCita(Long citaId) {
+                CitaMedica cita = citaService.buscarEntidadPorId(citaId);
+
+                Pago pago = pagoRepository.findByCita(cita)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "No se encontró el pago asociado a la cita ID: " + citaId));
+
+                return toResponse(pago);
+        }
+
+        /**
          * Lista todos los pagos de un paciente específico.
          * RF-35: Query JPQL directo — evita findAll() + filter en memoria.
          *

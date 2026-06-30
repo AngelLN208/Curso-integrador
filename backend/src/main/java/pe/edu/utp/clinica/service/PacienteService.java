@@ -11,8 +11,11 @@ import java.util.stream.Collectors;
 
 import pe.edu.utp.clinica.dto.paciente.PacienteRequest;
 import pe.edu.utp.clinica.dto.paciente.PacienteResponse;
+import pe.edu.utp.clinica.dto.portal.PerfilPacienteRequest;
 import pe.edu.utp.clinica.model.Paciente;
+import pe.edu.utp.clinica.model.Usuario;
 import pe.edu.utp.clinica.repository.PacienteRepository;
+import pe.edu.utp.clinica.repository.UsuarioRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +38,7 @@ public class PacienteService {
 
     private final PacienteRepository pacienteRepository;
     private final PacienteSeguroRepository pacienteSeguroRepository;
+    private final UsuarioRepository usuarioRepository;
 
     /**
      * Registra un nuevo paciente.
@@ -90,6 +94,56 @@ public class PacienteService {
     }
 
     /**
+     * Actualiza el perfil del propio paciente autenticado desde el portal.
+     * RF-02 (extendido): el DNI nunca se modifica. Si el correo cambia,
+     * también sincroniza el username en la tabla de usuarios, ya que
+     * el login del paciente se hace con el correo (AuthPacienteService).
+     *
+     * @param correoActual correo actual del paciente autenticado (username del
+     *                     token)
+     * @param request      nuevos datos del perfil
+     * @return paciente actualizado
+     */
+    @Transactional
+    public PacienteResponse actualizarPerfilPropio(String correoActual, PerfilPacienteRequest request) {
+        Paciente paciente = pacienteRepository.findByCorreo(correoActual)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Paciente no encontrado: " + correoActual));
+
+        String correoNuevo = request.getCorreo().toLowerCase().trim();
+        boolean cambioCorreo = !correoNuevo.equals(correoActual.toLowerCase().trim());
+
+        // Si el correo cambió, validar que no esté en uso por otra cuenta
+        if (cambioCorreo && usuarioRepository.existsByUsername(correoNuevo)) {
+            throw new IllegalStateException(
+                    "Ya existe una cuenta registrada con el correo: " + correoNuevo);
+        }
+
+        paciente.setNombres(request.getNombres());
+        paciente.setApellidos(request.getApellidos());
+        paciente.setFechaNacimiento(request.getFechaNacimiento());
+        paciente.setCelular(request.getCelular());
+        paciente.setCorreo(correoNuevo);
+        paciente.setSexo(request.getSexo());
+
+        Paciente guardado = pacienteRepository.save(paciente);
+
+        // Sincronizar el username en la tabla de usuarios si el correo cambió
+        if (cambioCorreo) {
+            Usuario usuario = usuarioRepository.findByUsername(correoActual)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Cuenta de usuario no encontrada para: " + correoActual));
+            usuario.setUsername(correoNuevo);
+            usuarioRepository.save(usuario);
+
+            log.info("Correo de paciente actualizado — DNI: {} | correo anterior: {} | correo nuevo: {}",
+                    paciente.getDni(), correoActual, correoNuevo);
+        }
+
+        return toResponse(guardado);
+    }
+
+    /**
      * Busca pacientes por DNI, nombre o apellido.
      * RF-03: Devuelve lista de coincidencias.
      *
@@ -135,6 +189,21 @@ public class PacienteService {
         return toResponse(buscarEntidadPorId(id));
     }
 
+    /**
+     * Obtiene el perfil de un paciente por su correo.
+     * Usado por el portal para que el paciente vea/edite su propio perfil.
+     *
+     * @param correo correo del paciente autenticado
+     * @return datos completos del paciente
+     */
+    @Transactional(readOnly = true)
+    public PacienteResponse obtenerPorCorreo(String correo) {
+        Paciente paciente = pacienteRepository.findByCorreo(correo)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Paciente no encontrado: " + correo));
+        return toResponse(paciente);
+    }
+
     // ─── Métodos internos ─────────────────────────────────────────────
 
     public Paciente buscarEntidadPorId(Long id) {
@@ -147,6 +216,12 @@ public class PacienteService {
         return pacienteRepository.findByDni(dni)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Paciente no encontrado con DNI: " + dni));
+    }
+
+    public Paciente buscarPorCorreo(String correo) {
+        return pacienteRepository.findByCorreo(correo)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No se encontró un paciente asociado al correo: " + correo));
     }
 
     private PacienteResponse toResponse(Paciente p) {

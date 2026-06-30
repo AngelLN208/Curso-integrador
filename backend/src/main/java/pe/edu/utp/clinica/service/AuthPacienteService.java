@@ -60,13 +60,6 @@ public class AuthPacienteService {
                                         "Las contraseñas no coinciden. Por favor verifica e intenta de nuevo.");
                 }
 
-                // Validar DNI único en pacientes
-                if (pacienteRepository.existsByDni(request.getDni())) {
-                        throw new IllegalArgumentException(
-                                        "Ya existe un paciente registrado con el DNI: " + request.getDni()
-                                                        + ". Si ya tienes cuenta, inicia sesión.");
-                }
-
                 // Validar correo único en usuarios (evita duplicar cuentas)
                 if (usuarioRepository.existsByUsername(request.getCorreo())) {
                         throw new IllegalArgumentException(
@@ -74,32 +67,54 @@ public class AuthPacienteService {
                                                         + ". Si ya tienes cuenta, inicia sesión.");
                 }
 
-                // Crear entidad Paciente
-                Paciente paciente = Paciente.builder()
-                                .dni(request.getDni())
-                                .nombres(request.getNombres().trim())
-                                .apellidos(request.getApellidos().trim())
-                                .fechaNacimiento(request.getFechaNacimiento())
-                                .celular(request.getCelular())
-                                .correo(request.getCorreo().toLowerCase().trim())
-                                .sexo(request.getSexo())
-                                .build();
-                paciente = pacienteRepository.save(paciente);
+                Paciente paciente;
+
+                // Caso 1: el paciente YA existe (fue registrado antes por recepción
+                // al sacarle una cita presencial). En ese caso solo le creamos las
+                // credenciales de acceso al portal, sin duplicar su registro clínico.
+                var pacienteExistente = pacienteRepository.findByDni(request.getDni());
+
+                if (pacienteExistente.isPresent()) {
+                        paciente = pacienteExistente.get();
+
+                        if (paciente.getCorreo() != null && usuarioRepository.existsByUsername(paciente.getCorreo())) {
+                                throw new IllegalArgumentException(
+                                                "Este DNI ya tiene una cuenta de portal asociada. Inicia sesión con tu correo registrado.");
+                        }
+
+                        // Actualiza datos de contacto por si cambiaron (correo/celular)
+                        paciente.setCorreo(request.getCorreo().toLowerCase().trim());
+                        paciente.setCelular(request.getCelular());
+                        paciente = pacienteRepository.save(paciente);
+
+                        log.info("Paciente existente (DNI: {}) vinculado a nueva cuenta de portal", request.getDni());
+
+                } else {
+                        // Caso 2: paciente completamente nuevo, se crea desde cero.
+                        paciente = Paciente.builder()
+                                        .dni(request.getDni())
+                                        .nombres(request.getNombres().trim())
+                                        .apellidos(request.getApellidos().trim())
+                                        .fechaNacimiento(request.getFechaNacimiento())
+                                        .celular(request.getCelular())
+                                        .correo(request.getCorreo().toLowerCase().trim())
+                                        .sexo(request.getSexo())
+                                        .build();
+                        paciente = pacienteRepository.save(paciente);
+
+                        log.info("Paciente nuevo registrado — DNI: {}", request.getDni());
+                }
 
                 // Crear entidad Usuario vinculada al paciente
-                // El username es el correo (en minúsculas para evitar duplicados por case)
                 Usuario usuario = Usuario.builder()
                                 .username(request.getCorreo().toLowerCase().trim())
                                 .password(passwordEncoder.encode(request.getContrasena()))
-                                .nombreCompleto(request.getNombres().trim()
-                                                + " " + request.getApellidos().trim())
+                                .nombreCompleto(paciente.getNombres() + " " + paciente.getApellidos())
                                 .rol(RolUsuario.ROLE_PACIENTE)
                                 .activo(true)
                                 .build();
                 usuarioRepository.save(usuario);
 
-                // Generar token JWT para acceso inmediato al portal
-                // Crear UserDetails temporal para generar el token
                 org.springframework.security.core.userdetails.User userDetails = new org.springframework.security.core.userdetails.User(
                                 usuario.getUsername(),
                                 usuario.getPassword(),
@@ -107,17 +122,15 @@ public class AuthPacienteService {
                                                 new org.springframework.security.core.authority.SimpleGrantedAuthority(
                                                                 usuario.getRol().name())));
 
-                // Generar token JWT para acceso inmediato al portal
                 String token = jwtUtil.generateToken(userDetails);
 
-                log.info("Paciente registrado exitosamente — DNI: {} | correo: {}",
-                                request.getDni(), request.getCorreo());
+                log.info("Cuenta de portal creada exitosamente — DNI: {} | correo: {}",
+                                paciente.getDni(), request.getCorreo());
 
                 return RegistroPacienteResponse.builder()
                                 .pacienteId(paciente.getId())
                                 .dni(paciente.getDni())
-                                .nombreCompleto(paciente.getNombres()
-                                                + " " + paciente.getApellidos())
+                                .nombreCompleto(paciente.getNombres() + " " + paciente.getApellidos())
                                 .correo(paciente.getCorreo())
                                 .fechaNacimiento(paciente.getFechaNacimiento())
                                 .token(token)

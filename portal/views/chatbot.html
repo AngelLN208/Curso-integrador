@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Virtual — Clínica Stella Maris</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/portal.css">
+</head>
+
+<body>
+
+    <header class="portal-topbar">
+        <a href="dashboard.html" class="portal-logo">
+            <div class="portal-logo-icon">🏥</div>
+            <div class="portal-logo-text">Clínica <span>Stella Maris</span></div>
+        </a>
+        <nav class="portal-nav">
+            <a href="dashboard.html">Mi panel</a>
+            <a href="directorio.html">Médicos</a>
+            <a href="citas.html">Mis citas</a>
+            <a href="chatbot.html" class="active">Asistente</a>
+        </nav>
+        <div style="display:flex;align-items:center;gap:10px">
+            <a href="perfil.html" class="btn btn-ghost btn-sm" style="text-decoration:none" title="Mi perfil">
+                <i class="bi bi-person-circle"></i>
+            </a>
+            <span style="font-size:13px;color:var(--text-2)" id="saludo-usuario"></span>
+            <button class="btn btn-ghost btn-sm" onclick="PortalAuthService.logout()">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="container" style="max-width:760px">
+
+        <div style="margin-bottom:18px">
+            <h1 style="font-size:24px;font-weight:800">Asistente virtual</h1>
+            <p style="color:var(--text-2);font-size:14px">Stella te ayuda a resolver dudas y orientarte hacia la
+                especialidad adecuada</p>
+        </div>
+
+        <!-- Ventana de chat -->
+        <div class="card" style="display:flex;flex-direction:column;height:68vh;min-height:420px">
+
+            <div id="chat-mensajes"
+                style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px">
+                <!-- Mensajes se inyectan aquí -->
+            </div>
+
+            <div
+                style="border-top:1px solid var(--border);padding:14px 16px;display:flex;gap:10px;align-items:flex-end">
+                <textarea id="chat-input" class="form-control" rows="1" placeholder="Escribe tu mensaje..."
+                    style="resize:none;flex:1" onkeydown="manejarTeclaChat(event)"></textarea>
+                <button class="btn btn-primary" onclick="enviarMensajeChat()" id="btn-enviar-chat" style="height:42px">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <p style="font-size:11.5px;color:var(--text-3);text-align:center;margin-top:10px">
+            Stella ofrece orientación general y no reemplaza un diagnóstico médico profesional.
+        </p>
+
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/utils/notify.js"></script>
+    <script src="../js/services/api.js"></script>
+    <script src="../js/services/portalService.js"></script>
+    <script src="../js/chatbot.js"></script>
+</body>
+
+</html>

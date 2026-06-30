@@ -261,4 +261,5 @@ public class PortalService {
                 .horarios(horarios)
                 .build();
     }
+    
 }

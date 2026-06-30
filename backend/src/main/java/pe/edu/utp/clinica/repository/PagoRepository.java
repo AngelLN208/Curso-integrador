@@ -25,30 +25,31 @@ import java.util.Optional;
 @Repository
 public interface PagoRepository extends JpaRepository<Pago, Long> {
 
-    /** Busca el pago asociado a una cita específica (RF-14) */
-    Optional<Pago> findByCita(CitaMedica cita);
+        /** Busca el pago asociado a una cita específica (RF-14) */
+        Optional<Pago> findByCita(CitaMedica cita);
 
-    /**
-     * Lista todos los pagos de un paciente usando su ID.
-     * RF-35: Query JPQL directo — evita cargar toda la tabla en memoria.
-     * CORRECCIÓN: reemplaza el findAll() + filter que existía en PagoService.
-     *
-     * @param pacienteId ID del paciente
-     * @return lista de pagos del paciente ordenados por fecha descendente
-     */
-    @Query("SELECT p FROM Pago p WHERE p.cita.paciente.id = :pacienteId ORDER BY p.creadoEn DESC")
-    List<Pago> findByCitaPacienteId(@Param("pacienteId") Long pacienteId);
+        /**
+         * Lista todos los pagos de un paciente usando su ID.
+         * RF-35: Query JPQL directo — evita cargar toda la tabla en memoria.
+         * CORRECCIÓN: reemplaza el findAll() + filter que existía en PagoService.
+         *
+         * @param pacienteId ID del paciente
+         * @return lista de pagos del paciente ordenados por fecha descendente
+         */
+        @Query("SELECT p FROM Pago p WHERE p.cita.paciente.id = :pacienteId ORDER BY p.creadoEn DESC")
+        List<Pago> findByCitaPacienteId(@Param("pacienteId") Long pacienteId);
 
-    /**
-     * Busca el pago pendiente más reciente de un paciente.
-     * RF-51: Acceso rápido a pagar desde el dashboard.
-     */
-    @Query("""
-            SELECT p FROM Pago p
-            WHERE p.cita.paciente.id = :pacienteId
-              AND p.estado = 'PENDIENTE'
-            ORDER BY p.creadoEn DESC
-            """)
-    java.util.Optional<Pago> findFirstPendientePorPaciente(
-            @Param("pacienteId") Long pacienteId);
+        /**
+         * Busca el pago pendiente más reciente de un paciente.
+         * RF-51: Acceso rápido a pagar desde el dashboard.
+         */
+        @Query("""
+                        SELECT p FROM Pago p
+                        WHERE p.cita.paciente.id = :pacienteId
+                          AND p.estado = 'PENDIENTE'
+                        ORDER BY p.creadoEn DESC
+                        LIMIT 1
+                        """)
+        java.util.Optional<Pago> findFirstPendientePorPaciente(
+                        @Param("pacienteId") Long pacienteId);
 }

@@ -27,4 +27,7 @@ public class CitaResponse {
     private String motivo;
     private EstadoCita estado;
     private LocalDateTime creadoEn;
+
+    /** RF-54: indica si esta cita ya fue calificada por el paciente */
+    private boolean yaValorada;
 }

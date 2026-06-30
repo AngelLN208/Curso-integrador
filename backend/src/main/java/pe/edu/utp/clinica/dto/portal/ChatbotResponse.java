@@ -22,6 +22,13 @@ public class ChatbotResponse {
      */
     private String especialidadSugerida;
 
+    /**
+     * JSON crudo con los datos de una cita propuesta por el chatbot,
+     * pendiente de confirmación explícita del paciente. Null si no
+     * hay ninguna propuesta de cita en este mensaje.
+     */
+    private String citaPropuesta;
+
     /** Indica si la respuesta fue generada por IA o es un fallback */
     private boolean generadoPorIA;
 }

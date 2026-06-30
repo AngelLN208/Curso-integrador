@@ -47,9 +47,196 @@ public class CitaService {
         private final PacienteService pacienteService;
         private final MedicoService medicoService;
         private final UsuarioRepository usuarioRepository;
+        private final ValoracionRepository valoracionRepository;
 
         /** Monto base de consulta en la clínica */
         private static final BigDecimal MONTO_BASE = new BigDecimal("80.00");
+
+        /**
+         * Registra una cita agendada por el propio paciente desde el portal.
+         * RF-56 (extendido): el pacienteId se deriva del correo autenticado,
+         * nunca se confía en un ID enviado por el cliente — así un paciente
+         * no puede agendar una cita a nombre de otro.
+         *
+         * @param medicoId       médico seleccionado
+         * @param fechaHora      fecha y hora de la cita
+         * @param motivo         motivo opcional
+         * @param correoPaciente correo del paciente autenticado (username del token)
+         * @return cita registrada
+         */
+        @Transactional
+        public CitaResponse registrarDesdePortal(Long medicoId, LocalDateTime fechaHora,
+                        String motivo, String correoPaciente) {
+
+                Paciente paciente = pacienteService.buscarPorCorreo(correoPaciente);
+                Medico medico = medicoService.buscarEntidadPorId(medicoId);
+
+                // RF-10: Validar disponibilidad del médico (hora exacta)
+                if (citaRepository.existeConflictoHorario(medico, fechaHora)) {
+                        throw new IllegalStateException(
+                                        "El médico no tiene disponibilidad en el horario seleccionado.");
+                }
+
+                LocalDateTime desde = fechaHora.minusMinutes(44);
+                LocalDateTime hasta = fechaHora.plusMinutes(44);
+                if (citaRepository.existeCitaCercana(medico, desde, hasta)) {
+                        throw new IllegalStateException(
+                                        "Debe haber al menos 45 minutos entre citas del mismo médico. "
+                                                        + "Por favor elige otro horario.");
+                }
+
+                CitaMedica cita = CitaMedica.builder()
+                                .paciente(paciente)
+                                .medico(medico)
+                                .fechaHora(fechaHora)
+                                .motivo(motivo)
+                                .estado(EstadoCita.PENDIENTE)
+                                .build();
+
+                cita = citaRepository.save(cita);
+
+                Pago pago = Pago.builder()
+                                .cita(cita)
+                                .monto(MONTO_BASE)
+                                .montoFinal(MONTO_BASE)
+                                .estado(EstadoPago.PENDIENTE)
+                                .build();
+                pagoRepository.save(pago);
+
+                registrarAuditoria(cita, null, TipoAccion.CREACION, null, EstadoCita.PENDIENTE);
+
+                registrarNotificacion(paciente, cita, "REGISTRO",
+                                "Su cita médica ha sido registrada para el "
+                                                + fechaHora.toLocalDate()
+                                                + " a las " + fechaHora.toLocalTime());
+
+                log.debug("Cita registrada desde portal — paciente: {} | cita ID: {}", correoPaciente, cita.getId());
+                return toResponse(cita);
+        }
+
+        /**
+         * Lista todas las citas del paciente autenticado, sin importar estado.
+         * RF-51 (extendido): sección "Mis citas" del portal — permite ver
+         * historial completo (PENDIENTE, CONFIRMADA, ATENDIDA, CANCELADA).
+         * El pacienteId se deriva del correo autenticado, igual que en
+         * registrarDesdePortal, para que el paciente solo vea sus propias citas.
+         *
+         * @param correoPaciente correo del paciente autenticado (username del token)
+         * @return lista de citas ordenadas por fecha descendente
+         */
+        @Transactional(readOnly = true)
+        public List<CitaResponse> listarPorPaciente(String correoPaciente) {
+                Paciente paciente = pacienteService.buscarPorCorreo(correoPaciente);
+
+                return citaRepository.findByCitasPacienteId(paciente.getId())
+                                .stream()
+                                .map(this::toResponse)
+                                .collect(Collectors.toList());
+        }
+
+        /**
+         * Cancela una cita agendada por el propio paciente desde el portal.
+         * RF-09 (extendido): valida ownership — el paciente solo puede
+         * cancelar sus propias citas, nunca las de otro paciente.
+         *
+         * @param citaId         ID de la cita a cancelar
+         * @param correoPaciente correo del paciente autenticado (username del token)
+         * @return cita cancelada
+         */
+        @Transactional
+        public CitaResponse cancelarDesdePortal(Long citaId, String correoPaciente) {
+                Paciente paciente = pacienteService.buscarPorCorreo(correoPaciente);
+                CitaMedica cita = buscarEntidadPorId(citaId);
+
+                // Validar ownership — la cita debe pertenecer al paciente autenticado
+                if (!cita.getPaciente().getId().equals(paciente.getId())) {
+                        throw new IllegalStateException(
+                                        "No tienes permiso para cancelar esta cita.");
+                }
+
+                if (cita.getEstado() == EstadoCita.CANCELADA) {
+                        throw new IllegalStateException("La cita ya se encuentra cancelada.");
+                }
+
+                if (cita.getEstado() == EstadoCita.ATENDIDA) {
+                        throw new IllegalStateException("No se puede cancelar una cita ya atendida.");
+                }
+
+                EstadoCita estadoAnterior = cita.getEstado();
+                cita.setEstado(EstadoCita.CANCELADA);
+                cita = citaRepository.save(cita);
+
+                registrarAuditoria(cita, null, TipoAccion.CANCELACION,
+                                estadoAnterior, EstadoCita.CANCELADA);
+
+                registrarNotificacion(paciente, cita, "CANCELACION",
+                                "Su cita médica del "
+                                                + cita.getFechaHora().toLocalDate() + " ha sido cancelada.");
+
+                log.debug("Cita cancelada desde portal — paciente: {} | cita ID: {}", correoPaciente, citaId);
+                return toResponse(cita);
+        }
+
+        /**
+         * Reprograma una cita agendada por el propio paciente desde el portal.
+         * RF-06 (extendido): valida ownership y disponibilidad del médico
+         * en el nuevo horario, igual que el flujo de recepcionista.
+         *
+         * @param citaId         ID de la cita a reprogramar
+         * @param nuevaFechaHora nueva fecha y hora deseada
+         * @param correoPaciente correo del paciente autenticado (username del token)
+         * @return cita reprogramada
+         */
+        @Transactional
+        public CitaResponse reprogramarDesdePortal(Long citaId, LocalDateTime nuevaFechaHora,
+                        String correoPaciente) {
+                Paciente paciente = pacienteService.buscarPorCorreo(correoPaciente);
+                CitaMedica cita = buscarEntidadPorId(citaId);
+
+                // Validar ownership
+                if (!cita.getPaciente().getId().equals(paciente.getId())) {
+                        throw new IllegalStateException(
+                                        "No tienes permiso para reprogramar esta cita.");
+                }
+
+                if (cita.getEstado() == EstadoCita.CANCELADA) {
+                        throw new IllegalStateException("No se puede reprogramar una cita cancelada.");
+                }
+
+                if (cita.getEstado() == EstadoCita.ATENDIDA) {
+                        throw new IllegalStateException("No se puede reprogramar una cita ya atendida.");
+                }
+
+                // RF-10: Validar disponibilidad en el nuevo horario
+                if (citaRepository.existeConflictoHorario(cita.getMedico(), nuevaFechaHora)) {
+                        throw new IllegalStateException(
+                                        "El médico no tiene disponibilidad en el nuevo horario seleccionado.");
+                }
+
+                LocalDateTime desde = nuevaFechaHora.minusMinutes(44);
+                LocalDateTime hasta = nuevaFechaHora.plusMinutes(44);
+                if (citaRepository.existeCitaCercana(cita.getMedico(), desde, hasta)) {
+                        throw new IllegalStateException(
+                                        "Debe haber al menos 45 minutos entre citas del mismo médico. "
+                                                        + "Por favor elige otro horario.");
+                }
+
+                EstadoCita estadoAnterior = cita.getEstado();
+                cita.setFechaHora(nuevaFechaHora);
+                cita.setEstado(EstadoCita.REPROGRAMADA);
+                cita = citaRepository.save(cita);
+
+                registrarAuditoria(cita, null, TipoAccion.REPROGRAMACION,
+                                estadoAnterior, EstadoCita.REPROGRAMADA);
+
+                registrarNotificacion(paciente, cita, "REPROGRAMACION",
+                                "Su cita ha sido reprogramada para el "
+                                                + nuevaFechaHora.toLocalDate()
+                                                + " a las " + nuevaFechaHora.toLocalTime());
+
+                log.debug("Cita reprogramada desde portal — paciente: {} | cita ID: {}", correoPaciente, citaId);
+                return toResponse(cita);
+        }
 
         /**
          * Registra una nueva cita médica.
@@ -309,6 +496,11 @@ public class CitaService {
         }
 
         private CitaResponse toResponse(CitaMedica c) {
+                // Solo consultamos valoración si la cita ya fue atendida —
+                // evita una consulta innecesaria para el resto de estados.
+                boolean valorada = c.getEstado() == EstadoCita.ATENDIDA
+                                && valoracionRepository.existsByCita(c);
+
                 return CitaResponse.builder()
                                 .id(c.getId())
                                 .pacienteId(c.getPaciente().getId())
@@ -323,6 +515,7 @@ public class CitaService {
                                 .motivo(c.getMotivo())
                                 .estado(c.getEstado())
                                 .creadoEn(c.getCreadoEn())
+                                .yaValorada(valorada)
                                 .build();
         }
 }

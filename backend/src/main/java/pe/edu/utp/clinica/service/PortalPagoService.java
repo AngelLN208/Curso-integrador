@@ -20,9 +20,9 @@ import java.math.BigDecimal;
  * Servicio para el pago de citas desde el portal del paciente.
  *
  * RF-56: El paciente paga su cita directamente desde el portal.
- *        Valida ownership (la cita debe pertenecer al paciente).
- *        Aplica algoritmo de Luhn para pagos con tarjeta.
- *        Delega el procesamiento real al PagoService existente.
+ * Valida ownership (la cita debe pertenecer al paciente).
+ * Aplica algoritmo de Luhn para pagos con tarjeta.
+ * Delega el procesamiento real al PagoService existente.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -31,19 +31,19 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class PortalPagoService {
 
-    private final PacienteRepository   pacienteRepository;
+    private final PacienteRepository pacienteRepository;
     private final CitaMedicaRepository citaRepository;
-    private final PagoService          pagoService;
+    private final PagoService pagoService;
 
     /**
      * Procesa el pago de una cita desde el portal del paciente.
      *
      * RF-56: Validaciones en orden:
-     *  1. El paciente autenticado existe
-     *  2. La cita existe y pertenece al paciente (ownership)
-     *  3. La cita está en estado PENDIENTE o CONFIRMADA (no CANCELADA)
-     *  4. Si método = TARJETA: validar algoritmo de Luhn
-     *  5. Delegar al PagoService para procesar y confirmar la cita
+     * 1. El paciente autenticado existe
+     * 2. La cita existe y pertenece al paciente (ownership)
+     * 3. La cita está en estado PENDIENTE o CONFIRMADA (no CANCELADA)
+     * 4. Si método = TARJETA: validar algoritmo de Luhn
+     * 5. Delegar al PagoService para procesar y confirmar la cita
      *
      * @param request  datos del pago (citaId, método, datos de tarjeta)
      * @param username correo del paciente autenticado
@@ -51,7 +51,7 @@ public class PortalPagoService {
      */
     @Transactional
     public PagoResponse pagarDesdePortal(PagoPortalRequest request,
-                                          String username) {
+            String username) {
         // Buscar paciente autenticado
         Paciente paciente = pacienteRepository.findByCorreo(username)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -84,7 +84,7 @@ public class PortalPagoService {
             if (!validarLuhn(request.getNumeroTarjeta())) {
                 throw new IllegalArgumentException(
                         "El número de tarjeta no es válido. "
-                        + "Por favor verifica los 16 dígitos e intenta de nuevo.");
+                                + "Por favor verifica los 16 dígitos e intenta de nuevo.");
             }
             if (request.getTitularTarjeta() == null
                     || request.getTitularTarjeta().isBlank()) {
@@ -111,16 +111,16 @@ public class PortalPagoService {
      * RF-56: Verificación estándar usada por todas las tarjetas de crédito/débito.
      *
      * Algoritmo:
-     *  1. Desde el penúltimo dígito hacia la izquierda, duplicar cada segundo dígito
-     *  2. Si el resultado > 9, restar 9
-     *  3. Sumar todos los dígitos
-     *  4. Si la suma es divisible por 10 → tarjeta válida
+     * 1. Desde el penúltimo dígito hacia la izquierda, duplicar cada segundo dígito
+     * 2. Si el resultado > 9, restar 9
+     * 3. Sumar todos los dígitos
+     * 4. Si la suma es divisible por 10 → tarjeta válida
      *
      * @param numero 16 dígitos numéricos de la tarjeta
      * @return true si pasa la validación de Luhn
      */
     private boolean validarLuhn(String numero) {
-        int suma   = 0;
+        int suma = 0;
         boolean duplicar = false;
 
         for (int i = numero.length() - 1; i >= 0; i--) {
@@ -128,7 +128,8 @@ public class PortalPagoService {
 
             if (duplicar) {
                 digito *= 2;
-                if (digito > 9) digito -= 9;
+                if (digito > 9)
+                    digito -= 9;
             }
 
             suma += digito;
@@ -137,4 +138,64 @@ public class PortalPagoService {
 
         return suma % 10 == 0;
     }
+
+    /**
+     * Previsualiza el cálculo de pago (con descuento de seguro si aplica)
+     * para una cita del paciente autenticado, antes de confirmar el cobro.
+     * RF-16 (extendido): mismo cálculo que usa recepcionista, pero
+     * validando que la cita pertenezca al paciente.
+     *
+     * @param citaId   ID de la cita a previsualizar
+     * @param username correo del paciente autenticado
+     * @return cálculo con monto bruto, descuento, monto final y seguro aplicado
+     */
+    @Transactional(readOnly = true)
+    public pe.edu.utp.clinica.dto.pago.PrevisualizarPagoResponse previsualizarDesdePortal(
+            Long citaId, String username) {
+
+        Paciente paciente = pacienteRepository.findByCorreo(username)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Paciente no encontrado: " + username));
+
+        CitaMedica cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Cita no encontrada con ID: " + citaId));
+
+        if (!cita.getPaciente().getId().equals(paciente.getId())) {
+            throw new IllegalStateException(
+                    "No tienes permiso para ver el pago de esta cita.");
+        }
+
+        return pagoService.previsualizarPago(citaId);
+    }
+
+    /**
+     * Obtiene los datos del pago de una cita para mostrar el comprobante.
+     * RF-18 (extendido): el paciente ve su boleta desde el portal,
+     * igual que recepcionista, validando ownership.
+     *
+     * @param citaId   ID de la cita
+     * @param username correo del paciente autenticado
+     * @return datos completos del pago (monto, descuento, método, fecha)
+     */
+    @Transactional(readOnly = true)
+    public pe.edu.utp.clinica.dto.pago.PagoResponse obtenerComprobanteDesdePortal(
+            Long citaId, String username) {
+
+        Paciente paciente = pacienteRepository.findByCorreo(username)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Paciente no encontrado: " + username));
+
+        CitaMedica cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Cita no encontrada con ID: " + citaId));
+
+        if (!cita.getPaciente().getId().equals(paciente.getId())) {
+            throw new IllegalStateException(
+                    "No tienes permiso para ver el comprobante de esta cita.");
+        }
+
+        return pagoService.obtenerPorCita(citaId);
+    }
+
 }
