@@ -49,6 +49,7 @@ public class AtencionService {
         private final PacienteService pacienteService;
         private final MedicoRepository medicoRepository;
         private final UsuarioRepository usuarioRepository;
+        private final NotificacionRepository notificacionRepository;
 
         /**
          * Registra el triaje de un paciente antes de la consulta.
@@ -132,6 +133,20 @@ public class AtencionService {
                                 .estadoNuevo(EstadoCita.ATENDIDA)
                                 .build();
                 auditoriaRepository.save(auditoria);
+
+                // RF-20: Notificar al paciente que su consulta fue registrada
+                Notificacion notifAtendida = Notificacion.builder()
+                                .paciente(cita.getPaciente())
+                                .cita(cita)
+                                .tipo("CONSULTA_REGISTRADA")
+                                .mensaje("Su consulta médica del "
+                                                + cita.getFechaHora().toLocalDate()
+                                                + " con el Dr. " + cita.getMedico().getNombres()
+                                                + " " + cita.getMedico().getApellidos()
+                                                + " ha sido registrada. Puede ver su diagnóstico en el historial médico.")
+                                .estado("PENDIENTE")
+                                .build();
+                notificacionRepository.save(notifAtendida);
 
                 log.info("Consulta registrada — cita ID: {} → estado ATENDIDA", cita.getId());
                 return toResponse(consulta);
