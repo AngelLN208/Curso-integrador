@@ -29,20 +29,19 @@ Sistema web full-stack para la gestión integral de citas médicas de la Clínic
 
 ## 🏗️ Arquitectura
 
-Curso-integrador/
-├── backend/          # API REST — Spring Boot 3.3 + Java 22
-│   └── src/main/
-│       ├── java/     # Controladores, servicios, repositorios, modelos
-│       └── resources/
-│           └── application.properties
-├── frontend/         # Portal de empleados (Recepcionista, Admin, Médico)
-│   ├── views/        # HTML por módulo
-│   ├── js/           # Lógica por rol
-│   └── css/
-└── portal/           # Portal de pacientes (autoservicio)
-├── views/        # dashboard, citas, directorio, chatbot, perfil
-├── js/
-└── css/
+    Curso-integrador/
+    ├── backend/          # API REST — Spring Boot 3.3 + Java 22
+    │   └── src/main/
+    │       ├── java/     # Controladores, servicios, repositorios
+    │       └── resources/
+    ├── frontend/         # Portal de empleados
+    │   ├── views/
+    │   ├── js/
+    │   └── css/
+    └── portal/           # Portal de pacientes
+        ├── views/
+        ├── js/
+        └── css/
 
 ---
 
