@@ -26,6 +26,8 @@ themeToggle.addEventListener('click', () =>
 // ── Estado global ─────────────────────────────────────────────
 let todosLosMedicos = [];
 let medicoHorarioActivoId = null;
+let todasLasEspecialidades = [];
+let especialidadEditandoId = null;
 
 const DIAS_LABEL_ADMIN = {
     MONDAY: 'Lunes', TUESDAY: 'Martes', WEDNESDAY: 'Miércoles',
@@ -265,6 +267,135 @@ async function eliminarBloqueHorario(id) {
         await HorarioService.eliminar(id);
         UI.mostrarAlerta('Bloque eliminado', 'success');
         cargarHorarios(medicoHorarioActivoId);
+    } catch (err) {
+        UI.mostrarError(err);
+    }
+}
+
+// ── Gestión de especialidades ───────────────────────────────
+async function abrirModalEspecialidades() {
+    cancelarEdicionEspecialidad();
+    document.getElementById('esp-buscar').value = '';
+    abrirModal('modalEspecialidades');
+    await cargarListaEspecialidades();
+}
+
+async function cargarListaEspecialidades() {
+    const cont = document.getElementById('lista-especialidades');
+    cont.innerHTML = `<div class="empty-row">Cargando...</div>`;
+    try {
+        const json = await apiFetch('/especialidades/todas');
+        todasLasEspecialidades = json.data ?? json;
+        renderListaEspecialidades(todasLasEspecialidades);
+    } catch (err) {
+        cont.innerHTML = `<div class="empty-row">No se pudo cargar la lista</div>`;
+    }
+}
+
+function renderListaEspecialidades(especialidades) {
+    const cont = document.getElementById('lista-especialidades');
+
+    if (!especialidades.length) {
+        cont.innerHTML = `<div class="empty-row">Sin especialidades encontradas</div>`;
+        return;
+    }
+
+    cont.innerHTML = especialidades.map(e => `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+                  background:var(--bg-main);border-radius:10px;padding:10px 14px;margin-bottom:6px">
+        <div>
+          <span style="font-weight:600;color:var(--text)">${e.nombre}</span>
+          <span style="color:var(--text-2);margin-left:8px">S/ ${Number(e.costo).toFixed(2)}</span>
+          ${e.activo
+            ? '<span class="badge badge-confirmada" style="margin-left:8px"><i class="bi bi-check-circle"></i> Activa</span>'
+            : '<span class="badge badge-cancelada" style="margin-left:8px"><i class="bi bi-x-circle"></i> Inactiva</span>'}
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-ghost" onclick='abrirEdicionEspecialidad(${JSON.stringify(e)})' title="Editar">
+            <i class="bi bi-pencil"></i>
+          </button>
+          ${e.activo
+            ? `<button class="btn btn-sm btn-red" onclick="desactivarEspecialidad(${e.id}, '${e.nombre}')">
+                 <i class="bi bi-slash-circle"></i> Desactivar
+               </button>`
+            : `<button class="btn btn-sm btn-secondary" onclick="activarEspecialidad(${e.id}, '${e.nombre}')">
+                 <i class="bi bi-check-circle"></i> Activar
+               </button>`}
+        </div>
+      </div>`).join('');
+}
+
+function filtrarEspecialidades() {
+    const criterio = document.getElementById('esp-buscar').value.toLowerCase().trim();
+    const filtradas = !criterio ? todasLasEspecialidades : todasLasEspecialidades.filter(e =>
+        e.nombre.toLowerCase().includes(criterio));
+    renderListaEspecialidades(filtradas);
+}
+
+function abrirEdicionEspecialidad(especialidad) {
+    especialidadEditandoId = especialidad.id;
+    document.getElementById('esp-nombre').value = especialidad.nombre;
+    document.getElementById('esp-descripcion').value = especialidad.descripcion || '';
+    document.getElementById('esp-costo').value = especialidad.costo;
+    document.getElementById('esp-form-titulo').innerHTML = '<i class="bi bi-pencil"></i> Editar especialidad';
+    document.getElementById('esp-btn-guardar').innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
+    document.getElementById('esp-btn-cancelar-edicion').style.display = 'inline-flex';
+}
+
+function cancelarEdicionEspecialidad() {
+    especialidadEditandoId = null;
+    document.getElementById('esp-nombre').value = '';
+    document.getElementById('esp-descripcion').value = '';
+    document.getElementById('esp-costo').value = '';
+    document.getElementById('esp-form-titulo').innerHTML = '<i class="bi bi-plus-circle"></i> Nueva especialidad';
+    document.getElementById('esp-btn-guardar').innerHTML = '<i class="bi bi-check-lg"></i> Registrar especialidad';
+    document.getElementById('esp-btn-cancelar-edicion').style.display = 'none';
+}
+
+async function guardarEspecialidad() {
+    const nombre = document.getElementById('esp-nombre').value.trim();
+    const descripcion = document.getElementById('esp-descripcion').value.trim();
+    const costo = document.getElementById('esp-costo').value;
+
+    if (!nombre) return UI.mostrarError(new Error('El nombre de la especialidad es obligatorio'));
+    if (!costo || parseFloat(costo) < 0) return UI.mostrarError(new Error('Ingresa un costo válido'));
+
+    const body = JSON.stringify({ nombre, descripcion, costo: parseFloat(costo) });
+
+    try {
+        if (especialidadEditandoId) {
+            await apiFetch(`/especialidades/${especialidadEditandoId}`, { method: 'PUT', body });
+            UI.mostrarAlerta('Especialidad actualizada correctamente', 'success');
+        } else {
+            await apiFetch('/especialidades', { method: 'POST', body });
+            UI.mostrarAlerta('Especialidad registrada correctamente', 'success');
+        }
+        cancelarEdicionEspecialidad();
+        cargarListaEspecialidades();
+        cargarEspecialidadesSelect();
+    } catch (err) {
+        UI.mostrarError(err);
+    }
+}
+
+async function desactivarEspecialidad(id, nombre) {
+    if (!confirm(`¿Desactivar la especialidad "${nombre}"? Ya no podrá asignarse a nuevos médicos.`)) return;
+    try {
+        await apiFetch(`/especialidades/${id}`, { method: 'DELETE' });
+        UI.mostrarAlerta('Especialidad desactivada correctamente', 'success');
+        cargarListaEspecialidades();
+        cargarEspecialidadesSelect();
+    } catch (err) {
+        UI.mostrarError(err);
+    }
+}
+
+async function activarEspecialidad(id, nombre) {
+    try {
+        await apiFetch(`/especialidades/${id}/activar`, { method: 'PUT' });
+        UI.mostrarAlerta('Especialidad activada correctamente', 'success');
+        cargarListaEspecialidades();
+        cargarEspecialidadesSelect();
     } catch (err) {
         UI.mostrarError(err);
     }

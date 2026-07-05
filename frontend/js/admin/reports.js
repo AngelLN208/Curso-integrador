@@ -191,21 +191,22 @@ function renderChartMetodosPago(pagos) {
     </div>`;
 }
 
-// ── Descargar reportes Excel ─────────────────────────────────
-async function descargarReporte(tipo) {
+// ── Descargar reportes (Excel o PDF) ─────────────────────────
+async function descargarReporte(tipo, formato) {
     try {
         const token = Auth.getToken();
-        const res = await fetch(`${CONFIG.API_URL}/reportes/${tipo}/excel`, {
+        const res = await fetch(`${CONFIG.API_URL}/reportes/${tipo}/${formato}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
         if (!res.ok) throw new Error('No se pudo generar el reporte');
 
         const blob = await res.blob();
+        const extension = formato === 'excel' ? 'xlsx' : 'pdf';
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${tipo}.xlsx`;
+        a.download = `${tipo}.${extension}`;
         document.body.appendChild(a);
         a.click();
         a.remove();

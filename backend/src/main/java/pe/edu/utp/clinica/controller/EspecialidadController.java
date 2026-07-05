@@ -19,8 +19,8 @@ import java.util.List;
  * Controlador para gestión de especialidades médicas.
  *
  * RF-39: Registrar y modificar especialidades.
- *        Solo el ADMINISTRADOR puede crear y modificar.
- *        Todos los roles pueden listar.
+ *        Solo el ADMINISTRADOR puede crear, modificar, activar y desactivar.
+ *        Todos los roles pueden listar las activas.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -34,8 +34,7 @@ public class EspecialidadController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    @Operation(summary = "Registrar especialidad",
-               description = "Solo ADMINISTRADOR. RF-39")
+    @Operation(summary = "Registrar especialidad", description = "Solo ADMINISTRADOR. RF-39")
     public ResponseEntity<ApiResponse<EspecialidadResponse>> registrar(
             @Valid @RequestBody EspecialidadRequest request) {
 
@@ -46,8 +45,7 @@ public class EspecialidadController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    @Operation(summary = "Actualizar especialidad",
-               description = "Solo ADMINISTRADOR. RF-39")
+    @Operation(summary = "Actualizar especialidad", description = "Solo ADMINISTRADOR. RF-39")
     public ResponseEntity<ApiResponse<EspecialidadResponse>> actualizar(
             @PathVariable Long id,
             @Valid @RequestBody EspecialidadRequest request) {
@@ -58,11 +56,20 @@ public class EspecialidadController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar especialidades activas",
-               description = "Todos los roles. RF-39")
+    @Operation(summary = "Listar especialidades activas", description = "Todos los roles. RF-39")
     public ResponseEntity<ApiResponse<List<EspecialidadResponse>>> listar() {
 
         List<EspecialidadResponse> response = especialidadService.listarActivas();
+        return ResponseEntity.ok(
+                ApiResponse.success("Especialidades obtenidas correctamente", response));
+    }
+
+    @GetMapping("/todas")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @Operation(summary = "Listar todas las especialidades", description = "Solo ADMINISTRADOR. Incluye activas e inactivas, para el panel de gestión.")
+    public ResponseEntity<ApiResponse<List<EspecialidadResponse>>> listarTodas() {
+
+        List<EspecialidadResponse> response = especialidadService.listarTodas();
         return ResponseEntity.ok(
                 ApiResponse.success("Especialidades obtenidas correctamente", response));
     }
@@ -79,12 +86,21 @@ public class EspecialidadController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    @Operation(summary = "Desactivar especialidad",
-               description = "Solo ADMINISTRADOR. RF-39")
+    @Operation(summary = "Desactivar especialidad", description = "Solo ADMINISTRADOR. RF-39")
     public ResponseEntity<ApiResponse<Void>> desactivar(@PathVariable Long id) {
 
         especialidadService.desactivar(id);
         return ResponseEntity.ok(
                 ApiResponse.success("Especialidad desactivada correctamente"));
+    }
+
+    @PutMapping("/{id}/activar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @Operation(summary = "Reactivar especialidad", description = "Solo ADMINISTRADOR.")
+    public ResponseEntity<ApiResponse<Void>> activar(@PathVariable Long id) {
+
+        especialidadService.activar(id);
+        return ResponseEntity.ok(
+                ApiResponse.success("Especialidad activada correctamente"));
     }
 }

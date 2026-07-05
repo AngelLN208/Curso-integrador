@@ -106,6 +106,7 @@
 
             </div>
 
+            
             <!-- Descargas -->
             <div class="card" style="margin-top:20px">
                 <div class="card-head">
@@ -114,16 +115,54 @@
                         Exportar reportes completos
                     </h2>
                 </div>
-                <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-                    <button class="btn btn-secondary" onclick="descargarReporte('pacientes')">
-                        <i class="bi bi-people"></i> Pacientes (.xlsx)
-                    </button>
-                    <button class="btn btn-secondary" onclick="descargarReporte('citas')">
-                        <i class="bi bi-calendar3"></i> Citas (.xlsx)
-                    </button>
-                    <button class="btn btn-secondary" onclick="descargarReporte('pagos')">
-                        <i class="bi bi-receipt"></i> Pagos (.xlsx)
-                    </button>
+                <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <span style="font-size:13px;font-weight:600;color:var(--text-2)">
+                            <i class="bi bi-people"></i> Pacientes
+                        </span>
+                        <div style="display:flex;gap:8px">
+                            <button class="btn btn-secondary" style="flex:1"
+                                onclick="descargarReporte('pacientes', 'excel')">
+                                <i class="bi bi-file-earmark-excel"></i> Excel
+                            </button>
+                            <button class="btn btn-secondary" style="flex:1"
+                                onclick="descargarReporte('pacientes', 'pdf')">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <span style="font-size:13px;font-weight:600;color:var(--text-2)">
+                            <i class="bi bi-calendar3"></i> Citas
+                        </span>
+                        <div style="display:flex;gap:8px">
+                            <button class="btn btn-secondary" style="flex:1"
+                                onclick="descargarReporte('citas', 'excel')">
+                                <i class="bi bi-file-earmark-excel"></i> Excel
+                            </button>
+                            <button class="btn btn-secondary" style="flex:1" onclick="descargarReporte('citas', 'pdf')">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <span style="font-size:13px;font-weight:600;color:var(--text-2)">
+                            <i class="bi bi-receipt"></i> Pagos
+                        </span>
+                        <div style="display:flex;gap:8px">
+                            <button class="btn btn-secondary" style="flex:1"
+                                onclick="descargarReporte('pagos', 'excel')">
+                                <i class="bi bi-file-earmark-excel"></i> Excel
+                            </button>
+                            <button class="btn btn-secondary" style="flex:1" onclick="descargarReporte('pagos', 'pdf')">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 

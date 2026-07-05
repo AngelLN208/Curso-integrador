@@ -35,6 +35,7 @@ import pe.edu.utp.clinica.common.enums.RolUsuario;
 
 import pe.edu.utp.clinica.dto.auditoria.AuditoriaCitaResponse;
 
+import pe.edu.utp.clinica.service.AuditoriaReportService;
 /**
  * Controlador para portal del administrador.
  *
@@ -368,5 +369,36 @@ public class AdminController {
 
                 return ResponseEntity.ok(
                                 ApiResponse.success("Seguro desvinculado correctamente"));
+        }
+
+        // 1. Agregar el campo junto a los demás repositorios/servicios:
+        private final AuditoriaReportService auditoriaReportService;
+
+        // 2. Agregar este nuevo endpoint, junto a "filtrarAuditoria":
+        @GetMapping("/auditoria/reporte-pdf")
+        @PreAuthorize("hasRole('ADMINISTRADOR')")
+        @Operation(summary = "Descargar reporte de auditoría en PDF", description = "RF-43: Genera un PDF respetando los mismos filtros de usuarioId y tipoAccion.")
+        public ResponseEntity<byte[]> descargarReportePdf(
+                        @RequestParam(required = false) Long usuarioId,
+                        @RequestParam(required = false) TipoAccion tipoAccion) {
+
+                List<AuditoriaCitaResponse> auditoria = auditoriaRepository
+                                .filtrar(usuarioId, tipoAccion)
+                                .stream()
+                                .map(this::toAuditoriaResponse)
+                                .collect(Collectors.toList());
+
+                byte[] pdf = auditoriaReportService.generarPdf(auditoria);
+
+                String nombreArchivo = "reporte-auditoria-" +
+                                java.time.LocalDate.now().format(
+                                                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+                                + ".pdf";
+
+                return ResponseEntity.ok()
+                                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                                                "attachment; filename=\"" + nombreArchivo + "\"")
+                                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                                .body(pdf);
         }
 }

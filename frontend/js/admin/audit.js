@@ -117,6 +117,36 @@ document.getElementById('filtro-usuario').addEventListener('change', aplicarFilt
 document.getElementById('filtro-accion').addEventListener('change', aplicarFiltros);
 document.getElementById('filtro-paciente').addEventListener('input', aplicarFiltros);
 
+// ── Descargar reporte PDF ─────────────────────────────────────
+async function descargarReportePdf() {
+    const usuarioId = document.getElementById('filtro-usuario').value;
+    const accion = document.getElementById('filtro-accion').value;
+
+    const params = new URLSearchParams();
+    if (usuarioId) params.append('usuarioId', usuarioId);
+    if (accion) params.append('tipoAccion', accion);
+
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/admin/auditoria/reporte-pdf?${params.toString()}`, {
+            headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+        });
+
+        if (!response.ok) throw new Error('No se pudo generar el reporte PDF');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte-auditoria-${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        UI.mostrarError(err);
+    }
+}
+
 // ── Init ──────────────────────────────────────────────────────
 cargarUsuariosFiltro();
 cargarAuditoria();

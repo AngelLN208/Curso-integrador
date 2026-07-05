@@ -348,4 +348,43 @@ public class PortalController {
                 authPacienteService.cambiarPassword(userDetails.getUsername(), request);
                 return ResponseEntity.ok(ApiResponse.success("Contraseña actualizada correctamente", null));
         }
+
+        /**
+         * Solicita el envío de un correo de recuperación de contraseña.
+         * Endpoint público — el usuario no está autenticado.
+         * Por seguridad, siempre responde con éxito sin revelar si el
+         * correo existe o no en el sistema.
+         *
+         * @param request correo del paciente
+         */
+        @PostMapping("/auth/recuperar-password")
+        @Operation(summary = "Solicitar recuperación de contraseña", description = "Público. Envía un correo con link de reset si el correo existe.")
+        public ResponseEntity<ApiResponse<Void>> solicitarRecuperacion(
+                        @Valid @RequestBody RecuperarPasswordRequest request) {
+
+                authPacienteService.solicitarRecuperacion(request.getCorreo());
+                return ResponseEntity.ok(ApiResponse.success(
+                                "Si el correo está registrado, recibirás un enlace en los próximos minutos.", null));
+        }
+
+        /**
+         * Valida el token y restablece la contraseña del paciente.
+         * Endpoint público — el usuario no está autenticado.
+         *
+         * @param request token + nueva contraseña + confirmación
+         */
+        @PostMapping("/auth/reset-password")
+        @Operation(summary = "Restablecer contraseña", description = "Público. Valida el token y establece la nueva contraseña.")
+        public ResponseEntity<ApiResponse<Void>> resetearPassword(
+                        @Valid @RequestBody ResetPasswordRequest request) {
+
+                if (!request.getNuevaPassword().equals(request.getConfirmarPassword())) {
+                        throw new IllegalArgumentException(
+                                        "La nueva contraseña y su confirmación no coinciden.");
+                }
+
+                authPacienteService.resetearPassword(request.getToken(), request.getNuevaPassword());
+                return ResponseEntity.ok(ApiResponse.success(
+                                "Contraseña restablecida correctamente. Ya puedes iniciar sesión.", null));
+        }
 }

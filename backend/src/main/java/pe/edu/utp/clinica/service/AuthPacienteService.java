@@ -15,9 +15,17 @@ import pe.edu.utp.clinica.repository.PacienteRepository;
 import pe.edu.utp.clinica.repository.UsuarioRepository;
 import pe.edu.utp.clinica.security.JwtUtil;
 
-
 import pe.edu.utp.clinica.dto.portal.CambiarPasswordRequest;
 import pe.edu.utp.clinica.repository.UsuarioRepository;
+
+import pe.edu.utp.clinica.model.PasswordResetToken;
+import pe.edu.utp.clinica.repository.PasswordResetTokenRepository;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 /**
  * Servicio para el registro e inicio de sesión de pacientes en el portal.
  *
@@ -44,6 +52,15 @@ public class AuthPacienteService {
         private final UsuarioRepository usuarioRepository;
         private final PasswordEncoder passwordEncoder;
         private final JwtUtil jwtUtil;
+
+        private final PasswordResetTokenRepository resetTokenRepository;
+        private final JavaMailSender mailSender;
+
+        @Value("${spring.mail.username}")
+        private String correoRemitente;
+
+        @Value("${portal.url:http://127.0.0.1:5501}")
+        private String portalUrl;
 
         /**
          * Registra un nuevo paciente en el portal.
@@ -178,5 +195,95 @@ public class AuthPacienteService {
                 usuarioRepository.save(usuario);
 
                 log.info("Contraseña actualizada para usuario: {}", username);
+        }
+
+        /**
+         * Genera un token de recuperación y envía el correo al paciente.
+         * Si el correo no existe en el sistema, no lanza error (seguridad:
+         * no revelar si un correo está registrado o no).
+         *
+         * @param correo correo del paciente que olvidó su contraseña
+         */
+        @Transactional
+        public void solicitarRecuperacion(String correo) {
+                // Buscar el usuario silenciosamente — si no existe, no hacemos nada
+                // (no revelamos si el correo está registrado o no)
+                usuarioRepository.findByUsername(correo.toLowerCase().trim()).ifPresent(usuario -> {
+
+                        // Eliminar tokens anteriores del mismo usuario
+                        resetTokenRepository.deleteByUsuarioUsername(usuario.getUsername());
+
+                        // Generar token UUID con 30 minutos de expiración
+                        String token = UUID.randomUUID().toString();
+                        PasswordResetToken resetToken = PasswordResetToken.builder()
+                                        .token(token)
+                                        .usuario(usuario)
+                                        .expiraEn(LocalDateTime.now().plusMinutes(30))
+                                        .build();
+                        resetTokenRepository.save(resetToken);
+
+                        // Enviar correo con el link de reset
+                        String linkReset = portalUrl + "/views/reset-password.html?token=" + token;
+
+                        SimpleMailMessage mensaje = new SimpleMailMessage();
+                        mensaje.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
+                        mensaje.setTo(correo);
+                        mensaje.setSubject("🔐 Recuperación de contraseña — Clínica Stella Maris");
+                        mensaje.setText("""
+                                        Hola,
+
+                                        Recibimos una solicitud para restablecer la contraseña de tu cuenta
+                                        en el portal de pacientes de la Clínica Stella Maris.
+
+                                        Haz clic en el siguiente enlace para crear una nueva contraseña:
+
+                                        %s
+
+                                        Este enlace es válido por 30 minutos. Si no solicitaste este cambio,
+                                        puedes ignorar este correo — tu contraseña no cambiará.
+
+                                        ─────────────────────────────
+                                        Clínica Stella Maris
+                                        Tel: (01) 234-5678
+                                        """.formatted(linkReset));
+
+                        mailSender.send(mensaje);
+                        log.info("Correo de recuperación enviado a: {}", correo);
+                });
+        }
+
+        /**
+         * Valida el token y cambia la contraseña del usuario.
+         *
+         * @param token         token UUID recibido del link del correo
+         * @param nuevaPassword nueva contraseña a establecer
+         */
+        @Transactional
+        public void resetearPassword(String token, String nuevaPassword) {
+                PasswordResetToken resetToken = resetTokenRepository.findByToken(token)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "El enlace de recuperación no es válido."));
+
+                if (!resetToken.isValido()) {
+                        throw new IllegalStateException(
+                                        "El enlace de recuperación ha expirado o ya fue utilizado. "
+                                                        + "Solicita uno nuevo.");
+                }
+
+                if (nuevaPassword == null || nuevaPassword.length() < 6) {
+                        throw new IllegalArgumentException(
+                                        "La nueva contraseña debe tener al menos 6 caracteres.");
+                }
+
+                // Cambiar la contraseña
+                Usuario usuario = resetToken.getUsuario();
+                usuario.setPassword(passwordEncoder.encode(nuevaPassword));
+                usuarioRepository.save(usuario);
+
+                // Marcar el token como usado (no se puede reutilizar)
+                resetToken.setUsado(true);
+                resetTokenRepository.save(resetToken);
+
+                log.info("Contraseña restablecida para usuario: {}", usuario.getUsername());
         }
 }

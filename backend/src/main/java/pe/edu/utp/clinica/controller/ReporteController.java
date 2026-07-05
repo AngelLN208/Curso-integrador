@@ -18,6 +18,8 @@ public class ReporteController {
 
     private static final String EXCEL_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
+    // ─── Excel ──────────────────────────────────────────────────
+
     @GetMapping("/pacientes/excel")
     public ResponseEntity<byte[]> descargarPacientesExcel() {
         byte[] excel = reporteService.generarReportePacientesExcel();
@@ -46,5 +48,37 @@ public class ReporteController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=pagos.xlsx")
                 .contentType(MediaType.parseMediaType(EXCEL_MEDIA_TYPE))
                 .body(excel);
+    }
+
+    // ─── PDF ────────────────────────────────────────────────────
+
+    @GetMapping("/pacientes/pdf")
+    public ResponseEntity<byte[]> descargarPacientesPdf() {
+        byte[] pdf = reporteService.generarReportePacientesPdf();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=pacientes.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
+    @GetMapping("/citas/pdf")
+    public ResponseEntity<byte[]> descargarCitasPdf() {
+        byte[] pdf = reporteService.generarReporteCitasPdf();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=citas.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
+    @GetMapping("/pagos/pdf")
+    public ResponseEntity<byte[]> descargarPagosPdf() {
+        byte[] pdf = reporteService.generarReportePagosPdf();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=pagos.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 }

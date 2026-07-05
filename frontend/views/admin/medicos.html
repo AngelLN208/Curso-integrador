@@ -24,6 +24,9 @@
                     <p class="page-sub">Personal médico de la clínica</p>
                 </div>
                 <div class="topbar-right">
+                    <button class="btn-primary" onclick="abrirModalEspecialidades()">
+                        <i class="bi bi-heart-pulse"></i> Especialidades
+                    </button>
                     <button class="btn-primary" onclick="abrirModalCrear()">
                         <i class="bi bi-person-plus"></i> Nuevo médico
                     </button>
@@ -221,6 +224,66 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-ghost" onclick="cerrarModal('modalHorario')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Gestionar Especialidades -->
+    <div class="modal-backdrop" id="modalEspecialidades">
+        <div class="modal-box" style="max-width:680px">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="bi bi-heart-pulse" style="color:var(--indigo)"></i> Especialidades
+                    médicas</h3>
+                <button class="modal-close" onclick="cerrarModal('modalEspecialidades')"><i
+                        class="bi bi-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="esp-form-titulo" style="font-size:13px;font-weight:600;color:var(--text-2);text-transform:uppercase;
+                 letter-spacing:.05em;margin-bottom:10px">
+                    <i class="bi bi-plus-circle"></i> Nueva especialidad
+                </h4>
+                <div style="display:grid;grid-template-columns:1fr 1fr 130px;gap:10px;margin-bottom:8px">
+                    <div>
+                        <label class="form-label">Nombre *</label>
+                        <input type="text" id="esp-nombre" class="form-control" placeholder="Cardiología">
+                    </div>
+                    <div>
+                        <label class="form-label">Descripción</label>
+                        <input type="text" id="esp-descripcion" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div>
+                        <label class="form-label">Costo (S/) *</label>
+                        <input type="number" id="esp-costo" class="form-control" placeholder="120" min="0" step="0.01">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:20px">
+                    <button class="btn btn-indigo" id="esp-btn-guardar" onclick="guardarEspecialidad()">
+                        <i class="bi bi-check-lg"></i> Registrar especialidad
+                    </button>
+                    <button class="btn btn-ghost" id="esp-btn-cancelar-edicion" style="display:none"
+                        onclick="cancelarEdicionEspecialidad()">
+                        Cancelar edición
+                    </button>
+                </div>
+
+                <hr style="border:none;border-top:1px solid var(--border);margin:4px 0 16px">
+
+                <h4 style="font-size:13px;font-weight:600;color:var(--text-2);text-transform:uppercase;
+                 letter-spacing:.05em;margin-bottom:10px">
+                    <i class="bi bi-list-ul"></i> Especialidades registradas
+                </h4>
+                <div style="position:relative;margin-bottom:12px">
+                    <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
+                color:var(--text-3);font-size:14px"></i>
+                    <input type="text" id="esp-buscar" class="form-control" oninput="filtrarEspecialidades()"
+                        placeholder="Buscar especialidad..." style="padding-left:36px">
+                </div>
+                <div id="lista-especialidades">
+                    <div class="empty-row">Cargando...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="cerrarModal('modalEspecialidades')">Cerrar</button>
             </div>
         </div>
     </div>

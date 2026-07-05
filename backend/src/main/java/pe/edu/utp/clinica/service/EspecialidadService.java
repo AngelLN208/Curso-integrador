@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 /**
  * Servicio para gestión de especialidades médicas.
  *
- * RF-39: Registrar y modificar especialidades con nombre y descripción.
- *        No se permiten nombres duplicados.
+ * RF-39: Registrar y modificar especialidades con nombre, descripción y costo.
+ * No se permiten nombres duplicados.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -30,9 +30,6 @@ public class EspecialidadService {
 
     /**
      * Registra una nueva especialidad médica.
-     *
-     * @param request datos de la especialidad
-     * @return especialidad registrada
      */
     @Transactional
     public EspecialidadResponse registrar(EspecialidadRequest request) {
@@ -44,6 +41,7 @@ public class EspecialidadService {
         Especialidad especialidad = Especialidad.builder()
                 .nombre(request.getNombre())
                 .descripcion(request.getDescripcion())
+                .costo(request.getCosto())
                 .build();
 
         especialidad = especialidadRepository.save(especialidad);
@@ -54,16 +52,11 @@ public class EspecialidadService {
 
     /**
      * Actualiza una especialidad existente.
-     *
-     * @param id      ID de la especialidad
-     * @param request nuevos datos
-     * @return especialidad actualizada
      */
     @Transactional
     public EspecialidadResponse actualizar(Long id, EspecialidadRequest request) {
         Especialidad especialidad = buscarPorId(id);
 
-        // Verifica nombre duplicado solo si cambió
         if (!especialidad.getNombre().equalsIgnoreCase(request.getNombre())
                 && especialidadRepository.existsByNombreIgnoreCase(request.getNombre())) {
             throw new IllegalStateException(
@@ -72,16 +65,30 @@ public class EspecialidadService {
 
         especialidad.setNombre(request.getNombre());
         especialidad.setDescripcion(request.getDescripcion());
+        especialidad.setCosto(request.getCosto());
 
         return toResponse(especialidadRepository.save(especialidad));
     }
 
     /**
-     * Lista todas las especialidades activas.
+     * Lista todas las especialidades activas (uso general: selects, portal
+     * paciente, etc).
      */
     @Transactional(readOnly = true)
     public List<EspecialidadResponse> listarActivas() {
         return especialidadRepository.findByActivoTrue()
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lista TODAS las especialidades (activas e inactivas). Solo para el panel de
+     * administración.
+     */
+    @Transactional(readOnly = true)
+    public List<EspecialidadResponse> listarTodas() {
+        return especialidadRepository.findAll()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -96,7 +103,7 @@ public class EspecialidadService {
     }
 
     /**
-     * Desactiva una especialidad.
+     * Desactiva una especialidad (ya no podrá asignarse a nuevos médicos).
      */
     @Transactional
     public void desactivar(Long id) {
@@ -104,6 +111,17 @@ public class EspecialidadService {
         especialidad.setActivo(false);
         especialidadRepository.save(especialidad);
         log.debug("Especialidad desactivada con ID: {}", id);
+    }
+
+    /**
+     * Reactiva una especialidad previamente desactivada.
+     */
+    @Transactional
+    public void activar(Long id) {
+        Especialidad especialidad = buscarPorId(id);
+        especialidad.setActivo(true);
+        especialidadRepository.save(especialidad);
+        log.debug("Especialidad activada con ID: {}", id);
     }
 
     // ─── Métodos internos ─────────────────────────────────────────────
@@ -119,6 +137,7 @@ public class EspecialidadService {
                 .id(e.getId())
                 .nombre(e.getNombre())
                 .descripcion(e.getDescripcion())
+                .costo(e.getCosto())
                 .activo(e.isActivo())
                 .build();
     }

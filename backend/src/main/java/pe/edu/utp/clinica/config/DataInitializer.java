@@ -82,28 +82,34 @@ public class DataInitializer implements CommandLineRunner {
         // ─── Especialidades ───────────────────────────────────────────────
 
         private void crearEspecialidades() {
-                String[][] especialidades = {
-                                { "Medicina General", "Atención primaria y consultas generales" },
-                                { "Cardiología", "Diagnóstico y tratamiento de enfermedades cardíacas" },
-                                { "Pediatría", "Atención médica para niños y adolescentes" },
-                                { "Ginecología", "Salud reproductiva y atención femenina" },
-                                { "Traumatología", "Lesiones del sistema musculoesquelético" },
-                                { "Dermatología", "Enfermedades de la piel" },
-                                { "Neurología", "Trastornos del sistema nervioso" },
-                                { "Oftalmología", "Enfermedades de los ojos" },
-                                { "Psiquiatría", "Salud mental y trastornos psiquiátricos" },
-                                { "Endocrinología", "Trastornos hormonales y metabólicos" }
+                Object[][] especialidades = {
+                                { "Medicina General", "Atención primaria y consultas generales",
+                                                new BigDecimal("60.00") },
+                                { "Cardiología", "Diagnóstico y tratamiento de enfermedades cardíacas",
+                                                new BigDecimal("120.00") },
+                                { "Pediatría", "Atención médica para niños y adolescentes", new BigDecimal("90.00") },
+                                { "Ginecología", "Salud reproductiva y atención femenina", new BigDecimal("100.00") },
+                                { "Traumatología", "Lesiones del sistema musculoesquelético",
+                                                new BigDecimal("110.00") },
+                                { "Dermatología", "Enfermedades de la piel", new BigDecimal("95.00") },
+                                { "Neurología", "Trastornos del sistema nervioso", new BigDecimal("130.00") },
+                                { "Oftalmología", "Enfermedades de los ojos", new BigDecimal("100.00") },
+                                { "Psiquiatría", "Salud mental y trastornos psiquiátricos", new BigDecimal("120.00") },
+                                { "Endocrinología", "Trastornos hormonales y metabólicos", new BigDecimal("110.00") }
                 };
 
-                for (String[] esp : especialidades) {
-                        if (!especialidadRepository.existsByNombreIgnoreCase(esp[0])) {
+                for (Object[] esp : especialidades) {
+                        String nombre = (String) esp[0];
+                        if (!especialidadRepository.existsByNombreIgnoreCase(nombre)) {
                                 especialidadRepository.save(Especialidad.builder()
-                                                .nombre(esp[0]).descripcion(esp[1]).activo(true).build());
-                                log.info("✅ Especialidad creada: {}", esp[0]);
+                                                .nombre(nombre)
+                                                .descripcion((String) esp[1])
+                                                .costo((BigDecimal) esp[2])
+                                                .activo(true).build());
+                                log.info("✅ Especialidad creada: {}", nombre);
                         }
                 }
         }
-
         // ─── Médicos ──────────────────────────────────────────────────────
 
         private void crearMedicos() {
