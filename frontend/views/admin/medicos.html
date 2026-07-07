@@ -6,167 +6,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Médicos — Clínica Stella Maris</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="/css/tailwind.css">
 </head>
 
-<body>
+<body class="font-sans bg-lienzo dark:bg-lienzo-dark text-tinta dark:text-white transition-colors">
 
-    <div class="app-shell">
+    <div class="flex min-h-screen">
         <div id="sidebar-placeholder"></div>
 
-        <main class="main-content">
+        <main class="flex-1 min-w-0 pt-14 lg:pt-0 bg-lienzo dark:bg-lienzo-dark">
+            <div class="p-4 sm:p-6 lg:p-8">
 
-            <header class="topbar">
-                <div>
-                    <h1 class="page-title">Médicos</h1>
-                    <p class="page-sub">Personal médico de la clínica</p>
-                </div>
-                <div class="topbar-right">
-                    <button class="btn-primary" onclick="abrirModalEspecialidades()">
-                        <i class="bi bi-heart-pulse"></i> Especialidades
-                    </button>
-                    <button class="btn-primary" onclick="abrirModalCrear()">
-                        <i class="bi bi-person-plus"></i> Nuevo médico
-                    </button>
-                    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
-                        <i class="bi bi-moon-stars" id="theme-icon"></i>
-                    </button>
-                </div>
-            </header>
+                <header class="flex flex-wrap items-start justify-between gap-4 mb-6">
+                    <div>
+                        <h1 class="font-display font-semibold text-xl lg:text-[22px]">Médicos</h1>
+                        <p class="text-[13px] text-neblina mt-1">Personal médico de la clínica</p>
+                    </div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <button onclick="abrirModalEspecialidades()"
+                            class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
+                            <i class="bi bi-heart-pulse"></i> Especialidades
+                        </button>
+                        <button onclick="abrirModalCrear()"
+                            class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
+                            <i class="bi bi-person-plus"></i> Nuevo médico
+                        </button>
+                        <button id="themeToggle" title="Cambiar tema"
+                            class="w-9 h-9 bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-lg flex items-center justify-center text-neblina hover:text-guia hover:border-guia transition-colors flex-shrink-0">
+                            <i class="bi bi-moon-stars" id="theme-icon"></i>
+                        </button>
+                    </div>
+                </header>
 
-            <!-- Métricas -->
-            <section class="metrics-grid" style="grid-template-columns:repeat(3,1fr)">
-                <div class="metric-card">
-                    <div class="metric-icon indigo"><i class="bi bi-people"></i></div>
-                    <div class="metric-body">
-                        <div class="metric-value" id="m-total">—</div>
-                        <div class="metric-label">Total médicos</div>
+                <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    <div
+                        class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 flex items-center gap-3">
+                        <div
+                            class="w-11 h-11 rounded-lg bg-tinta/10 dark:bg-tinta-light/20 flex items-center justify-center text-tinta dark:text-white text-xl flex-shrink-0">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-display text-xl lg:text-2xl font-semibold leading-none" id="m-total">—
+                            </div>
+                            <div class="text-[11px] lg:text-xs text-neblina mt-1">Total médicos</div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 flex items-center gap-3">
+                        <div
+                            class="w-11 h-11 rounded-lg bg-rumbo/10 flex items-center justify-center text-rumbo text-xl flex-shrink-0">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-display text-xl lg:text-2xl font-semibold leading-none" id="m-activos">—
+                            </div>
+                            <div class="text-[11px] lg:text-xs text-neblina mt-1">Médicos activos</div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 flex items-center gap-3">
+                        <div
+                            class="w-11 h-11 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-xl flex-shrink-0">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-display text-xl lg:text-2xl font-semibold leading-none"
+                                id="m-especialidades">—</div>
+                            <div class="text-[11px] lg:text-xs text-neblina mt-1">Especialidades cubiertas</div>
+                        </div>
+                    </div>
+                </section>
+
+                <div
+                    class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 mb-5">
+                    <div class="relative">
+                        <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-neblina text-[15px]"></i>
+                        <input type="text" id="buscar-input" placeholder="Buscar por nombre, apellido o DNI..."
+                            class="w-full pl-10 pr-4 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                 </div>
-                <div class="metric-card">
-                    <div class="metric-icon green"><i class="bi bi-check-circle"></i></div>
-                    <div class="metric-body">
-                        <div class="metric-value" id="m-activos">—</div>
-                        <div class="metric-label">Médicos activos</div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-icon amber"><i class="bi bi-heart-pulse"></i></div>
-                    <div class="metric-body">
-                        <div class="metric-value" id="m-especialidades">—</div>
-                        <div class="metric-label">Especialidades cubiertas</div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- Filtro -->
-            <div class="card" style="margin-bottom:20px">
-                <div style="padding:16px 20px">
-                    <div style="position:relative">
-                        <i class="bi bi-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);
-                    color:var(--text-3);font-size:15px"></i>
-                        <input type="text" id="buscar-input" class="form-control"
-                            placeholder="Buscar por nombre, apellido o DNI..." style="padding-left:40px">
+                <div
+                    class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card overflow-hidden">
+                    <div
+                        class="flex items-center justify-between px-5 py-4 border-b border-borde dark:border-borde-dark">
+                        <h2 class="font-display font-semibold text-[15px]">Lista de médicos</h2>
+                        <span class="text-xs text-neblina" id="total-mostrados"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-[13px] min-w-[780px]">
+                            <thead>
+                                <tr class="bg-lienzo dark:bg-tinta-dark border-b border-borde dark:border-borde-dark">
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Médico</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        DNI</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Especialidad</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Celular</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Correo</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Estado</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-medicos" class="divide-y divide-borde dark:divide-borde-dark">
+                                <tr>
+                                    <td colspan="7" class="text-center text-neblina py-10 text-[13px]">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-
-            <!-- Tabla -->
-            <div class="card">
-                <div class="card-head">
-                    <h2 class="card-title">Lista de médicos</h2>
-                    <span class="metric-delta neutral" id="total-mostrados"></span>
-                </div>
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Médico</th>
-                                <th>DNI</th>
-                                <th>Especialidad</th>
-                                <th>Celular</th>
-                                <th>Correo</th>
-                                <th>Estado</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-medicos">
-                            <tr>
-                                <td colspan="7" class="empty-row">Cargando...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </main>
     </div>
 
     <!-- Modal Crear Médico -->
-    <div class="modal-backdrop" id="modalCrearMedico">
-        <div class="modal-box" style="max-width:600px">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="bi bi-person-plus" style="color:var(--indigo)"></i> Nuevo médico</h3>
-                <button class="modal-close" onclick="cerrarModal('modalCrearMedico')"><i class="bi bi-x"></i></button>
+    <div class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5" id="modalCrearMedico">
+        <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[600px] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+                <h3 class="font-display font-semibold text-base flex items-center gap-2">
+                    <i class="bi bi-person-plus text-guia"></i> Nuevo médico
+                </h3>
+                <button onclick="cerrarModal('modalCrearMedico')"
+                    class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+                    <i class="bi bi-x text-xl"></i>
+                </button>
             </div>
-            <div class="modal-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="form-label">Nombres *</label>
-                        <input type="text" id="med-nombres" class="form-control" placeholder="Carlos">
+                        <label class="block text-xs font-medium mb-1.5">Nombres *</label>
+                        <input type="text" id="med-nombres" placeholder="Carlos"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Apellidos *</label>
-                        <input type="text" id="med-apellidos" class="form-control" placeholder="López Ramírez">
+                        <label class="block text-xs font-medium mb-1.5">Apellidos *</label>
+                        <input type="text" id="med-apellidos" placeholder="López Ramírez"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">DNI *</label>
-                        <input type="text" id="med-dni" class="form-control" placeholder="45123678" maxlength="8">
+                        <label class="block text-xs font-medium mb-1.5">DNI *</label>
+                        <input type="text" id="med-dni" placeholder="45123678" maxlength="8"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Especialidad *</label>
-                        <select id="med-especialidad" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Especialidad *</label>
+                        <select id="med-especialidad"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                             <option value="">Cargando...</option>
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Celular *</label>
-                        <input type="text" id="med-celular" class="form-control" placeholder="987111222" maxlength="9">
+                        <label class="block text-xs font-medium mb-1.5">Celular *</label>
+                        <input type="text" id="med-celular" placeholder="987111222" maxlength="9"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Correo profesional *</label>
-                        <input type="email" id="med-correo" class="form-control" placeholder="carlos.lopez@clinica.pe">
+                        <label class="block text-xs font-medium mb-1.5">Correo profesional *</label>
+                        <input type="email" id="med-correo" placeholder="carlos.lopez@clinica.pe"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
-                    <div style="grid-column:1/-1">
-                        <hr style="border:none;border-top:1px solid var(--border);margin:4px 0 8px">
-                        <div style="font-size:12px;color:var(--text-3);margin-bottom:8px">
+                    <div class="sm:col-span-2">
+                        <hr class="border-borde dark:border-borde-dark my-1 mb-2">
+                        <div class="text-xs text-neblina mb-2">
                             <i class="bi bi-info-circle"></i> Estas credenciales serán usadas por el médico para iniciar
                             sesión en su portal.
                         </div>
                     </div>
                     <div>
-                        <label class="form-label">Usuario (correo de acceso) *</label>
-                        <input type="email" id="med-username" class="form-control"
-                            placeholder="carlos.lopez@clinica.pe">
+                        <label class="block text-xs font-medium mb-1.5">Usuario (correo de acceso) *</label>
+                        <input type="email" id="med-username" placeholder="carlos.lopez@clinica.pe"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Contraseña *</label>
-                        <div style="position:relative">
-                            <input type="password" id="med-password" class="form-control"
-                                placeholder="Mínimo 8 caracteres" style="padding-right:40px">
-                            <button type="button" onclick="UI.togglePassword('med-password','icon-med-password')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                           background:none;border:none;cursor:pointer;color:var(--text-3);padding:4px">
+                        <label class="block text-xs font-medium mb-1.5">Contraseña *</label>
+                        <div class="relative">
+                            <input type="password" id="med-password" placeholder="Mínimo 8 caracteres"
+                                class="w-full pl-3.5 pr-10 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
+                            <button type="button" onclick="UI.togglePassword('med-password','icon-med-password')"
+                                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-neblina p-1">
                                 <i class="bi bi-eye" id="icon-med-password"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="cerrarModal('modalCrearMedico')">Cancelar</button>
-                <button class="btn btn-indigo" onclick="guardarMedico()">
+            <div
+                class="flex justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+                <button onclick="cerrarModal('modalCrearMedico')"
+                    class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="guardarMedico()"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
                     <i class="bi bi-check-lg"></i> Registrar médico
                 </button>
             </div>
@@ -174,32 +223,35 @@
     </div>
 
     <!-- Modal Gestionar Horario -->
-    <div class="modal-backdrop" id="modalHorario">
-        <div class="modal-box" style="max-width:560px">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="bi bi-clock" style="color:var(--indigo)"></i> Horario del médico</h3>
-                <button class="modal-close" onclick="cerrarModal('modalHorario')"><i class="bi bi-x"></i></button>
+    <div class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5" id="modalHorario">
+        <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[560px] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+                <h3 class="font-display font-semibold text-base flex items-center gap-2">
+                    <i class="bi bi-clock text-guia"></i> Horario del médico
+                </h3>
+                <button onclick="cerrarModal('modalHorario')"
+                    class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+                    <i class="bi bi-x text-xl"></i>
+                </button>
             </div>
-            <div class="modal-body">
-                <div style="background:var(--bg-main);border-radius:12px;padding:14px;margin-bottom:16px">
-                    <div style="font-weight:600;color:var(--text)" id="horario-medico-nombre">—</div>
-                    <div style="font-size:13px;color:var(--text-2)" id="horario-medico-especialidad">—</div>
+            <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div class="bg-lienzo dark:bg-tinta-dark rounded-xl p-3.5 mb-4">
+                    <div class="font-semibold" id="horario-medico-nombre">—</div>
+                    <div class="text-[13px] text-neblina" id="horario-medico-especialidad">—</div>
                 </div>
 
-                <!-- Lista de bloques actuales -->
-                <div id="lista-horarios" style="margin-bottom:20px">
-                    <div class="empty-row">Cargando...</div>
+                <div id="lista-horarios" class="mb-5">
+                    <div class="text-center text-neblina py-6 text-[13px]">Cargando...</div>
                 </div>
 
-                <!-- Agregar nuevo bloque -->
-                <h4 style="font-size:13px;font-weight:600;color:var(--text-2);text-transform:uppercase;
-                 letter-spacing:.05em;margin-bottom:10px">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-neblina mb-2.5">
                     <i class="bi bi-plus-circle"></i> Agregar bloque de horario
                 </h4>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div>
-                        <label class="form-label">Día</label>
-                        <select id="hor-dia" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Día</label>
+                        <select id="hor-dia"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                             <option value="MONDAY">Lunes</option>
                             <option value="TUESDAY">Martes</option>
                             <option value="WEDNESDAY">Miércoles</option>
@@ -210,80 +262,96 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label">Hora inicio</label>
-                        <input type="time" id="hor-inicio" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Hora inicio</label>
+                        <input type="time" id="hor-inicio"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                     <div>
-                        <label class="form-label">Hora fin</label>
-                        <input type="time" id="hor-fin" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Hora fin</label>
+                        <input type="time" id="hor-fin"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                 </div>
-                <button class="btn btn-indigo" style="margin-top:12px" onclick="agregarBloqueHorario()">
+                <button onclick="agregarBloqueHorario()"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 mt-3 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
                     <i class="bi bi-check-lg"></i> Agregar bloque
                 </button>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="cerrarModal('modalHorario')">Cerrar</button>
+            <div
+                class="flex justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+                <button onclick="cerrarModal('modalHorario')"
+                    class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+                    Cerrar
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Modal Gestionar Especialidades -->
-    <div class="modal-backdrop" id="modalEspecialidades">
-        <div class="modal-box" style="max-width:680px">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="bi bi-heart-pulse" style="color:var(--indigo)"></i> Especialidades
-                    médicas</h3>
-                <button class="modal-close" onclick="cerrarModal('modalEspecialidades')"><i
-                        class="bi bi-x"></i></button>
+    <div class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5" id="modalEspecialidades">
+        <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[680px] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+                <h3 class="font-display font-semibold text-base flex items-center gap-2">
+                    <i class="bi bi-heart-pulse text-guia"></i> Especialidades médicas
+                </h3>
+                <button onclick="cerrarModal('modalEspecialidades')"
+                    class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+                    <i class="bi bi-x text-xl"></i>
+                </button>
             </div>
-            <div class="modal-body">
-                <h4 id="esp-form-titulo" style="font-size:13px;font-weight:600;color:var(--text-2);text-transform:uppercase;
-                 letter-spacing:.05em;margin-bottom:10px">
+            <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <h4 id="esp-form-titulo" class="text-xs font-semibold uppercase tracking-wider text-neblina mb-2.5">
                     <i class="bi bi-plus-circle"></i> Nueva especialidad
                 </h4>
-                <div style="display:grid;grid-template-columns:1fr 1fr 130px;gap:10px;margin-bottom:8px">
+                <div class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_130px] gap-2.5 mb-2">
                     <div>
-                        <label class="form-label">Nombre *</label>
-                        <input type="text" id="esp-nombre" class="form-control" placeholder="Cardiología">
+                        <label class="block text-xs font-medium mb-1.5">Nombre *</label>
+                        <input type="text" id="esp-nombre" placeholder="Cardiología"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Descripción</label>
-                        <input type="text" id="esp-descripcion" class="form-control" placeholder="Opcional">
+                        <label class="block text-xs font-medium mb-1.5">Descripción</label>
+                        <input type="text" id="esp-descripcion" placeholder="Opcional"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Costo (S/) *</label>
-                        <input type="number" id="esp-costo" class="form-control" placeholder="120" min="0" step="0.01">
+                        <label class="block text-xs font-medium mb-1.5">Costo (S/) *</label>
+                        <input type="number" id="esp-costo" placeholder="120" min="0" step="0.01"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                 </div>
-                <div style="display:flex;gap:8px;margin-bottom:20px">
-                    <button class="btn btn-indigo" id="esp-btn-guardar" onclick="guardarEspecialidad()">
+                <div class="flex gap-2 mb-5">
+                    <button id="esp-btn-guardar" onclick="guardarEspecialidad()"
+                        class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
                         <i class="bi bi-check-lg"></i> Registrar especialidad
                     </button>
-                    <button class="btn btn-ghost" id="esp-btn-cancelar-edicion" style="display:none"
-                        onclick="cancelarEdicionEspecialidad()">
+                    <button id="esp-btn-cancelar-edicion" onclick="cancelarEdicionEspecialidad()" class="hidden"
+                        class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
                         Cancelar edición
                     </button>
                 </div>
 
-                <hr style="border:none;border-top:1px solid var(--border);margin:4px 0 16px">
+                <hr class="border-borde dark:border-borde-dark my-1 mb-4">
 
-                <h4 style="font-size:13px;font-weight:600;color:var(--text-2);text-transform:uppercase;
-                 letter-spacing:.05em;margin-bottom:10px">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-neblina mb-2.5">
                     <i class="bi bi-list-ul"></i> Especialidades registradas
                 </h4>
-                <div style="position:relative;margin-bottom:12px">
-                    <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
-                color:var(--text-3);font-size:14px"></i>
-                    <input type="text" id="esp-buscar" class="form-control" oninput="filtrarEspecialidades()"
-                        placeholder="Buscar especialidad..." style="padding-left:36px">
+                <div class="relative mb-3">
+                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-neblina text-sm"></i>
+                    <input type="text" id="esp-buscar" oninput="filtrarEspecialidades()"
+                        placeholder="Buscar especialidad..."
+                        class="w-full pl-9 pr-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                 </div>
                 <div id="lista-especialidades">
-                    <div class="empty-row">Cargando...</div>
+                    <div class="text-center text-neblina py-6 text-[13px]">Cargando...</div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="cerrarModal('modalEspecialidades')">Cerrar</button>
+            <div
+                class="flex justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+                <button onclick="cerrarModal('modalEspecialidades')"
+                    class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+                    Cerrar
+                </button>
             </div>
         </div>
     </div>

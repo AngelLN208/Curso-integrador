@@ -6,139 +6,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pacientes — Clínica Stella Maris</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="/css/tailwind.css">
 </head>
 
-<body>
-    <div class="app-shell">
+<body class="font-sans bg-lienzo dark:bg-lienzo-dark text-tinta dark:text-white transition-colors">
 
+    <div class="flex min-h-screen">
         <div id="sidebar-placeholder"></div>
 
-        <!-- Main -->
-        <main class="main-content">
-            <header class="topbar">
-                <div>
-                    <h1 class="page-title">Pacientes</h1>
-                    <p class="page-sub">Registro y gestión de pacientes de la clínica</p>
-                </div>
-                <div class="topbar-right">
-                    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
-                        <i class="bi bi-moon-stars" id="theme-icon"></i>
-                    </button>
-                    <button class="btn-primary" onclick="abrirModal('modalRegistrar')">
-                        <i class="bi bi-person-plus"></i> Nuevo paciente
-                    </button>
-                </div>
-            </header>
+        <main class="flex-1 min-w-0 pt-14 lg:pt-0 bg-lienzo dark:bg-lienzo-dark">
+            <div class="p-4 sm:p-6 lg:p-8">
 
-            <!-- Métricas -->
-            <section class="metrics-grid" style="grid-template-columns:repeat(3,1fr)">
-                <div class="metric-card">
-                    <div class="metric-icon purple"><i class="bi bi-people"></i></div>
-                    <div class="metric-body">
-                        <div class="metric-value" id="total-pacientes">—</div>
-                        <div class="metric-label">Total pacientes</div>
+                <header class="flex flex-wrap items-start justify-between gap-4 mb-6">
+                    <div>
+                        <h1 class="font-display font-semibold text-xl lg:text-[22px]">Pacientes</h1>
+                        <p class="text-[13px] text-neblina mt-1">Registro y gestión de pacientes de la clínica</p>
                     </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-icon green"><i class="bi bi-person-check"></i></div>
-                    <div class="metric-body">
-                        <div class="metric-value" id="nuevos-mes">—</div>
-                        <div class="metric-label">Nuevos este mes</div>
+                    <div class="flex items-center gap-2.5">
+                        <button id="themeToggle" title="Cambiar tema"
+                            class="w-9 h-9 bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-lg flex items-center justify-center text-neblina hover:text-guia hover:border-guia transition-colors flex-shrink-0">
+                            <i class="bi bi-moon-stars" id="theme-icon"></i>
+                        </button>
+                        <button onclick="abrirModal('modalRegistrar')"
+                            class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
+                            <i class="bi bi-person-plus"></i> Nuevo paciente
+                        </button>
                     </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-icon blue"><i class="bi bi-search"></i></div>
-                    <div class="metric-body">
-                        <div class="metric-value" id="total-filtrados">—</div>
-                        <div class="metric-label">Mostrando</div>
-                    </div>
-                </div>
-            </section>
+                </header>
 
-            <!-- Búsqueda -->
-            <div class="card" style="margin-bottom:20px">
-                <div style="padding:16px 20px">
-                    <div style="position:relative">
-                        <i class="bi bi-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);
-                    color:var(--text-3);font-size:15px"></i>
-                        <input type="text" id="buscar-input" class="form-control"
-                            placeholder="Buscar por DNI, nombre o apellido..." style="padding-left:40px">
+                <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    <div
+                        class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 flex items-center gap-3">
+                        <div
+                            class="w-11 h-11 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-xl flex-shrink-0">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-display text-xl lg:text-2xl font-semibold leading-none"
+                                id="total-pacientes">—</div>
+                            <div class="text-[11px] lg:text-xs text-neblina mt-1">Total pacientes</div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 flex items-center gap-3">
+                        <div
+                            class="w-11 h-11 rounded-lg bg-rumbo/10 flex items-center justify-center text-rumbo text-xl flex-shrink-0">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-display text-xl lg:text-2xl font-semibold leading-none" id="nuevos-mes">—
+                            </div>
+                            <div class="text-[11px] lg:text-xs text-neblina mt-1">Nuevos este mes</div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 flex items-center gap-3">
+                        <div
+                            class="w-11 h-11 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xl flex-shrink-0">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-display text-xl lg:text-2xl font-semibold leading-none"
+                                id="total-filtrados">—</div>
+                            <div class="text-[11px] lg:text-xs text-neblina mt-1">Mostrando</div>
+                        </div>
+                    </div>
+                </section>
+
+                <div
+                    class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card p-4 mb-5">
+                    <div class="relative">
+                        <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-neblina text-[15px]"></i>
+                        <input type="text" id="buscar-input" placeholder="Buscar por DNI, nombre o apellido..."
+                            class="w-full pl-10 pr-4 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                 </div>
-            </div>
 
-            <!-- Tabla -->
-            <div class="card">
-                <div class="card-head">
-                    <h2 class="card-title">Lista de pacientes</h2>
-                </div>
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Paciente</th>
-                                <th>DNI</th>
-                                <th>Celular</th>
-                                <th>Correo</th>
-                                <th>Sexo</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-pacientes">
-                            <tr>
-                                <td colspan="6" class="empty-row">Cargando...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div
+                    class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-card overflow-hidden">
+                    <div
+                        class="flex items-center justify-between px-5 py-4 border-b border-borde dark:border-borde-dark">
+                        <h2 class="font-display font-semibold text-[15px]">Lista de pacientes</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-[13px] min-w-[680px]">
+                            <thead>
+                                <tr class="bg-lienzo dark:bg-tinta-dark border-b border-borde dark:border-borde-dark">
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Paciente</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        DNI</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Celular</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Correo</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Sexo</th>
+                                    <th
+                                        class="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-neblina">
+                                        Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-pacientes" class="divide-y divide-borde dark:divide-borde-dark">
+                                <tr>
+                                    <td colspan="6" class="text-center text-neblina py-10 text-[13px]">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
     <!-- Modal Registrar -->
-    <div class="modal-backdrop" id="modalRegistrar">
-        <div class="modal-box" style="max-width:600px">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="bi bi-person-plus" style="color:var(--indigo)"></i>
-                    Registrar nuevo paciente
+    <div class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5" id="modalRegistrar">
+        <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[600px] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+                <h3 class="font-display font-semibold text-base flex items-center gap-2">
+                    <i class="bi bi-person-plus text-guia"></i> Registrar nuevo paciente
                 </h3>
-                <button class="modal-close" onclick="cerrarModal('modalRegistrar')">
-                    <i class="bi bi-x"></i>
+                <button onclick="cerrarModal('modalRegistrar')"
+                    class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+                    <i class="bi bi-x text-xl"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="form-label">Nombres *</label>
-                        <input type="text" id="pac-nombres" class="form-control" placeholder="Juan Carlos">
+                        <label class="block text-xs font-medium mb-1.5">Nombres *</label>
+                        <input type="text" id="pac-nombres" placeholder="Juan Carlos"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Apellidos *</label>
-                        <input type="text" id="pac-apellidos" class="form-control" placeholder="Pérez Gómez">
+                        <label class="block text-xs font-medium mb-1.5">Apellidos *</label>
+                        <input type="text" id="pac-apellidos" placeholder="Pérez Gómez"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">DNI *</label>
-                        <input type="text" id="pac-dni" class="form-control" placeholder="12345678" maxlength="8">
+                        <label class="block text-xs font-medium mb-1.5">DNI *</label>
+                        <input type="text" id="pac-dni" placeholder="12345678" maxlength="8"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Fecha de nacimiento *</label>
-                        <input type="date" id="pac-fechaNacimiento" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Fecha de nacimiento *</label>
+                        <input type="date" id="pac-fechaNacimiento"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                     <div>
-                        <label class="form-label">Celular *</label>
-                        <input type="text" id="pac-celular" class="form-control" placeholder="999888777" maxlength="9">
+                        <label class="block text-xs font-medium mb-1.5">Celular *</label>
+                        <input type="text" id="pac-celular" placeholder="999888777" maxlength="9"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Correo</label>
-                        <input type="email" id="pac-correo" class="form-control" placeholder="correo@mail.com">
+                        <label class="block text-xs font-medium mb-1.5">Correo</label>
+                        <input type="email" id="pac-correo" placeholder="correo@mail.com"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                     </div>
                     <div>
-                        <label class="form-label">Sexo *</label>
-                        <select id="pac-sexo" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Sexo *</label>
+                        <select id="pac-sexo"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                             <option value="">Seleccionar...</option>
                             <option value="M">Masculino</option>
                             <option value="F">Femenino</option>
@@ -146,9 +184,14 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="cerrarModal('modalRegistrar')">Cancelar</button>
-                <button class="btn btn-indigo" onclick="guardarPaciente()">
+            <div
+                class="flex justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+                <button onclick="cerrarModal('modalRegistrar')"
+                    class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="guardarPaciente()"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
                     <i class="bi bi-check-lg"></i> Guardar paciente
                 </button>
             </div>
@@ -156,71 +199,66 @@
     </div>
 
     <!-- Modal Ver -->
-    <div class="modal-backdrop" id="modalVer">
-        <div class="modal-box" style="max-width:460px">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="bi bi-person-circle" style="color:var(--blue)"></i>
-                    Detalle del paciente
+    <div class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5" id="modalVer">
+        <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[460px] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+                <h3 class="font-display font-semibold text-base flex items-center gap-2">
+                    <i class="bi bi-person-circle text-blue-500"></i> Detalle del paciente
                 </h3>
-                <button class="modal-close" onclick="cerrarModal('modalVer')">
-                    <i class="bi bi-x"></i>
+                <button onclick="cerrarModal('modalVer')"
+                    class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+                    <i class="bi bi-x text-xl"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <!-- Avatar + nombre -->
-                <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;
-                  padding:16px;background:var(--bg-main);border-radius:12px">
-                    <div id="ver-iniciales" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;
-                    background:linear-gradient(135deg,var(--indigo),var(--blue));
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:20px;font-weight:700;color:white"></div>
-                    <div>
-                        <div style="font-size:17px;font-weight:700;color:var(--text)" id="ver-nombre"></div>
-                        <div style="font-size:13px;color:var(--text-3)" id="ver-dni"></div>
+            <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div class="flex items-center gap-4 mb-5 p-4 bg-lienzo dark:bg-tinta-dark rounded-xl">
+                    <div id="ver-iniciales"
+                        class="w-[52px] h-[52px] rounded-full flex-shrink-0 bg-guia flex items-center justify-center text-xl font-display font-bold text-tinta">
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[17px] font-display font-semibold truncate" id="ver-nombre"></div>
+                        <div class="text-[13px] text-neblina" id="ver-dni"></div>
                     </div>
                 </div>
-                <!-- Datos -->
-                <div style="display:grid;gap:10px">
-                    <div style="display:flex;justify-content:space-between;padding:10px 14px;
-                    background:var(--bg-main);border-radius:10px">
-                        <span style="color:var(--text-3);font-size:13px">Fecha nacimiento</span>
-                        <span style="font-weight:500;color:var(--text)" id="ver-fechaNacimiento"></span>
+                <div class="grid gap-2.5">
+                    <div class="flex justify-between p-3 bg-lienzo dark:bg-tinta-dark rounded-lg">
+                        <span class="text-neblina text-[13px]">Fecha nacimiento</span>
+                        <span class="font-medium text-[13px]" id="ver-fechaNacimiento"></span>
                     </div>
-                    <div style="display:flex;justify-content:space-between;padding:10px 14px;
-                    background:var(--bg-main);border-radius:10px">
-                        <span style="color:var(--text-3);font-size:13px">Celular</span>
-                        <span style="font-weight:500;color:var(--text)" id="ver-celular"></span>
+                    <div class="flex justify-between p-3 bg-lienzo dark:bg-tinta-dark rounded-lg">
+                        <span class="text-neblina text-[13px]">Celular</span>
+                        <span class="font-medium text-[13px]" id="ver-celular"></span>
                     </div>
-                    <div style="display:flex;justify-content:space-between;padding:10px 14px;
-                    background:var(--bg-main);border-radius:10px">
-                        <span style="color:var(--text-3);font-size:13px">Correo</span>
-                        <span style="font-weight:500;color:var(--text)" id="ver-correo"></span>
+                    <div class="flex justify-between p-3 bg-lienzo dark:bg-tinta-dark rounded-lg">
+                        <span class="text-neblina text-[13px]">Correo</span>
+                        <span class="font-medium text-[13px]" id="ver-correo"></span>
                     </div>
-                    <div style="display:flex;justify-content:space-between;padding:10px 14px;
-                    background:var(--bg-main);border-radius:10px">
-                        <span style="color:var(--text-3);font-size:13px">Sexo</span>
-                        <span style="font-weight:500;color:var(--text)" id="ver-sexo"></span>
+                    <div class="flex justify-between p-3 bg-lienzo dark:bg-tinta-dark rounded-lg">
+                        <span class="text-neblina text-[13px]">Sexo</span>
+                        <span class="font-medium text-[13px]" id="ver-sexo"></span>
                     </div>
-                    <!-- Seguros vinculados -->
-                    <div style="margin-top:16px">
-                        <div style="font-size:12px;font-weight:600;color:var(--text-2);
-              text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
-                            <i class="bi bi-shield-check" style="color:var(--indigo)"></i>
-                            Seguros médicos
+                    <div class="mt-4">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-neblina mb-2">
+                            <i class="bi bi-shield-check text-guia"></i> Seguros médicos
                         </div>
                         <div id="ver-seguros">
-                            <div style="color:var(--text-3);font-size:13px">Cargando...</div>
+                            <div class="text-neblina text-[13px]">Cargando...</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="cerrarModal('modalVer')">Cerrar</button>
-                <button class="btn btn-indigo" onclick="abrirVincularSeguro()">
+            <div
+                class="flex flex-wrap justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+                <button onclick="cerrarModal('modalVer')"
+                    class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+                    Cerrar
+                </button>
+                <button onclick="abrirVincularSeguro()"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
                     <i class="bi bi-shield-plus"></i> Agregar seguro
                 </button>
-                <button class="btn btn-blue" onclick="cerrarModal('modalVer');abrirEditar(pacienteActivoId)">
+                <button onclick="cerrarModal('modalVer');abrirEditar(pacienteActivoId)"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors">
                     <i class="bi bi-pencil"></i> Editar
                 </button>
             </div>
@@ -228,93 +266,110 @@
     </div>
 
     <!-- Modal Editar -->
-    <div class="modal-backdrop" id="modalEditar">
-        <div class="modal-box" style="max-width:600px">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="bi bi-pencil-square" style="color:var(--blue)"></i>
-                    Editar paciente
+    <div class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5" id="modalEditar">
+        <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[600px] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+                <h3 class="font-display font-semibold text-base flex items-center gap-2">
+                    <i class="bi bi-pencil-square text-blue-500"></i> Editar paciente
                 </h3>
-                <button class="modal-close" onclick="cerrarModal('modalEditar')">
-                    <i class="bi bi-x"></i>
+                <button onclick="cerrarModal('modalEditar')"
+                    class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+                    <i class="bi bi-x text-xl"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="form-label">Nombres *</label>
-                        <input type="text" id="edit-pac-nombres" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Nombres *</label>
+                        <input type="text" id="edit-pac-nombres"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                     <div>
-                        <label class="form-label">Apellidos *</label>
-                        <input type="text" id="edit-pac-apellidos" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Apellidos *</label>
+                        <input type="text" id="edit-pac-apellidos"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                     <div>
-                        <label class="form-label">DNI</label>
-                        <input type="text" id="edit-pac-dni" class="form-control" disabled
-                            style="opacity:.6;cursor:not-allowed">
+                        <label class="block text-xs font-medium mb-1.5">DNI</label>
+                        <input type="text" id="edit-pac-dni" disabled
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark opacity-60 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="form-label">Fecha de nacimiento</label>
-                        <input type="date" id="edit-pac-fechaNacimiento" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Fecha de nacimiento</label>
+                        <input type="date" id="edit-pac-fechaNacimiento"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                     <div>
-                        <label class="form-label">Celular *</label>
-                        <input type="text" id="edit-pac-celular" class="form-control" maxlength="9">
+                        <label class="block text-xs font-medium mb-1.5">Celular *</label>
+                        <input type="text" id="edit-pac-celular" maxlength="9"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                     <div>
-                        <label class="form-label">Correo</label>
-                        <input type="email" id="edit-pac-correo" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Correo</label>
+                        <input type="email" id="edit-pac-correo"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                     </div>
                     <div>
-                        <label class="form-label">Sexo</label>
-                        <select id="edit-pac-sexo" class="form-control">
+                        <label class="block text-xs font-medium mb-1.5">Sexo</label>
+                        <select id="edit-pac-sexo"
+                            class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                             <option value="M">Masculino</option>
                             <option value="F">Femenino</option>
                         </select>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="cerrarModal('modalEditar')">Cancelar</button>
-                <button class="btn btn-blue" onclick="guardarEdicion()">
+            <div
+                class="flex justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+                <button onclick="cerrarModal('modalEditar')"
+                    class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="guardarEdicion()"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors">
                     <i class="bi bi-check-lg"></i> Guardar cambios
                 </button>
             </div>
         </div>
     </div>
+
     <!-- Modal Vincular Seguro -->
-    <div class="modal-backdrop" id="modalVincularSeguro">
-        <div class="modal-box" style="max-width:420px">
-            <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="bi bi-shield-plus" style="color:var(--indigo)"></i>
-                    Vincular seguro médico
+    <div class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5" id="modalVincularSeguro">
+        <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[420px] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+                <h3 class="font-display font-semibold text-base flex items-center gap-2">
+                    <i class="bi bi-shield-plus text-guia"></i> Vincular seguro médico
                 </h3>
-                <button class="modal-close" onclick="cerrarModal('modalVincularSeguro')">
-                    <i class="bi bi-x"></i>
+                <button onclick="cerrarModal('modalVincularSeguro')"
+                    class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+                    <i class="bi bi-x text-xl"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div style="margin-bottom:16px;padding:12px;background:var(--indigo-lt);
-                  border-radius:10px;font-size:13px;color:var(--indigo)">
-                    <i class="bi bi-person"></i>
-                    Paciente: <strong id="vseg-nombre-paciente"></strong>
+            <div class="px-6 py-5">
+                <div class="mb-4 p-3 bg-guia/10 rounded-lg text-[13px] text-guia">
+                    <i class="bi bi-person"></i> Paciente: <strong id="vseg-nombre-paciente"></strong>
                 </div>
-                <div style="margin-bottom:16px">
-                    <label class="form-label">Seguro médico *</label>
-                    <select id="vseg-seguroId" class="form-control">
+                <div class="mb-4">
+                    <label class="block text-xs font-medium mb-1.5">Seguro médico *</label>
+                    <select id="vseg-seguroId"
+                        class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors">
                         <option value="">Cargando seguros...</option>
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">N° de póliza (opcional)</label>
-                    <input type="text" id="vseg-poliza" class="form-control" placeholder="Ej: POL-2024-001234">
+                    <label class="block text-xs font-medium mb-1.5">N° de póliza (opcional)</label>
+                    <input type="text" id="vseg-poliza" placeholder="Ej: POL-2024-001234"
+                        class="w-full px-3.5 py-2.5 border border-borde dark:border-borde-dark rounded-lg text-sm bg-white dark:bg-tinta-dark outline-none focus:border-guia focus:ring-2 focus:ring-guia/20 transition-colors placeholder:text-neblina/60">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="cerrarModal('modalVincularSeguro')">Cancelar</button>
-                <button class="btn btn-indigo" onclick="confirmarVincularSeguro()">
+            <div
+                class="flex justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+                <button onclick="cerrarModal('modalVincularSeguro')"
+                    class="px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="confirmarVincularSeguro()"
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-guia text-white hover:opacity-90 transition-opacity">
                     <i class="bi bi-check-lg"></i> Vincular seguro
                 </button>
             </div>
@@ -328,7 +383,7 @@
     <script src="/js/utils/ui.js"></script>
     <script src="/js/utils/validator.js"></script>
     <script src="/js/utils/sidebar.js"></script>
-    <script src="/js/recepcionist/patients.js"></script>
+    <script src="/js/admin/patients.js"></script>
 </body>
 
 </html>

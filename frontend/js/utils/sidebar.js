@@ -1,12 +1,7 @@
 /**
- * sidebar.js — Sidebar y modal de perfil compartidos
+ * sidebar.js — Sidebar y modal de perfil compartidos (Tailwind)
  * Inyecta el HTML del sidebar y el modal en cualquier página que lo incluya.
  * Requiere: config.js y api.js cargados antes.
- *
- * El menú se genera según el rol del usuario:
- *  - ROLE_RECEPCIONISTA / ROLE_MEDICO → menú de recepcionista (4 items)
- *  - ROLE_ADMINISTRADOR → menú de administrador (7 items, incluye todo
- *    lo de recepcionista + auditoría, reportes y control de accesos)
  */
 function iniciarSidebar(paginaActiva) {
   const usuario = Auth.getUsuario();
@@ -27,7 +22,6 @@ function iniciarSidebar(paginaActiva) {
     { href: '/views/medico/historial-medico.html', icon: 'bi-file-medical', label: 'Hist. médico', section: 'Atención' },
     { href: '/views/medico/horario.html', icon: 'bi-clock', label: 'Mi horario', section: 'Atención' },
   ];
-
   const navAdmin = [
     { href: '/views/admin/dashboard.html', icon: 'bi-grid-1x2', label: 'Dashboard', section: 'Principal' },
     { href: '/views/admin/appointments.html', icon: 'bi-calendar3', label: 'Citas', section: 'Operación' },
@@ -42,177 +36,166 @@ function iniciarSidebar(paginaActiva) {
   ];
 
   const nav = esAdmin ? navAdmin : esMedico ? navMedico : navRecepcionista;
+  const usaSecciones = esAdmin || esMedico;
 
-  // Construir HTML con secciones (solo admin tiene secciones múltiples)
   let navHtml = '';
   let seccionActual = null;
-
-  const usaSecciones = esAdmin || esMedico;
 
   nav.forEach(item => {
     if (usaSecciones && item.section !== seccionActual) {
       seccionActual = item.section;
-      navHtml += `<div class="nav-section-label">${seccionActual}</div>`;
+      navHtml += `<div class="text-[10px] font-semibold uppercase tracking-wider text-neblina/50 px-3 pt-4 pb-1.5 first:pt-1">${seccionActual}</div>`;
     }
+    const activo = item.label === paginaActiva;
     navHtml += `
-      <a href="${item.href}" class="nav-item ${item.label === paginaActiva ? 'active' : ''}">
-        <i class="bi ${item.icon}"></i> ${item.label}
+      <a href="${item.href}"
+         class="flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-none transition-colors relative
+                ${activo
+        ? 'border-l-[3px] border-guia bg-guia/10 text-white font-medium'
+        : 'border-l-[3px] border-transparent text-neblina hover:text-white hover:bg-white/5'}">
+        <i class="bi ${item.icon} text-[17px] w-5 flex-shrink-0 ${activo ? 'text-guia-light' : ''}"></i>
+        <span class="truncate">${item.label}</span>
+        ${activo ? '<i class="bi bi-circle-fill text-guia text-[7px] ml-auto"></i>' : ''}
       </a>`;
   });
 
   if (!usaSecciones) {
-    navHtml = `<div class="nav-section-label">Principal</div>${navHtml}`;
+    navHtml = `<div class="text-[10px] font-semibold uppercase tracking-wider text-neblina/50 px-3 pt-1 pb-1.5">Principal</div>${navHtml}`;
   }
 
   const cargo = usuario.rol === 'ROLE_ADMINISTRADOR' ? 'Administrador' :
     usuario.rol === 'ROLE_MEDICO' ? 'Médico' : 'Recepcionista';
+  const inicial = usuario.nombreCompleto.charAt(0).toUpperCase();
 
-  // Inyectar sidebar
   document.getElementById('sidebar-placeholder').innerHTML = `
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo">🏥</div>
-        <div>
-          <div class="sidebar-brand">Stella Maris</div>
-          <div class="sidebar-role">${cargo}</div>
+    <div class="lg:hidden fixed top-0 inset-x-0 h-14 z-30 bg-tinta dark:bg-tinta-dark flex items-center justify-between px-4">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-compass text-guia-light text-xl"></i>
+        <span class="font-display font-bold text-sm text-white">Stella Maris</span>
+      </div>
+      <button id="menu-toggle-btn" class="text-white text-2xl leading-none" aria-label="Abrir menú">
+        <i class="bi bi-list"></i>
+      </button>
+    </div>
+
+    <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+
+    <aside id="app-sidebar"
+           class="fixed inset-y-0 left-0 z-50 w-64 bg-tinta dark:bg-tinta-dark -translate-x-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen flex flex-col">
+      <div class="flex items-center gap-2.5 px-5 py-5 border-b border-white/10 flex-shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-guia/15 flex items-center justify-center flex-shrink-0">
+          <i class="bi bi-compass text-guia-light text-lg"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="font-display font-bold text-[15px] text-white truncate">Stella Maris</div>
+          <div class="text-[11px] text-neblina truncate">${cargo}</div>
         </div>
       </div>
-      <nav class="sidebar-nav">
+
+      <nav class="flex-1 min-h-0 overflow-y-auto px-2 py-2 flex flex-col gap-0.5">
         ${navHtml}
       </nav>
-      <div class="sidebar-footer">
-        <button id="sidebar-user-btn"
-                style="background:none;border:none;cursor:pointer;display:flex;
-                       align-items:center;gap:10px;flex:1;min-width:0;
-                       text-align:left;padding:0">
-          <div class="user-avatar">
-            ${usuario.nombreCompleto.charAt(0).toUpperCase()}
+
+      <div class="flex items-center gap-2.5 px-3 py-3.5 border-t border-white/10 flex-shrink-0">
+        <button id="sidebar-user-btn" class="flex items-center gap-2.5 flex-1 min-w-0 text-left">
+          <div class="w-8.5 h-8.5 w-9 h-9 rounded-full bg-guia flex items-center justify-center text-tinta font-display font-semibold text-[13px] flex-shrink-0">
+            ${inicial}
           </div>
-          <div class="user-info">
-            <div class="user-name">${usuario.nombreCompleto}</div>
-            <div class="user-email">${usuario.username}</div>
+          <div class="min-w-0">
+            <div class="text-[13px] font-medium text-white truncate">${usuario.nombreCompleto}</div>
+            <div class="text-[11px] text-neblina truncate">${usuario.username}</div>
           </div>
         </button>
-        <button class="btn-logout" id="btnLogout" title="Cerrar sesión">
-          <i class="bi bi-box-arrow-right"></i>
+        <button id="btnLogout" title="Cerrar sesión" class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-2 transition-colors flex-shrink-0">
+          <i class="bi bi-box-arrow-right text-lg"></i>
         </button>
       </div>
     </aside>
 
-    <!-- Modal Perfil -->
-    <div class="modal-backdrop" id="modalPerfil">
-      <div class="modal-box" style="max-width:420px">
-        <div class="modal-header">
-          <h3 class="modal-title">Mi perfil</h3>
-          <button class="modal-close" id="cerrarPerfil"><i class="bi bi-x"></i></button>
+    <div id="modalPerfil" class="hidden fixed inset-0 bg-black/45 z-[200] items-center justify-center p-5">
+      <div class="bg-white dark:bg-superficie-dark rounded-2xl w-full max-w-[420px] overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-5 border-b border-borde dark:border-borde-dark">
+          <h3 class="font-display font-semibold text-base text-tinta dark:text-white">Mi perfil</h3>
+          <button id="cerrarPerfil" class="text-neblina hover:text-alerta hover:bg-alerta/10 rounded-lg p-1.5 transition-colors">
+            <i class="bi bi-x text-xl"></i>
+          </button>
         </div>
-        <div class="modal-body" style="text-align:center">
-          <div id="perfil-avatar"
-               style="width:72px;height:72px;border-radius:50%;
-                      background:linear-gradient(135deg,var(--indigo),var(--blue));
-                      display:flex;align-items:center;justify-content:center;
-                      font-size:28px;font-weight:700;color:white;
-                      margin:0 auto 16px;
-                      box-shadow:0 4px 16px rgba(99,102,241,.35)">
-            ${usuario.nombreCompleto.charAt(0).toUpperCase()}
+        <div class="px-6 py-6 text-center">
+          <div class="w-[72px] h-[72px] rounded-full bg-guia mx-auto mb-4 flex items-center justify-center text-2xl font-display font-bold text-tinta">
+            ${inicial}
           </div>
-          <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">
-            ${usuario.nombreCompleto}
+          <div class="text-xl font-display font-semibold text-tinta dark:text-white mb-1">${usuario.nombreCompleto}</div>
+          <div class="mb-5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rumbo/10 text-rumbo">${cargo}</span>
           </div>
-          <div style="margin-bottom:20px">
-            <span class="badge badge-confirmada">${cargo}</span>
-          </div>
-          <div style="display:grid;gap:10px;text-align:left">
-            <div style="display:flex;align-items:center;gap:12px;padding:12px;
-                        background:var(--bg-main);border-radius:10px">
-              <i class="bi bi-envelope" style="color:var(--indigo);font-size:18px;width:24px"></i>
-              <div>
-                <div style="font-size:11px;color:var(--text-3);margin-bottom:1px">Correo</div>
-                <div style="font-size:13px;font-weight:500;color:var(--text)">
-                  ${usuario.username}
-                </div>
+          <div class="grid gap-2.5 text-left">
+            <div class="flex items-center gap-3 p-3 bg-lienzo dark:bg-tinta-dark rounded-lg">
+              <i class="bi bi-envelope text-guia text-lg w-6"></i>
+              <div class="min-w-0">
+                <div class="text-[11px] text-neblina mb-0.5">Correo</div>
+                <div class="text-[13px] font-medium text-tinta dark:text-white truncate">${usuario.username}</div>
               </div>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;padding:12px;
-                        background:var(--bg-main);border-radius:10px">
-              <i class="bi bi-shield-check" style="color:var(--green);font-size:18px;width:24px"></i>
+            <div class="flex items-center gap-3 p-3 bg-lienzo dark:bg-tinta-dark rounded-lg">
+              <i class="bi bi-shield-check text-rumbo text-lg w-6"></i>
               <div>
-                <div style="font-size:11px;color:var(--text-3);margin-bottom:1px">Rol</div>
-                <div style="font-size:13px;font-weight:500;color:var(--text)">${cargo}</div>
+                <div class="text-[11px] text-neblina mb-0.5">Rol</div>
+                <div class="text-[13px] font-medium text-tinta dark:text-white">${cargo}</div>
               </div>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;padding:12px;
-                        background:var(--bg-main);border-radius:10px">
-              <i class="bi bi-building" style="color:var(--blue);font-size:18px;width:24px"></i>
+            <div class="flex items-center gap-3 p-3 bg-lienzo dark:bg-tinta-dark rounded-lg">
+              <i class="bi bi-building text-blue-500 text-lg w-6"></i>
               <div>
-                <div style="font-size:11px;color:var(--text-3);margin-bottom:1px">Clínica</div>
-                <div style="font-size:13px;font-weight:500;color:var(--text)">Stella Maris</div>
+                <div class="text-[11px] text-neblina mb-0.5">Clínica</div>
+                <div class="text-[13px] font-medium text-tinta dark:text-white">Stella Maris</div>
               </div>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-red" onclick="AuthService.logout()">
+        <div class="flex justify-end gap-2.5 px-6 py-4 bg-lienzo dark:bg-tinta-dark border-t border-borde dark:border-borde-dark">
+          <button onclick="AuthService.logout()" class="px-4 py-2 rounded-lg text-sm font-medium bg-alerta text-white hover:opacity-90 transition-opacity">
             <i class="bi bi-box-arrow-right"></i> Cerrar sesión
           </button>
-          <button class="btn btn-ghost" id="cerrarPerfil2">Cerrar</button>
+          <button id="cerrarPerfil2" class="px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
+            Cerrar
+          </button>
         </div>
       </div>
     </div>
   `;
 
-  // Eventos
   document.getElementById('btnLogout').addEventListener('click', () => AuthService.logout());
 
-  document.getElementById('sidebar-user-btn').addEventListener('click', () =>
-    document.getElementById('modalPerfil').classList.add('open'));
-
-  document.getElementById('cerrarPerfil').addEventListener('click', () =>
-    document.getElementById('modalPerfil').classList.remove('open'));
-
-  document.getElementById('cerrarPerfil2').addEventListener('click', () =>
-    document.getElementById('modalPerfil').classList.remove('open'));
-
-  document.getElementById('modalPerfil').addEventListener('click', e => {
-    if (e.target === document.getElementById('modalPerfil'))
-      document.getElementById('modalPerfil').classList.remove('open');
+  const modal = document.getElementById('modalPerfil');
+  document.getElementById('sidebar-user-btn').addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
   });
-
-  // ── Responsive: botón hamburguesa + overlay ──────────────────
-  // Se inyecta automáticamente en el topbar de cada página sin
-  // necesidad de modificar cada HTML individualmente.
-  const topbarLeft = document.querySelector('.topbar > div:first-child');
-  if (topbarLeft && !document.getElementById('menu-toggle-btn')) {
-    const btnMenu = document.createElement('button');
-    btnMenu.id = 'menu-toggle-btn';
-    btnMenu.className = 'menu-toggle';
-    btnMenu.innerHTML = '<i class="bi bi-list"></i>';
-    btnMenu.style.marginRight = '12px';
-    topbarLeft.parentElement.insertBefore(btnMenu, topbarLeft);
-    topbarLeft.parentElement.style.display = 'flex';
-    topbarLeft.parentElement.style.alignItems = 'center';
-
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    overlay.id = 'sidebar-overlay';
-    document.body.appendChild(overlay);
-
-    const sidebarEl = document.querySelector('.sidebar');
-
-    function abrirSidebarMovil() {
-      sidebarEl.classList.add('open');
-      overlay.classList.add('open');
-    }
-    function cerrarSidebarMovil() {
-      sidebarEl.classList.remove('open');
-      overlay.classList.remove('open');
-    }
-
-    btnMenu.addEventListener('click', abrirSidebarMovil);
-    overlay.addEventListener('click', cerrarSidebarMovil);
-
-    // Cierra el sidebar al navegar a otra sección (mejor UX en móvil)
-    document.querySelectorAll('.nav-item').forEach(item =>
-      item.addEventListener('click', cerrarSidebarMovil));
+  function cerrarModalPerfil() {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
   }
+  document.getElementById('cerrarPerfil').addEventListener('click', cerrarModalPerfil);
+  document.getElementById('cerrarPerfil2').addEventListener('click', cerrarModalPerfil);
+  modal.addEventListener('click', e => { if (e.target === modal) cerrarModalPerfil(); });
+
+  // ── Responsive: hamburguesa + overlay ──────────────────────
+  const sidebarEl = document.getElementById('app-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btnMenu = document.getElementById('menu-toggle-btn');
+
+  function abrirSidebarMovil() {
+    sidebarEl.classList.remove('-translate-x-full');
+    sidebarEl.classList.add('translate-x-0');
+    overlay.classList.remove('hidden');
+  }
+  function cerrarSidebarMovil() {
+    sidebarEl.classList.add('-translate-x-full');
+    sidebarEl.classList.remove('translate-x-0');
+    overlay.classList.add('hidden');
+  }
+
+  btnMenu.addEventListener('click', abrirSidebarMovil);
+  overlay.addEventListener('click', cerrarSidebarMovil);
+  sidebarEl.querySelectorAll('a').forEach(a => a.addEventListener('click', cerrarSidebarMovil));
 }

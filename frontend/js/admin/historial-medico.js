@@ -17,10 +17,6 @@ aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
     aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
-// ── Modales (no usados aquí, pero por consistencia) ───────────
-function abrirModal(id) { document.getElementById(id)?.classList.add('open'); }
-function cerrarModal(id) { document.getElementById(id)?.classList.remove('open'); }
-
 // ── Buscar paciente ───────────────────────────────────────────
 let buscarTimeout;
 let todosPacientes = [];
@@ -30,7 +26,7 @@ document.getElementById('buscar-paciente').addEventListener('input', (e) => {
     const criterio = e.target.value.trim();
 
     if (!criterio) {
-        document.getElementById('resultados-busqueda').style.display = 'none';
+        document.getElementById('resultados-busqueda').classList.add('hidden');
         return;
     }
 
@@ -46,25 +42,22 @@ function mostrarResultados(pacientes) {
     const cont = document.getElementById('resultados-busqueda');
 
     if (!pacientes.length) {
-        cont.innerHTML = `<div style="padding:10px;color:var(--text-3);font-size:13px">Sin resultados</div>`;
-        cont.style.display = 'block';
+        cont.innerHTML = `<div class="p-2.5 text-neblina text-[13px]">Sin resultados</div>`;
+        cont.classList.remove('hidden');
         return;
     }
 
     cont.innerHTML = pacientes.map(p => `
     <div onclick="seleccionarPaciente(${p.id})"
-         style="padding:10px 12px;border-radius:8px;cursor:pointer;
-                background:var(--bg-main);margin-bottom:4px;transition:background .15s"
-         onmouseover="this.style.background='var(--indigo-lt)'"
-         onmouseout="this.style.background='var(--bg-main)'">
-      <span style="font-weight:500;color:var(--text)">${p.nombres} ${p.apellidos}</span>
-      <span style="font-size:12px;color:var(--text-3);margin-left:8px">DNI: ${p.dni}</span>
+         class="px-3 py-2.5 rounded-lg cursor-pointer bg-lienzo dark:bg-tinta-dark hover:bg-guia/10 transition-colors mb-1 last:mb-0">
+      <span class="font-medium">${p.nombres} ${p.apellidos}</span>
+      <span class="text-xs text-neblina ml-2">DNI: ${p.dni}</span>
     </div>`).join('');
-    cont.style.display = 'block';
+    cont.classList.remove('hidden');
 }
 
 async function seleccionarPaciente(id) {
-    document.getElementById('resultados-busqueda').style.display = 'none';
+    document.getElementById('resultados-busqueda').classList.add('hidden');
     document.getElementById('buscar-paciente').value = '';
 
     try {
@@ -74,8 +67,8 @@ async function seleccionarPaciente(id) {
         document.getElementById('paciente-iniciales').textContent = iniciales;
         document.getElementById('paciente-nombre').textContent = `${p.nombres} ${p.apellidos}`;
         document.getElementById('paciente-dni').textContent = `DNI: ${p.dni}`;
-        document.getElementById('card-paciente').style.display = 'block';
-        document.getElementById('card-vacio').style.display = 'none';
+        document.getElementById('card-paciente').classList.remove('hidden');
+        document.getElementById('card-vacio').classList.add('hidden');
 
         await cargarHistorial(id);
     } catch (err) { UI.mostrarError(err); }
@@ -84,9 +77,10 @@ async function seleccionarPaciente(id) {
 // ── Cargar historial ───────────────────────────────────────────
 async function cargarHistorial(pacienteId) {
     const cont = document.getElementById('lista-consultas');
-    document.getElementById('card-historial').style.display = 'block';
-    document.getElementById('metricas-historial').style.display = 'grid';
-    cont.innerHTML = `<div class="empty-row">Cargando...</div>`;
+    document.getElementById('card-historial').classList.remove('hidden');
+    document.getElementById('metricas-historial').classList.remove('hidden');
+    document.getElementById('metricas-historial').classList.add('grid');
+    cont.innerHTML = `<div class="text-center text-neblina py-10 text-[13px]">Cargando...</div>`;
 
     try {
         const json = await apiFetch(`/atencion/historial/${pacienteId}`);
@@ -96,7 +90,7 @@ async function cargarHistorial(pacienteId) {
         renderConsultas(consultas);
 
     } catch (err) {
-        cont.innerHTML = `<div class="empty-row">No se pudo cargar el historial médico</div>`;
+        cont.innerHTML = `<div class="text-center text-neblina py-10 text-[13px]">No se pudo cargar el historial médico</div>`;
     }
 }
 
@@ -123,9 +117,9 @@ function renderConsultas(consultas) {
     const cont = document.getElementById('lista-consultas');
 
     if (!consultas.length) {
-        cont.innerHTML = `<div class="empty-row">
-      <i class="bi bi-file-medical" style="font-size:24px;display:block;margin-bottom:8px;color:var(--text-3)"></i>
-      Este paciente no tiene consultas registradas
+        cont.innerHTML = `<div class="text-center py-8">
+      <i class="bi bi-file-medical text-2xl block mb-2 text-neblina"></i>
+      <span class="text-neblina text-[13px]">Este paciente no tiene consultas registradas</span>
     </div>`;
         return;
     }
@@ -139,32 +133,26 @@ function renderConsultas(consultas) {
             { hour: '2-digit', minute: '2-digit' });
 
         return `
-      <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">
+      <div class="border border-borde dark:border-borde-dark rounded-xl p-4 mb-3 last:mb-0">
+        <div class="flex justify-between items-start mb-2.5">
           <div>
-            <div style="font-weight:600;color:var(--text)">${c.medicoNombre}</div>
-            <div style="font-size:12px;color:var(--text-3)">${fecha} — ${hora}</div>
+            <div class="font-semibold">${c.medicoNombre}</div>
+            <div class="text-xs text-neblina font-mono">${fecha} — ${hora}</div>
           </div>
         </div>
-        <div style="display:grid;gap:8px">
+        <div class="grid gap-2">
           <div>
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">
-              Diagnóstico
-            </div>
-            <div style="color:var(--text);font-size:14px">${c.diagnostico || '—'}</div>
+            <div class="text-[11px] text-neblina uppercase tracking-wider mb-0.5">Diagnóstico</div>
+            <div class="text-[14px]">${c.diagnostico || '—'}</div>
           </div>
           <div>
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">
-              Tratamiento
-            </div>
-            <div style="color:var(--text);font-size:14px">${c.tratamiento || '—'}</div>
+            <div class="text-[11px] text-neblina uppercase tracking-wider mb-0.5">Tratamiento</div>
+            <div class="text-[14px]">${c.tratamiento || '—'}</div>
           </div>
           ${c.observaciones ? `
           <div>
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">
-              Observaciones
-            </div>
-            <div style="color:var(--text-2);font-size:13px">${c.observaciones}</div>
+            <div class="text-[11px] text-neblina uppercase tracking-wider mb-0.5">Observaciones</div>
+            <div class="text-neblina text-[13px]">${c.observaciones}</div>
           </div>` : ''}
         </div>
       </div>`;

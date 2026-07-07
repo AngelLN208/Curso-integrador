@@ -17,7 +17,9 @@ aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
     aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
-const COLORES_METODO = { EFECTIVO: 'green', TARJETA: 'indigo', TRANSFERENCIA: 'blue' };
+// Paleta nueva para el gráfico de métodos de pago
+const COLORES_METODO = { EFECTIVO: '#2F9E6E', TARJETA: '#FF7A45', TRANSFERENCIA: '#3B82F6' };
+const COLOR_DEFECTO = '#8A94A6';
 
 // ── Periodo: mes actual ───────────────────────────────────────
 const ahora = new Date();
@@ -42,23 +44,19 @@ async function cargarReportes() {
 
         const citasMes = citas.filter(c => esDelMesActual(c.fechaHora));
 
-        // Métrica: total citas del mes
         document.getElementById('m-total-citas').textContent = citasMes.length;
 
-        // Métrica: pacientes atendidos (únicos, estado distinto a pendiente)
         const pacientesAtendidosSet = new Set(
             citasMes.filter(c => c.estado === 'CONFIRMADA' || c.estado === 'ATENDIDA')
                 .map(c => c.pacienteId || c.pacienteNombre)
         );
         document.getElementById('m-pacientes-atendidos').textContent = pacientesAtendidosSet.size;
 
-        // Métrica: tasa de asistencia (confirmadas+atendidas / total - canceladas)
         const noCanceladas = citasMes.filter(c => c.estado !== 'CANCELADA');
         const asistieron = citasMes.filter(c => c.estado === 'CONFIRMADA' || c.estado === 'ATENDIDA');
         const tasa = noCanceladas.length ? Math.round((asistieron.length / noCanceladas.length) * 100) : 0;
         document.getElementById('m-tasa-asistencia').textContent = `${tasa}%`;
 
-        // Ingresos del mes y desempeño por médico — requiere pagos por cada cita
         await calcularIngresosYDesempenoMedicos(citasMes, medicos);
 
     } catch (err) {
@@ -67,9 +65,7 @@ async function cargarReportes() {
 }
 
 async function calcularIngresosYDesempenoMedicos(citasMes, medicos) {
-    // Trae los pagos de cada paciente involucrado en las citas del mes
     const pacientesIds = [...new Set(citasMes.map(c => c.pacienteId))];
-    console.log('pacientesIds encontrados:', pacientesIds);
 
     let todosPagos = [];
     for (const pid of pacientesIds) {
@@ -77,24 +73,18 @@ async function calcularIngresosYDesempenoMedicos(citasMes, medicos) {
         try {
             const res = await PagoService.getPorPaciente(pid);
             const pagos = res.data ?? res;
-            console.log(`Pagos del paciente ${pid}:`, pagos);
             todosPagos.push(...pagos);
         } catch (e) {
             console.error(`Error obteniendo pagos del paciente ${pid}:`, e);
         }
     }
 
-    console.log('Total pagos recolectados:', todosPagos);
-
     const pagosDelMes = todosPagos.filter(p =>
         p.estado === 'PAGADO' && p.fechaPago && esDelMesActual(p.fechaPago));
-
-    console.log('Pagos filtrados del mes:', pagosDelMes);
 
     const ingresoTotal = pagosDelMes.reduce((sum, p) => sum + parseFloat(p.montoFinal || p.monto || 0), 0);
     document.getElementById('m-ingresos').textContent = `S/ ${ingresoTotal.toFixed(2)}`;
 
-    // Desempeño por médico
     const porMedico = {};
     citasMes.forEach(c => {
         const key = c.medicoNombre || c.medicoId;
@@ -112,26 +102,24 @@ async function calcularIngresosYDesempenoMedicos(citasMes, medicos) {
     });
 
     renderTablaMedicos(Object.values(porMedico));
-
-    // Distribución de métodos de pago
     renderChartMetodosPago(pagosDelMes);
 }
 
 function renderTablaMedicos(datos) {
     const tbody = document.getElementById('tabla-medicos');
     if (!datos.length) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Sin citas registradas este mes</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-neblina py-10 text-[13px]">Sin citas registradas este mes</td></tr>`;
         return;
     }
 
     datos.sort((a, b) => b.citas - a.citas);
 
     tbody.innerHTML = datos.map(m => `
-    <tr>
-      <td style="font-weight:600;color:var(--text)">${m.nombre || '—'}</td>
-      <td style="color:var(--text-2)">${m.especialidad || '—'}</td>
-      <td>${m.citas}</td>
-      <td style="color:var(--green);font-weight:600">S/ ${m.ingresos.toFixed(2)}</td>
+    <tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+      <td class="px-4 py-3 font-semibold">${m.nombre || '—'}</td>
+      <td class="px-4 py-3 text-neblina">${m.especialidad || '—'}</td>
+      <td class="px-4 py-3">${m.citas}</td>
+      <td class="px-4 py-3 font-mono font-semibold text-rumbo">S/ ${m.ingresos.toFixed(2)}</td>
     </tr>`).join('');
 }
 
@@ -139,7 +127,7 @@ function renderChartMetodosPago(pagos) {
     const el = document.getElementById('chart-metodos-pago');
 
     if (!pagos.length) {
-        el.innerHTML = `<div class="empty-row">Sin pagos registrados este mes</div>`;
+        el.innerHTML = `<div class="text-center text-neblina py-10 text-[13px]">Sin pagos registrados este mes</div>`;
         return;
     }
 
@@ -152,41 +140,28 @@ function renderChartMetodosPago(pagos) {
     const total = pagos.length;
     const entradas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
     const maxValor = Math.max(...entradas.map(e => e[1]));
-    const ALTURA_MAX = 160; // px
+    const ALTURA_MAX = 160;
 
     const barras = entradas.map(([metodo, cantidad]) => {
         const alturaPx = Math.max(8, Math.round((cantidad / maxValor) * ALTURA_MAX));
         const pct = Math.round((cantidad / total) * 100);
-        const color = COLORES_METODO[metodo] || 'amber';
+        const color = COLORES_METODO[metodo] || COLOR_DEFECTO;
 
         return `
-      <div style="display:flex;flex-direction:column;align-items:center;
-                  flex:1;min-width:0;gap:8px">
-        <div style="font-size:13px;font-weight:700;color:var(--text)">${cantidad}</div>
-        <div style="width:100%;max-width:56px;height:${ALTURA_MAX}px;
-                    display:flex;align-items:flex-end;justify-content:center">
-          <div style="width:100%;height:${alturaPx}px;
-                      background:linear-gradient(180deg,var(--${color}),var(--${color}));
-                      border-radius:8px 8px 4px 4px;
-                      box-shadow:0 2px 8px rgba(0,0,0,.08);
-                      transition:height .6s ease, transform .15s;
-                      cursor:default"
-               onmouseover="this.style.transform='scaleY(1.03)'"
-               onmouseout="this.style.transform='scaleY(1)'"
+      <div class="flex flex-col items-center flex-1 min-w-0 gap-2">
+        <div class="text-[13px] font-bold">${cantidad}</div>
+        <div class="w-full max-w-[56px] flex items-end justify-center" style="height:${ALTURA_MAX}px">
+          <div class="w-full rounded-t-lg rounded-b transition-all duration-500 hover:scale-y-105 cursor-default"
+               style="height:${alturaPx}px;background:${color}"
                title="${metodo}: ${cantidad} pagos (${pct}%)"></div>
         </div>
-        <div style="font-size:11px;color:var(--text-3);text-align:center;line-height:1.3">
-          ${metodo}
-        </div>
-        <div style="font-size:11px;color:var(--text-2);font-weight:600">
-          ${pct}%
-        </div>
+        <div class="text-[11px] text-neblina text-center leading-tight">${metodo}</div>
+        <div class="text-[11px] font-semibold">${pct}%</div>
       </div>`;
     }).join('');
 
     el.innerHTML = `
-    <div style="display:flex;align-items:flex-end;gap:16px;
-                padding:10px 4px 0;min-height:${ALTURA_MAX + 70}px">
+    <div class="flex items-end gap-4 pt-2.5" style="min-height:${ALTURA_MAX + 70}px">
       ${barras}
     </div>`;
 }

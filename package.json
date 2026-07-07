@@ -1,0 +1,13 @@
+{
+  "name": "clinica-stella-maris-ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npx tailwindcss -i ./src/input.css -o ./frontend/css/tailwind.css --watch\" \"npx tailwindcss -i ./src/input.css -o ./portal/css/tailwind.css --watch\"",
+    "build": "npx tailwindcss -i ./src/input.css -o ./frontend/css/tailwind.css --minify && npx tailwindcss -i ./src/input.css -o ./portal/css/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.13",
+    "concurrently": "^8.2.2"
+  }
+}

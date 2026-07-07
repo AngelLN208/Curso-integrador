@@ -5,11 +5,19 @@
 AuthService.requireAuth();
 iniciarSidebar('Seguros');
 
-// ── Modales ───────────────────────────────────────────────────
-function abrirModal(id) { document.getElementById(id).classList.add('open'); }
-function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(m =>
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+// ── Modales (Tailwind: toggle hidden/flex) ─────────────────────
+function abrirModal(id) {
+    const m = document.getElementById(id);
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+}
+function cerrarModal(id) {
+    const m = document.getElementById(id);
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+}
+document.querySelectorAll('[id^="modal"]').forEach(m =>
+    m.addEventListener('click', e => { if (e.target === m) cerrarModal(m.id); }));
 
 // ── Tema ──────────────────────────────────────────────────────
 const themeToggle = document.getElementById('themeToggle');
@@ -51,31 +59,33 @@ function renderTabla(seguros) {
     const tbody = document.getElementById('tabla-seguros');
 
     if (!seguros.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">No hay seguros registrados</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-neblina py-10 text-[13px]">No hay seguros registrados</td></tr>`;
         return;
     }
 
     tbody.innerHTML = seguros.map(s => `
-    <tr>
-      <td style="font-weight:600;color:var(--text)">${s.nombre}</td>
-      <td>
-        <span class="badge ${s.tipo === 'PUBLICO' ? 'badge-confirmada' : 'badge-reprogramada'}">
+    <tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+      <td class="px-4 py-3 font-semibold">${s.nombre}</td>
+      <td class="px-4 py-3">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${s.tipo === 'PUBLICO' ? 'bg-rumbo/10 text-rumbo' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'}">
           ${s.tipo === 'PUBLICO' ? 'Público' : 'Privado'}
         </span>
       </td>
-      <td style="color:var(--green);font-weight:600">${s.porcentajeCobertura}%</td>
-      <td style="color:var(--text-2)">S/ ${parseFloat(s.deducible || 0).toFixed(2)}</td>
-      <td>
+      <td class="px-4 py-3 font-semibold text-rumbo">${s.porcentajeCobertura}%</td>
+      <td class="px-4 py-3 text-neblina font-mono">S/ ${parseFloat(s.deducible || 0).toFixed(2)}</td>
+      <td class="px-4 py-3">
         ${s.convenioActivo
-            ? '<span class="badge badge-confirmada"><i class="bi bi-check-circle"></i> Activo</span>'
-            : '<span class="badge badge-cancelada"><i class="bi bi-x-circle"></i> Inactivo</span>'}
+            ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rumbo/10 text-rumbo"><i class="bi bi-check-circle"></i> Activo</span>'
+            : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-alerta/10 text-alerta"><i class="bi bi-x-circle"></i> Inactivo</span>'}
       </td>
-      <td>
+      <td class="px-4 py-3">
         ${s.convenioActivo
-            ? `<button class="btn btn-sm btn-red" onclick="desactivarSeguro(${s.id}, '${s.nombre}')">
+            ? `<button onclick="desactivarSeguro(${s.id}, '${s.nombre}')"
+               class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-alerta text-white hover:opacity-90 transition-opacity">
                <i class="bi bi-slash-circle"></i> Desactivar
              </button>`
-            : `<button class="btn btn-sm btn-secondary" onclick="activarSeguro(${s.id}, '${s.nombre}')">
+            : `<button onclick="activarSeguro(${s.id}, '${s.nombre}')"
+               class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
                <i class="bi bi-check-circle"></i> Activar
              </button>`}
       </td>
@@ -115,6 +125,7 @@ async function guardarSeguro() {
         UI.mostrarError(err);
     }
 }
+
 async function activarSeguro(id, nombre) {
     if (!confirm(`¿Reactivar el convenio "${nombre}"? Volverá a estar disponible para vincular a pacientes.`)) return;
 
@@ -126,6 +137,7 @@ async function activarSeguro(id, nombre) {
         UI.mostrarError(err);
     }
 }
+
 // ── Desactivar seguro ───────────────────────────────────────────
 async function desactivarSeguro(id, nombre) {
     if (!confirm(`¿Desactivar el convenio "${nombre}"? Ya no podrá vincularse a nuevos pacientes.`)) return;

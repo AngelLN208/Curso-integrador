@@ -5,11 +5,19 @@
 AuthService.requireAuth();
 iniciarSidebar('Médicos');
 
-// ── Modales ───────────────────────────────────────────────────
-function abrirModal(id) { document.getElementById(id).classList.add('open'); }
-function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(m =>
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+// ── Modales (Tailwind: toggle hidden/flex) ─────────────────────
+function abrirModal(id) {
+    const m = document.getElementById(id);
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+}
+function cerrarModal(id) {
+    const m = document.getElementById(id);
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+}
+document.querySelectorAll('[id^="modal"]').forEach(m =>
+    m.addEventListener('click', e => { if (e.target === m) cerrarModal(m.id); }));
 
 // ── Tema ──────────────────────────────────────────────────────
 const themeToggle = document.getElementById('themeToggle');
@@ -70,41 +78,41 @@ function renderTabla(medicos) {
     const tbody = document.getElementById('tabla-medicos');
 
     if (!medicos.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No se encontraron médicos</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-neblina py-10 text-[13px]">No se encontraron médicos</td></tr>`;
         return;
     }
 
     tbody.innerHTML = medicos.map(m => {
         const iniciales = (m.nombres.charAt(0) + m.apellidos.charAt(0)).toUpperCase();
-        return `<tr>
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;
-                      background:linear-gradient(135deg,var(--indigo),var(--blue));
-                      display:flex;align-items:center;justify-content:center;
-                      font-size:13px;font-weight:700;color:white">${iniciales}</div>
-          <span style="font-weight:500;color:var(--text)">${m.nombres} ${m.apellidos}</span>
+        return `<tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+      <td class="px-4 py-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full flex-shrink-0 bg-guia flex items-center justify-center text-[13px] font-display font-bold text-tinta">${iniciales}</div>
+          <span class="font-medium">${m.nombres} ${m.apellidos}</span>
         </div>
       </td>
-      <td><span style="font-family:monospace;font-size:13px;color:var(--text-2)">${m.dni}</span></td>
-      <td><span class="badge badge-reprogramada">${m.especialidadNombre}</span></td>
-      <td>${m.celular}</td>
-      <td style="color:var(--text-2)">${m.correo}</td>
-      <td>
+      <td class="px-4 py-3"><span class="font-mono text-xs text-neblina">${m.dni}</span></td>
+      <td class="px-4 py-3"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400">${m.especialidadNombre}</span></td>
+      <td class="px-4 py-3">${m.celular}</td>
+      <td class="px-4 py-3 text-neblina">${m.correo}</td>
+      <td class="px-4 py-3">
         ${m.activo
-                ? '<span class="badge badge-confirmada"><i class="bi bi-check-circle"></i> Activo</span>'
-                : '<span class="badge badge-cancelada"><i class="bi bi-x-circle"></i> Inactivo</span>'}
+                ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rumbo/10 text-rumbo"><i class="bi bi-check-circle"></i> Activo</span>'
+                : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-alerta/10 text-alerta"><i class="bi bi-x-circle"></i> Inactivo</span>'}
       </td>
-      <td>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-sm btn-ghost" onclick="gestionarHorario(${m.id}, '${m.nombres} ${m.apellidos}', '${m.especialidadNombre}')" title="Horario">
+      <td class="px-4 py-3">
+        <div class="flex gap-1.5">
+          <button onclick="gestionarHorario(${m.id}, '${m.nombres} ${m.apellidos}', '${m.especialidadNombre}')" title="Horario"
+            class="p-2 rounded-lg text-neblina hover:text-guia hover:bg-guia/10 transition-colors">
             <i class="bi bi-clock"></i>
           </button>
           ${m.activo
-                ? `<button class="btn btn-sm btn-red" onclick="desactivarMedico(${m.id}, '${m.nombres} ${m.apellidos}')">
+                ? `<button onclick="desactivarMedico(${m.id}, '${m.nombres} ${m.apellidos}')"
+                 class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-alerta text-white hover:opacity-90 transition-opacity">
                  <i class="bi bi-slash-circle"></i> Desactivar
                </button>`
-                : `<button class="btn btn-sm btn-secondary" onclick="activarMedico(${m.id}, '${m.nombres} ${m.apellidos}')">
+                : `<button onclick="activarMedico(${m.id}, '${m.nombres} ${m.apellidos}')"
+                 class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
                  <i class="bi bi-check-circle"></i> Activar
                </button>`}
         </div>
@@ -210,30 +218,29 @@ async function gestionarHorario(medicoId, nombreMedico, especialidad) {
 
 async function cargarHorarios(medicoId) {
     const cont = document.getElementById('lista-horarios');
-    cont.innerHTML = `<div class="empty-row">Cargando...</div>`;
+    cont.innerHTML = `<div class="text-center text-neblina py-6 text-[13px]">Cargando...</div>`;
 
     try {
         const horarios = await HorarioService.listarPorMedico(medicoId);
 
         if (!horarios.length) {
-            cont.innerHTML = `<div class="empty-row">Sin horario asignado todavía</div>`;
+            cont.innerHTML = `<div class="text-center text-neblina py-6 text-[13px]">Sin horario asignado todavía</div>`;
             return;
         }
 
         cont.innerHTML = horarios.map(h => `
-      <div style="display:flex;justify-content:space-between;align-items:center;
-                  background:var(--bg-main);border-radius:10px;padding:10px 14px;margin-bottom:6px">
+      <div class="flex justify-between items-center bg-lienzo dark:bg-tinta-dark rounded-lg px-3.5 py-2.5 mb-1.5">
         <div>
-          <span style="font-weight:600;color:var(--text)">${DIAS_LABEL_ADMIN[h.dia]}</span>
-          <span style="color:var(--text-2);margin-left:8px">${h.horaInicio} — ${h.horaFin}</span>
+          <span class="font-semibold">${DIAS_LABEL_ADMIN[h.dia]}</span>
+          <span class="text-neblina ml-2 font-mono text-[13px]">${h.horaInicio} — ${h.horaFin}</span>
         </div>
-        <button class="btn btn-sm btn-red" onclick="eliminarBloqueHorario(${h.id})">
-          <i class="bi bi-trash3"></i>
+        <button onclick="eliminarBloqueHorario(${h.id})" class="p-1.5 rounded-lg bg-alerta text-white hover:opacity-90 transition-opacity">
+          <i class="bi bi-trash3 text-xs"></i>
         </button>
       </div>`).join('');
 
     } catch (err) {
-        cont.innerHTML = `<div class="empty-row">No se pudo cargar el horario</div>`;
+        cont.innerHTML = `<div class="text-center text-neblina py-6 text-[13px]">No se pudo cargar el horario</div>`;
     }
 }
 
@@ -282,13 +289,13 @@ async function abrirModalEspecialidades() {
 
 async function cargarListaEspecialidades() {
     const cont = document.getElementById('lista-especialidades');
-    cont.innerHTML = `<div class="empty-row">Cargando...</div>`;
+    cont.innerHTML = `<div class="text-center text-neblina py-6 text-[13px]">Cargando...</div>`;
     try {
         const json = await apiFetch('/especialidades/todas');
         todasLasEspecialidades = json.data ?? json;
         renderListaEspecialidades(todasLasEspecialidades);
     } catch (err) {
-        cont.innerHTML = `<div class="empty-row">No se pudo cargar la lista</div>`;
+        cont.innerHTML = `<div class="text-center text-neblina py-6 text-[13px]">No se pudo cargar la lista</div>`;
     }
 }
 
@@ -296,29 +303,31 @@ function renderListaEspecialidades(especialidades) {
     const cont = document.getElementById('lista-especialidades');
 
     if (!especialidades.length) {
-        cont.innerHTML = `<div class="empty-row">Sin especialidades encontradas</div>`;
+        cont.innerHTML = `<div class="text-center text-neblina py-6 text-[13px]">Sin especialidades encontradas</div>`;
         return;
     }
 
     cont.innerHTML = especialidades.map(e => `
-      <div style="display:flex;justify-content:space-between;align-items:center;
-                  background:var(--bg-main);border-radius:10px;padding:10px 14px;margin-bottom:6px">
-        <div>
-          <span style="font-weight:600;color:var(--text)">${e.nombre}</span>
-          <span style="color:var(--text-2);margin-left:8px">S/ ${Number(e.costo).toFixed(2)}</span>
+      <div class="flex justify-between items-center bg-lienzo dark:bg-tinta-dark rounded-lg px-3.5 py-2.5 mb-1.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-semibold">${e.nombre}</span>
+          <span class="text-neblina font-mono text-[13px]">S/ ${Number(e.costo).toFixed(2)}</span>
           ${e.activo
-            ? '<span class="badge badge-confirmada" style="margin-left:8px"><i class="bi bi-check-circle"></i> Activa</span>'
-            : '<span class="badge badge-cancelada" style="margin-left:8px"><i class="bi bi-x-circle"></i> Inactiva</span>'}
+            ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rumbo/10 text-rumbo"><i class="bi bi-check-circle"></i> Activa</span>'
+            : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-alerta/10 text-alerta"><i class="bi bi-x-circle"></i> Inactiva</span>'}
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-sm btn-ghost" onclick='abrirEdicionEspecialidad(${JSON.stringify(e)})' title="Editar">
+        <div class="flex gap-1.5 flex-shrink-0">
+          <button onclick='abrirEdicionEspecialidad(${JSON.stringify(e)})' title="Editar"
+            class="p-2 rounded-lg text-neblina hover:text-guia hover:bg-guia/10 transition-colors">
             <i class="bi bi-pencil"></i>
           </button>
           ${e.activo
-            ? `<button class="btn btn-sm btn-red" onclick="desactivarEspecialidad(${e.id}, '${e.nombre}')">
+            ? `<button onclick="desactivarEspecialidad(${e.id}, '${e.nombre}')"
+                 class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-alerta text-white hover:opacity-90 transition-opacity">
                  <i class="bi bi-slash-circle"></i> Desactivar
                </button>`
-            : `<button class="btn btn-sm btn-secondary" onclick="activarEspecialidad(${e.id}, '${e.nombre}')">
+            : `<button onclick="activarEspecialidad(${e.id}, '${e.nombre}')"
+                 class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
                  <i class="bi bi-check-circle"></i> Activar
                </button>`}
         </div>
@@ -339,7 +348,7 @@ function abrirEdicionEspecialidad(especialidad) {
     document.getElementById('esp-costo').value = especialidad.costo;
     document.getElementById('esp-form-titulo').innerHTML = '<i class="bi bi-pencil"></i> Editar especialidad';
     document.getElementById('esp-btn-guardar').innerHTML = '<i class="bi bi-check-lg"></i> Guardar cambios';
-    document.getElementById('esp-btn-cancelar-edicion').style.display = 'inline-flex';
+    document.getElementById('esp-btn-cancelar-edicion').classList.remove('hidden');
 }
 
 function cancelarEdicionEspecialidad() {
@@ -349,7 +358,7 @@ function cancelarEdicionEspecialidad() {
     document.getElementById('esp-costo').value = '';
     document.getElementById('esp-form-titulo').innerHTML = '<i class="bi bi-plus-circle"></i> Nueva especialidad';
     document.getElementById('esp-btn-guardar').innerHTML = '<i class="bi bi-check-lg"></i> Registrar especialidad';
-    document.getElementById('esp-btn-cancelar-edicion').style.display = 'none';
+    document.getElementById('esp-btn-cancelar-edicion').classList.add('hidden');
 }
 
 async function guardarEspecialidad() {

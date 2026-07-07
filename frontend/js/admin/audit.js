@@ -52,9 +52,9 @@ function renderTabla(datos) {
     const tbody = document.getElementById('tabla-auditoria');
 
     if (!datos.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">
-      <i class="bi bi-shield-x" style="font-size:24px;display:block;margin-bottom:8px;color:var(--text-3)"></i>
-      No se encontraron registros
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-[13px]">
+      <i class="bi bi-shield-x text-2xl block mb-2 text-neblina"></i>
+      <span class="text-neblina">No se encontraron registros</span>
     </td></tr>`;
         return;
     }
@@ -67,24 +67,24 @@ function renderTabla(datos) {
         const usuarioNombre = a.usuarioNombre || 'Sistema';
         const pacienteInfo = a.pacienteNombre || `Cita #${a.citaId || '—'}`;
 
-        return `<tr>
-      <td style="font-size:12px;color:var(--text-2)">${fecha} <span style="color:var(--text-3)">${hora}</span></td>
-      <td>${usuarioNombre}</td>
-      <td>${formatearAccion(a.tipoAccion)}</td>
-      <td style="color:var(--text-2)">${pacienteInfo}</td>
-      <td>${a.estadoAnterior ? UI.badgeEstado(a.estadoAnterior) : '<span style="color:var(--text-3)">—</span>'}</td>
-      <td>${a.estadoNuevo ? UI.badgeEstado(a.estadoNuevo) : '<span style="color:var(--text-3)">—</span>'}</td>
+        return `<tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+      <td class="px-4 py-3 text-xs font-mono text-neblina">${fecha} <span class="opacity-70">${hora}</span></td>
+      <td class="px-4 py-3">${usuarioNombre}</td>
+      <td class="px-4 py-3">${formatearAccion(a.tipoAccion)}</td>
+      <td class="px-4 py-3 text-neblina">${pacienteInfo}</td>
+      <td class="px-4 py-3">${a.estadoAnterior ? UI.badgeEstado(a.estadoAnterior) : '<span class="text-neblina">—</span>'}</td>
+      <td class="px-4 py-3">${a.estadoNuevo ? UI.badgeEstado(a.estadoNuevo) : '<span class="text-neblina">—</span>'}</td>
     </tr>`;
     }).join('');
 }
 
 function formatearAccion(tipo) {
     const map = {
-        CREACION: '<span class="badge badge-confirmada"><i class="bi bi-plus-circle"></i> Creación</span>',
-        CONFIRMACION: '<span class="badge badge-reprogramada"><i class="bi bi-check-circle"></i> Confirmación</span>',
-        REPROGRAMACION: '<span class="badge badge-pendiente"><i class="bi bi-arrow-repeat"></i> Reprogramación</span>',
-        CANCELACION: '<span class="badge badge-cancelada"><i class="bi bi-x-circle"></i> Cancelación</span>',
-        ATENDIDA: '<span class="badge badge-atendida"><i class="bi bi-clipboard-check"></i> Atendida</span>',
+        CREACION: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rumbo/10 text-rumbo"><i class="bi bi-plus-circle"></i> Creación</span>',
+        CONFIRMACION: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400"><i class="bi bi-check-circle"></i> Confirmación</span>',
+        REPROGRAMACION: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-guia/10 text-guia"><i class="bi bi-arrow-repeat"></i> Reprogramación</span>',
+        CANCELACION: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-alerta/10 text-alerta"><i class="bi bi-x-circle"></i> Cancelación</span>',
+        ATENDIDA: '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400"><i class="bi bi-clipboard-check"></i> Atendida</span>',
     };
     return map[tipo] || tipo;
 }

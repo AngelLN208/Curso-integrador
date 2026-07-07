@@ -36,6 +36,9 @@ import pe.edu.utp.clinica.common.enums.RolUsuario;
 import pe.edu.utp.clinica.dto.auditoria.AuditoriaCitaResponse;
 
 import pe.edu.utp.clinica.service.AuditoriaReportService;
+
+import pe.edu.utp.clinica.dto.usuario.EditarUsuarioRequest;
+
 /**
  * Controlador para portal del administrador.
  *
@@ -400,5 +403,43 @@ public class AdminController {
                                                 "attachment; filename=\"" + nombreArchivo + "\"")
                                 .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                                 .body(pdf);
+        }
+
+        @PutMapping("/usuarios/{id}")
+        @PreAuthorize("hasRole('ADMINISTRADOR')")
+        @Operation(summary = "Editar cuenta de usuario", description = "Actualiza nombre, correo, rol y opcionalmente la contraseña. "
+                        + "Si el campo password viene vacío, la contraseña actual no se modifica.")
+        public ResponseEntity<ApiResponse<UsuarioResponse>> editarUsuario(
+                        @PathVariable Long id,
+                        @Valid @RequestBody EditarUsuarioRequest request) {
+
+                Usuario usuario = usuarioRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Usuario no encontrado con ID: " + id));
+
+                // Verifica que el nuevo correo no esté en uso por OTRA cuenta
+                if (!usuario.getUsername().equalsIgnoreCase(request.getUsername())) {
+                        boolean correoEnUso = usuarioRepository.findByUsername(request.getUsername())
+                                        .filter(u -> !u.getId().equals(id))
+                                        .isPresent();
+                        if (correoEnUso) {
+                                throw new IllegalStateException(
+                                                "Ya existe otra cuenta con el correo: " + request.getUsername());
+                        }
+                }
+
+                usuario.setNombreCompleto(request.getNombreCompleto());
+                usuario.setUsername(request.getUsername());
+                usuario.setRol(RolUsuario.valueOf(request.getRol()));
+
+                // Solo actualiza la contraseña si se proporcionó una nueva
+                if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                        usuario.setPassword(passwordEncoder.encode(request.getPassword()));
+                }
+
+                usuario = usuarioRepository.save(usuario);
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Cuenta actualizada correctamente", toUsuarioResponse(usuario)));
         }
 }
