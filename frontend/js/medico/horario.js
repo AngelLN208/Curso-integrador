@@ -10,109 +10,108 @@ iniciarSidebar('Mi horario');
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('theme-icon');
 function aplicarTema(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('tema', t);
-    themeIcon.className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('tema', t);
+  themeIcon.className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
 }
 aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
-    aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+  aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
 // ── Orden y etiquetas de días ──────────────────────────────────
 const DIAS_ORDEN = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 const DIAS_LABEL = {
-    MONDAY: 'Lunes', TUESDAY: 'Martes', WEDNESDAY: 'Miércoles',
-    THURSDAY: 'Jueves', FRIDAY: 'Viernes', SATURDAY: 'Sábado', SUNDAY: 'Domingo'
+  MONDAY: 'Lunes', TUESDAY: 'Martes', WEDNESDAY: 'Miércoles',
+  THURSDAY: 'Jueves', FRIDAY: 'Viernes', SATURDAY: 'Sábado', SUNDAY: 'Domingo'
 };
 
 // ── Cargar horario ──────────────────────────────────────────────
 async function cargarHorario() {
-    const cont = document.getElementById('grid-horario');
+  const cont = document.getElementById('grid-horario');
 
-    if (!usuario.medicoId) {
-        cont.innerHTML = `<div class="empty-row">No se encontró tu perfil de médico</div>`;
-        return;
-    }
+  if (!usuario.medicoId) {
+    cont.innerHTML = `<div class="text-center text-neblina py-10 text-[13px]">No se encontró tu perfil de médico</div>`;
+    return;
+  }
 
-    try {
-        const horarios = await HorarioService.listarPorMedico(usuario.medicoId);
-        calcularMetricas(horarios);
-        renderGrid(horarios);
-    } catch (err) {
-        cont.innerHTML = `<div class="empty-row">No se pudo cargar tu horario</div>`;
-    }
+  try {
+    const horarios = await HorarioService.listarPorMedico(usuario.medicoId);
+    calcularMetricas(horarios);
+    renderGrid(horarios);
+  } catch (err) {
+    cont.innerHTML = `<div class="text-center text-neblina py-10 text-[13px]">No se pudo cargar tu horario</div>`;
+  }
 }
 
 function calcularMetricas(horarios) {
-    const diasUnicos = new Set(horarios.map(h => h.dia));
-    document.getElementById('m-dias-activos').textContent = diasUnicos.size;
+  const diasUnicos = new Set(horarios.map(h => h.dia));
+  document.getElementById('m-dias-activos').textContent = diasUnicos.size;
 
-    let totalMinutos = 0;
-    horarios.forEach(h => {
-        const inicio = parseHora(h.horaInicio);
-        const fin = parseHora(h.horaFin);
-        totalMinutos += (fin - inicio);
-    });
+  let totalMinutos = 0;
+  horarios.forEach(h => {
+    const inicio = parseHora(h.horaInicio);
+    const fin = parseHora(h.horaFin);
+    totalMinutos += (fin - inicio);
+  });
 
-    const horas = Math.round(totalMinutos / 60 * 10) / 10;
-    document.getElementById('m-horas-semana').textContent = `${horas}h`;
+  const horas = Math.round(totalMinutos / 60 * 10) / 10;
+  document.getElementById('m-horas-semana').textContent = `${horas}h`;
 
-    const slots = Math.floor(totalMinutos / 45);
-    document.getElementById('m-slots-disponibles').textContent = slots;
+  const slots = Math.floor(totalMinutos / 45);
+  document.getElementById('m-slots-disponibles').textContent = slots;
 }
 
 function parseHora(horaStr) {
-    // horaStr viene como "08:00:00" o "08:00"
-    const [h, m] = horaStr.split(':').map(Number);
-    return h * 60 + m;
+  // horaStr viene como "08:00:00" o "08:00"
+  const [h, m] = horaStr.split(':').map(Number);
+  return h * 60 + m;
 }
 
 function formatHora(horaStr) {
-    const [h, m] = horaStr.split(':').map(Number);
-    const periodo = h < 12 ? 'a.m.' : 'p.m.';
-    const h12 = h % 12 === 0 ? 12 : h % 12;
-    return `${h12}:${m.toString().padStart(2, '0')} ${periodo}`;
+  const [h, m] = horaStr.split(':').map(Number);
+  const periodo = h < 12 ? 'a.m.' : 'p.m.';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${m.toString().padStart(2, '0')} ${periodo}`;
 }
 
 function renderGrid(horarios) {
-    const cont = document.getElementById('grid-horario');
+  const cont = document.getElementById('grid-horario');
 
-    if (!horarios.length) {
-        cont.innerHTML = `<div class="empty-row">
-      <i class="bi bi-calendar-x" style="font-size:24px;display:block;margin-bottom:8px;color:var(--text-3)"></i>
+  if (!horarios.length) {
+    cont.innerHTML = `<div class="text-center text-neblina py-10 text-[13px]">
+      <i class="bi bi-calendar-x block text-2xl mb-2"></i>
       Aún no tienes un horario asignado. Contacta al administrador.
     </div>`;
-        return;
-    }
+    return;
+  }
 
-    // Agrupar por día
-    const porDia = {};
-    horarios.forEach(h => {
-        if (!porDia[h.dia]) porDia[h.dia] = [];
-        porDia[h.dia].push(h);
-    });
+  // Agrupar por día
+  const porDia = {};
+  horarios.forEach(h => {
+    if (!porDia[h.dia]) porDia[h.dia] = [];
+    porDia[h.dia].push(h);
+  });
 
-    const diasConHorario = DIAS_ORDEN.filter(d => porDia[d]);
+  const diasConHorario = DIAS_ORDEN.filter(d => porDia[d]);
 
-    cont.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(${diasConHorario.length}, 1fr);gap:12px">
+  cont.innerHTML = `
+    <div class="grid gap-3" style="grid-template-columns:repeat(${diasConHorario.length}, 1fr)">
       ${diasConHorario.map(dia => `
-        <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">
-          <div style="background:linear-gradient(135deg,var(--indigo),var(--blue));
-                      color:white;padding:10px;text-align:center;font-weight:600;font-size:13px">
+        <div class="border border-borde dark:border-borde-dark rounded-lg overflow-hidden">
+          <div class="bg-guia text-white py-2.5 text-center font-semibold text-[13px]">
             ${DIAS_LABEL[dia]}
           </div>
-          <div style="padding:14px">
+          <div class="p-3.5 space-y-2.5">
             ${porDia[dia].map(h => `
-              <div style="background:var(--indigo-lt);border-radius:10px;padding:10px;text-align:center">
-                <div style="font-size:12px;color:var(--text-3);margin-bottom:2px">
+              <div class="bg-guia/10 rounded-lg p-2.5 text-center">
+                <div class="text-xs text-neblina mb-0.5">
                   <i class="bi bi-clock"></i>
                 </div>
-                <div style="font-size:13px;font-weight:600;color:var(--indigo)">
+                <div class="text-[13px] font-semibold text-guia">
                   ${formatHora(h.horaInicio)}
                 </div>
-                <div style="font-size:11px;color:var(--text-3);margin:2px 0">a</div>
-                <div style="font-size:13px;font-weight:600;color:var(--indigo)">
+                <div class="text-[11px] text-neblina my-0.5">a</div>
+                <div class="text-[13px] font-semibold text-guia">
                   ${formatHora(h.horaFin)}
                 </div>
               </div>

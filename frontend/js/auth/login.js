@@ -7,6 +7,8 @@ const form = document.getElementById('loginForm');
 const btnLogin = document.getElementById('btnLogin');
 const errorMsg = document.getElementById('error-msg');
 const errorTxt = document.getElementById('error-text');
+const btnText = btnLogin.querySelector('.btn-text');
+const spinner = btnLogin.querySelector('.spinner');
 
 // ── Submit ────────────────────────────────────────────────────
 form.addEventListener('submit', async (e) => {
@@ -16,15 +18,12 @@ form.addEventListener('submit', async (e) => {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    // Validaciones cliente
     if (!email) return mostrarError('El correo es obligatorio');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         return mostrarError('El correo no tiene un formato válido');
     if (!password) return mostrarError('La contraseña es obligatoria');
 
-    // Loading
-    btnLogin.classList.add('loading');
-    btnLogin.disabled = true;
+    setCargando(true);
 
     try {
         await AuthService.login(email, password);
@@ -32,8 +31,7 @@ form.addEventListener('submit', async (e) => {
     } catch (err) {
         mostrarError(err.message || 'Credenciales incorrectas. Intenta de nuevo.');
     } finally {
-        btnLogin.classList.remove('loading');
-        btnLogin.disabled = false;
+        setCargando(false);
     }
 });
 
@@ -49,8 +47,20 @@ document.getElementById('togglePassword').addEventListener('click', () => {
 // ── Helpers ───────────────────────────────────────────────────
 function mostrarError(msg) {
     errorTxt.textContent = msg;
-    errorMsg.classList.add('visible');
+    errorMsg.classList.remove('hidden');
+    errorMsg.classList.add('flex');
 }
 function ocultarError() {
-    errorMsg.classList.remove('visible');
+    errorMsg.classList.add('hidden');
+    errorMsg.classList.remove('flex');
+}
+function setCargando(cargando) {
+    btnLogin.disabled = cargando;
+    if (cargando) {
+        btnText.textContent = 'Ingresando...';
+        spinner.classList.remove('hidden');
+    } else {
+        btnText.textContent = 'Iniciar sesión';
+        spinner.classList.add('hidden');
+    }
 }

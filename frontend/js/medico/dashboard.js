@@ -30,7 +30,7 @@ document.getElementById('fecha-hoy').textContent =
 async function cargarDashboard() {
     if (!usuario.medicoId) {
         document.getElementById('lista-citas-hoy').innerHTML =
-            `<div class="empty-row">No se encontró tu perfil de médico. Contacta al administrador.</div>`;
+            `<div class="text-center text-neblina py-10 text-[13px]">No se encontró tu perfil de médico. Contacta al administrador.</div>`;
         return;
     }
 
@@ -62,7 +62,7 @@ async function cargarDashboard() {
 
     } catch (err) {
         document.getElementById('lista-citas-hoy').innerHTML =
-            `<div class="empty-row">No se pudo cargar la agenda</div>`;
+            `<div class="text-center text-neblina py-10 text-[13px]">No se pudo cargar la agenda</div>`;
     }
 }
 
@@ -70,8 +70,8 @@ function renderCitasHoy(citas) {
     const cont = document.getElementById('lista-citas-hoy');
 
     if (!citas.length) {
-        cont.innerHTML = `<div class="empty-row">
-      <i class="bi bi-calendar-x" style="font-size:24px;display:block;margin-bottom:8px;color:var(--text-3)"></i>
+        cont.innerHTML = `<div class="text-center text-neblina py-10 text-[13px]">
+      <i class="bi bi-calendar-x block text-2xl mb-2"></i>
       No tienes citas programadas para hoy
     </div>`;
         return;
@@ -85,13 +85,13 @@ function renderCitasHoy(citas) {
         const m = hora.getMinutes().toString().padStart(2, '0');
 
         return `
-      <div class="appt-item">
-        <div class="appt-time">
-          <div class="appt-time-h">${h}:${m}</div>
+      <div class="flex items-center gap-3 px-5 py-3">
+        <div class="w-14 text-center flex-shrink-0">
+          <span class="font-jetbrains text-[13px] font-medium text-tinta dark:text-white">${h}:${m}</span>
         </div>
-        <div class="appt-info">
-          <div class="appt-name">${c.pacienteNombre}</div>
-          <div class="appt-esp">${c.motivo || 'Sin motivo especificado'}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[13px] font-medium text-tinta dark:text-white truncate">${c.pacienteNombre}</div>
+          <div class="text-xs text-neblina truncate">${c.motivo || 'Sin motivo especificado'}</div>
         </div>
         ${UI.badgeEstado(c.estado)}
       </div>`;

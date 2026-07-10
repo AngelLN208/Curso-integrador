@@ -15,7 +15,7 @@ document.getElementById('fecha-hoy').textContent =
 
 // ── Tema ──────────────────────────────────────────────────────
 const themeToggle = document.getElementById('themeToggle');
-const themeIcon   = document.getElementById('theme-icon');
+const themeIcon = document.getElementById('theme-icon');
 function aplicarTema(t) {
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('tema', t);
@@ -33,12 +33,12 @@ document.getElementById('filtro-fecha-proximas').addEventListener('change', () =
   renderProximas(todasLasCitas));
 
 function renderProximas(citas) {
-  const hoyStr      = new Date().toISOString().split('T')[0];
+  const hoyStr = new Date().toISOString().split('T')[0];
   const filtroFecha = document.getElementById('filtro-fecha-proximas').value;
   let proximas = citas.filter(c => {
     const fechaCita = c.fechaHora.split('T')[0];
     return fechaCita > hoyStr
-      && ['PENDIENTE','CONFIRMADA'].includes(c.estado)
+      && ['PENDIENTE', 'CONFIRMADA'].includes(c.estado)
       && (!filtroFecha || fechaCita === filtroFecha);
   });
   proximas = proximas
@@ -46,33 +46,32 @@ function renderProximas(citas) {
     .slice(0, 8);
   const el = document.getElementById('proximas-citas');
   if (!proximas.length) {
-    el.innerHTML = `<div class="empty-row">
-      <i class="bi bi-calendar2-check"
-         style="font-size:22px;display:block;margin-bottom:6px;color:var(--text-3)"></i>
-      No hay próximas citas${filtroFecha ? ' para esa fecha' : ''}
+    el.innerHTML = `<div class="text-center py-8">
+      <i class="bi bi-calendar2-check text-2xl block mb-2 text-neblina"></i>
+      <span class="text-neblina text-[13px]">No hay próximas citas${filtroFecha ? ' para esa fecha' : ''}</span>
     </div>`;
     return;
   }
   el.innerHTML = proximas.map(c => {
-    const partes   = c.fechaHora.split('T');
+    const partes = c.fechaHora.split('T');
     const fechaStr = partes[0];
-    const horaStr  = partes[1].substring(0, 5);
-    const [h, m]   = horaStr.split(':');
+    const horaStr = partes[1].substring(0, 5);
+    const [h, m] = horaStr.split(':');
     const fechaDisp = new Date(fechaStr + 'T12:00:00')
       .toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short' });
-    return `<div class="appt-item">
-      <div class="appt-time">
-        <div class="appt-time-h">${h}</div>
-        <div class="appt-time-m">${m}</div>
+    return `<div class="flex items-center gap-3 px-3.5 py-3 rounded-lg hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+      <div class="w-14 text-center bg-guia/10 rounded-lg py-1.5 flex-shrink-0">
+        <div class="font-mono text-base font-semibold text-guia leading-none">${h}</div>
+        <div class="font-mono text-[10px] text-guia opacity-70">${m}</div>
       </div>
-      <div class="appt-info">
-        <div class="appt-name">${c.pacienteNombre}</div>
-        <div class="appt-esp">
-          <span style="color:var(--indigo);font-size:11px;font-weight:600">${fechaDisp}</span>
+      <div class="min-w-0 flex-1">
+        <div class="font-medium text-[13px] truncate">${c.pacienteNombre}</div>
+        <div class="text-xs text-neblina truncate">
+          <span class="text-guia font-semibold">${fechaDisp}</span>
           · ${c.medicoNombre} · ${c.especialidad}
         </div>
       </div>
-      ${UI.badgeEstado(c.estado)}
+      <div class="flex-shrink-0">${UI.badgeEstado(c.estado)}</div>
     </div>`;
   }).join('');
 }
@@ -85,40 +84,40 @@ async function cargarDashboard() {
       PacienteService.listar(),
     ]);
     todasLasCitas = citas;
-    const hoyStr   = new Date().toISOString().split('T')[0];
+    const hoyStr = new Date().toISOString().split('T')[0];
     const citasHoy = citas.filter(c => {
-      const fechaCita    = c.fechaHora.split('T')[0];
-      const estadoValido = ['PENDIENTE','CONFIRMADA','CANCELADA'].includes(c.estado);
+      const fechaCita = c.fechaHora.split('T')[0];
+      const estadoValido = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA'].includes(c.estado);
       return fechaCita === hoyStr && estadoValido;
     });
     const confirmadas = citas.filter(c => c.estado === 'CONFIRMADA');
-    const pendientes  = citas.filter(c => c.estado === 'PENDIENTE');
+    const pendientes = citas.filter(c => c.estado === 'PENDIENTE');
 
-    document.getElementById('m-citas-hoy').textContent   = citasHoy.length;
+    document.getElementById('m-citas-hoy').textContent = citasHoy.length;
     document.getElementById('m-confirmadas').textContent = confirmadas.length;
-    document.getElementById('m-pendientes').textContent  = pendientes.length;
-    document.getElementById('m-pacientes').textContent   = pacientes.length;
+    document.getElementById('m-pendientes').textContent = pendientes.length;
+    document.getElementById('m-pacientes').textContent = pacientes.length;
 
     if (citasHoy.length > 0) {
       const conf = citasHoy.filter(c => c.estado === 'CONFIRMADA').length;
-      const pct  = Math.round((conf / citasHoy.length) * 100);
+      const pct = Math.round((conf / citasHoy.length) * 100);
       document.getElementById('m-confirmadas-pct').textContent =
         `${pct}% de hoy confirmadas`;
     }
 
     const tbody = document.getElementById('tabla-citas-hoy');
     if (!citasHoy.length) {
-      tbody.innerHTML = `<tr><td colspan="4" class="empty-row">No hay citas para hoy</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-neblina py-10 text-[13px]">No hay citas para hoy</td></tr>`;
     } else {
       tbody.innerHTML = citasHoy
         .sort((a, b) => new Date(a.fechaHora) - new Date(b.fechaHora))
         .map(c => {
           const hora = c.fechaHora.split('T')[1].substring(0, 5);
-          return `<tr>
-            <td><strong>${hora}</strong></td>
-            <td>${c.pacienteNombre}</td>
-            <td>${c.especialidad}</td>
-            <td>${UI.badgeEstado(c.estado)}</td>
+          return `<tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+            <td class="px-4 py-3 font-mono font-semibold">${hora}</td>
+            <td class="px-4 py-3">${c.pacienteNombre}</td>
+            <td class="px-4 py-3 text-neblina">${c.especialidad}</td>
+            <td class="px-4 py-3">${UI.badgeEstado(c.estado)}</td>
           </tr>`;
         }).join('');
     }

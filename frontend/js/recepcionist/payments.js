@@ -1,5 +1,5 @@
 /**
- * payments.js — Gestión de pagos
+ * payments.js — Gestión de pagos (recepcionista)
  */
 
 AuthService.requireAuth();
@@ -8,7 +8,7 @@ iniciarSidebar('Pagos');
 
 // ── Tema ──────────────────────────────────────────────────────
 const themeToggle = document.getElementById('themeToggle');
-const themeIcon   = document.getElementById('theme-icon');
+const themeIcon = document.getElementById('theme-icon');
 function aplicarTema(t) {
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('tema', t);
@@ -18,26 +18,30 @@ aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
   aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
-
-
-// ── Modales ───────────────────────────────────────────────────
-function abrirModal(id)  { document.getElementById(id).classList.add('open'); }
-function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(m =>
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+// ── Modales (Tailwind: toggle hidden/flex) ─────────────────────
+function abrirModal(id) {
+  const m = document.getElementById(id);
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+}
+function cerrarModal(id) {
+  const m = document.getElementById(id);
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+}
+document.querySelectorAll('[id^="modal"]').forEach(m =>
+  m.addEventListener('click', e => { if (e.target === m) cerrarModal(m.id); }));
 
 // ── Estado global ─────────────────────────────────────────────
-let todosPagos   = [];
+let todosPagos = [];
 let citaActivaId = null;
 
 // ── Cargar pagos ──────────────────────────────────────────────
 async function cargarPagos() {
   try {
-    // Obtener todos los pagos a través de las citas
     const resCitas = await apiFetch('/citas');
-    const citas    = resCitas.data ?? resCitas;
+    const citas = resCitas.data ?? resCitas;
 
-    // Por cada paciente único, obtener sus pagos
     const pacienteIds = [...new Set(citas.map(c => c.pacienteId))];
     const pagosPromesas = pacienteIds.map(id =>
       apiFetch(`/pagos/paciente/${id}`)
@@ -45,7 +49,7 @@ async function cargarPagos() {
         .catch(() => []));
 
     const resultados = await Promise.all(pagosPromesas);
-    const mapaIds    = new Map();
+    const mapaIds = new Map();
     resultados.flat().forEach(p => { if (p?.id) mapaIds.set(p.id, p); });
     todosPagos = Array.from(mapaIds.values());
 
@@ -56,11 +60,10 @@ async function cargarPagos() {
 }
 
 function calcularMetricas(pagos) {
-  const hoy = new Date().toLocaleDateString('en-CA'); // yyyy-MM-dd local
-  const pagados  = pagos.filter(p => p.estado === 'PAGADO');
+  const hoy = new Date().toLocaleDateString('en-CA');
+  const pagados = pagos.filter(p => p.estado === 'PAGADO');
   const pendient = pagos.filter(p => p.estado === 'PENDIENTE');
 
-  // Recaudado hoy: pagos PAGADO cuya fechaPago es de hoy (hora local)
   const hoyPagos = pagados.filter(p => {
     if (!p.fechaPago) return false;
     const fechaLocal = new Date(p.fechaPago).toLocaleDateString('en-CA');
@@ -70,10 +73,10 @@ function calcularMetricas(pagos) {
   const recaudado = hoyPagos.reduce((s, p) =>
     s + parseFloat(p.montoFinal || p.monto || 0), 0);
 
-  document.getElementById('m-recaudado').textContent  = `S/ ${recaudado.toFixed(2)}`;
-  document.getElementById('m-pagados').textContent    = pagados.length;
+  document.getElementById('m-recaudado').textContent = `S/ ${recaudado.toFixed(2)}`;
+  document.getElementById('m-pagados').textContent = pagados.length;
   document.getElementById('m-pendientes').textContent = pendient.length;
-  document.getElementById('m-total').textContent      = pagos.length;
+  document.getElementById('m-total').textContent = pagos.length;
 }
 
 function renderTabla(pagos) {
@@ -81,9 +84,9 @@ function renderTabla(pagos) {
   const tbody = document.getElementById('tabla-pagos');
 
   if (!pagos.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="empty-row">
-      <i class="bi bi-receipt" style="font-size:24px;display:block;margin-bottom:8px;color:var(--text-3)"></i>
-      No se encontraron pagos
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-[13px]">
+      <i class="bi bi-receipt text-2xl block mb-2 text-neblina"></i>
+      <span class="text-neblina">No se encontraron pagos</span>
     </td></tr>`;
     return;
   }
@@ -93,49 +96,49 @@ function renderTabla(pagos) {
     .map(p => {
       const fechaPago = p.fechaPago
         ? new Date(p.fechaPago).toLocaleDateString('es-PE',
-            { day:'2-digit', month:'short', year:'numeric' })
+          { day: '2-digit', month: 'short', year: 'numeric' })
         : '—';
 
-      const monto      = parseFloat(p.monto || 0).toFixed(2);
+      const monto = parseFloat(p.monto || 0).toFixed(2);
       const montoFinal = parseFloat(p.montoFinal || p.monto || 0).toFixed(2);
-      const descuento  = parseFloat(p.monto || 0) - parseFloat(p.montoFinal || p.monto || 0);
+      const descuento = parseFloat(p.monto || 0) - parseFloat(p.montoFinal || p.monto || 0);
 
       const badge = p.estado === 'PAGADO'
-        ? '<span class="badge badge-confirmada">✓ Pagado</span>'
-        : '<span class="badge badge-pendiente">⏳ Pendiente</span>';
+        ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rumbo/10 text-rumbo"><i class="bi bi-check-circle"></i> Pagado</span>'
+        : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-guia/10 text-guia"><i class="bi bi-hourglass-split"></i> Pendiente</span>';
 
-      const metodoIcon = { EFECTIVO:'💵', TARJETA:'💳',
-        TRANSFERENCIA:'🏦', YAPE:'📱', PLIN:'📱' }[p.metodoPago] || '';
+      const metodoIcon = {
+        EFECTIVO: '💵', TARJETA: '💳',
+        TRANSFERENCIA: '🏦', YAPE: '📱', PLIN: '📱'
+      }[p.metodoPago] || '';
 
-      // Mostrar seguro si hay descuento aplicado
       const montoCell = descuento > 0
-        ? `<td>
+        ? `<td class="px-4 py-3 font-mono">
              <div>S/ ${monto}</div>
-             <div style="font-size:11px;color:var(--green)">
-               Seguro: -S/ ${descuento.toFixed(2)}
-             </div>
+             <div class="text-[11px] text-rumbo">Seguro: -S/ ${descuento.toFixed(2)}</div>
            </td>`
-        : `<td>S/ ${monto}</td>`;
+        : `<td class="px-4 py-3 font-mono">S/ ${monto}</td>`;
 
       const accion = p.estado === 'PENDIENTE'
-        ? `<button class="btn btn-sm btn-green"
-                   onclick="abrirPago(${p.citaId},'${p.pacienteNombre}','${p.medicoNombre || ''}')">
+        ? `<button onclick="abrirPago(${p.citaId},'${p.pacienteNombre}','${p.medicoNombre || ''}')"
+             class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-rumbo text-white hover:opacity-90 transition-opacity">
              <i class="bi bi-cash"></i> Cobrar
            </button>`
-        : `<button class="btn btn-sm btn-ghost" onclick="verComprobante(${p.id})">
+        : `<button onclick="verComprobante(${p.id})"
+             class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-tinta border border-borde dark:border-borde-dark text-neblina hover:text-tinta dark:hover:text-white transition-colors">
              <i class="bi bi-receipt"></i> Ver
            </button>`;
 
-      return `<tr>
-        <td><span style="font-weight:600;color:var(--indigo)">#${p.citaId}</span></td>
-        <td>${p.pacienteNombre}</td>
-        <td style="color:var(--text-2);font-size:12px">${p.medicoNombre || '—'}</td>
+      return `<tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+        <td class="px-4 py-3"><span class="font-semibold text-guia font-mono">#${p.citaId}</span></td>
+        <td class="px-4 py-3">${p.pacienteNombre}</td>
+        <td class="px-4 py-3 text-neblina text-xs">${p.medicoNombre || '—'}</td>
         ${montoCell}
-        <td style="font-weight:600;color:var(--teal)">S/ ${montoFinal}</td>
-        <td>${metodoIcon} ${p.metodoPago || '—'}</td>
-        <td style="color:var(--text-2);font-size:12px">${fechaPago}</td>
-        <td>${badge}</td>
-        <td>${accion}</td>
+        <td class="px-4 py-3 font-semibold text-teal-600 dark:text-teal-400 font-mono">S/ ${montoFinal}</td>
+        <td class="px-4 py-3">${metodoIcon} ${p.metodoPago || '—'}</td>
+        <td class="px-4 py-3 text-neblina text-xs">${fechaPago}</td>
+        <td class="px-4 py-3">${badge}</td>
+        <td class="px-4 py-3">${accion}</td>
       </tr>`;
     }).join('');
 }
@@ -144,40 +147,39 @@ function renderTabla(pagos) {
 function aplicarFiltros() {
   const buscar = document.getElementById('buscar-input').value.toLowerCase().trim();
   const estado = document.getElementById('filtro-estado').value;
-  const fecha  = document.getElementById('filtro-fecha').value;
+  const fecha = document.getElementById('filtro-fecha').value;
 
   renderTabla(todosPagos.filter(p => {
     const matchBuscar = !buscar || p.pacienteNombre?.toLowerCase().includes(buscar);
     const matchEstado = !estado || p.estado === estado;
-    const matchFecha  = !fecha  || (p.fechaPago &&
+    const matchFecha = !fecha || (p.fechaPago &&
       new Date(p.fechaPago).toLocaleDateString('en-CA') === fecha);
     return matchBuscar && matchEstado && matchFecha;
   }));
 }
 
 function limpiarFiltros() {
-  ['buscar-input','filtro-estado','filtro-fecha'].forEach(id =>
+  ['buscar-input', 'filtro-estado', 'filtro-fecha'].forEach(id =>
     document.getElementById(id).value = '');
   renderTabla(todosPagos);
 }
 
 ['buscar-input'].forEach(id =>
   document.getElementById(id).addEventListener('input', aplicarFiltros));
-['filtro-estado','filtro-fecha'].forEach(id =>
+['filtro-estado', 'filtro-fecha'].forEach(id =>
   document.getElementById(id).addEventListener('change', aplicarFiltros));
 
 // ── Registrar pago ────────────────────────────────────────────
 async function abrirPago(citaId, pacienteNombre, medicoNombre) {
   citaActivaId = citaId;
-  document.getElementById('pago-info-cita').textContent     = `Cita #${citaId}`;
+  document.getElementById('pago-info-cita').textContent = `Cita #${citaId}`;
   document.getElementById('pago-info-paciente').textContent = pacienteNombre;
-  document.getElementById('pago-info-medico').textContent   = medicoNombre || '—';
-  document.getElementById('pago-metodo').value               = '';
+  document.getElementById('pago-info-medico').textContent = medicoNombre || '—';
+  document.getElementById('pago-metodo').value = '';
 
-  // Mostrar estado de carga mientras se calcula el descuento
   document.getElementById('pago-monto-display').textContent = 'S/ —';
   document.getElementById('pago-seguro-info').innerHTML =
-    '<span style="color:var(--text-3);font-size:12px">Calculando...</span>';
+    '<span class="text-neblina text-xs">Calculando...</span>';
 
   abrirModal('modalPago');
 
@@ -190,25 +192,24 @@ async function abrirPago(citaId, pacienteNombre, medicoNombre) {
 
     if (calculo.tieneSeguro) {
       document.getElementById('pago-seguro-info').innerHTML = `
-        <div style="display:flex;align-items:center;gap:6px;justify-content:center;
-                    color:var(--green);font-size:12px;font-weight:500">
+        <div class="flex items-center gap-1.5 justify-center text-rumbo text-xs font-medium">
           <i class="bi bi-shield-check"></i>
           ${calculo.nombreSeguro} aplica ${calculo.porcentajeCobertura}% de descuento
         </div>
-        <div style="font-size:11px;color:var(--text-3);text-align:center;margin-top:2px">
+        <div class="text-[11px] text-neblina text-center mt-0.5">
           Precio base S/ ${parseFloat(calculo.monto).toFixed(2)} −
           descuento S/ ${parseFloat(calculo.descuento).toFixed(2)}
         </div>`;
     } else {
       document.getElementById('pago-seguro-info').innerHTML = `
-        <div style="color:var(--text-3);font-size:12px;text-align:center">
+        <div class="text-neblina text-xs text-center">
           <i class="bi bi-shield-x"></i> Sin seguro vinculado — precio regular
         </div>`;
     }
   } catch (err) {
     document.getElementById('pago-monto-display').textContent = 'S/ 80.00';
     document.getElementById('pago-seguro-info').innerHTML =
-      '<span style="color:var(--red);font-size:12px">No se pudo calcular el descuento</span>';
+      '<span class="text-alerta text-xs">No se pudo calcular el descuento</span>';
   }
 }
 
@@ -218,8 +219,8 @@ async function confirmarPago() {
 
   try {
     await PagoService.registrar({
-      citaId:     citaActivaId,
-      monto:      80.00,      // monto fijo — no editable por recepcionista
+      citaId: citaActivaId,
+      monto: 80.00,
       metodoPago: metodo
     });
     cerrarModal('modalPago');
@@ -235,28 +236,31 @@ function verComprobante(pagoId) {
 
   const fechaPago = pago.fechaPago
     ? new Date(pago.fechaPago).toLocaleDateString('es-PE',
-        { day:'2-digit', month:'long', year:'numeric',
-          hour:'2-digit', minute:'2-digit' })
+      {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
     : '—';
 
   const descuento = parseFloat(pago.monto || 0) - parseFloat(pago.montoFinal || pago.monto || 0);
 
   document.getElementById('comp-estado').innerHTML =
-    '<span class="badge badge-confirmada" style="font-size:13px">✓ Pago confirmado</span>';
-  document.getElementById('comp-paciente').textContent    = pago.pacienteNombre;
-  document.getElementById('comp-medico').textContent      = pago.medicoNombre || '—';
-  document.getElementById('comp-monto').textContent       = `S/ ${parseFloat(pago.monto).toFixed(2)}`;
+    '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[13px] font-semibold bg-rumbo/10 text-rumbo">✓ Pago confirmado</span>';
+  document.getElementById('comp-paciente').textContent = pago.pacienteNombre;
+  document.getElementById('comp-medico').textContent = pago.medicoNombre || '—';
+  document.getElementById('comp-monto').textContent = `S/ ${parseFloat(pago.monto).toFixed(2)}`;
   document.getElementById('comp-monto-final').textContent = `S/ ${parseFloat(pago.montoFinal || pago.monto).toFixed(2)}`;
-  document.getElementById('comp-metodo').textContent      = pago.metodoPago || '—';
-  document.getElementById('comp-fecha').textContent       = fechaPago;
+  document.getElementById('comp-metodo').textContent = pago.metodoPago || '—';
+  document.getElementById('comp-fecha').textContent = fechaPago;
 
-  // Mostrar descuento por seguro si aplica
   const seguroEl = document.getElementById('comp-seguro');
   if (descuento > 0) {
-    seguroEl.style.display = 'flex';
+    seguroEl.classList.remove('hidden');
+    seguroEl.classList.add('flex');
     document.getElementById('comp-descuento').textContent = `-S/ ${descuento.toFixed(2)}`;
   } else {
-    seguroEl.style.display = 'none';
+    seguroEl.classList.add('hidden');
+    seguroEl.classList.remove('flex');
   }
 
   abrirModal('modalComprobante');

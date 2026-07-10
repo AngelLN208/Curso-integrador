@@ -7,10 +7,23 @@ const usuario = Auth.getUsuario();
 iniciarSidebar('Mis citas');
 
 // ── Modales ───────────────────────────────────────────────────
-function abrirModal(id) { document.getElementById(id).classList.add('open'); }
-function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(m =>
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+function abrirModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function cerrarModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+document.querySelectorAll('[id^="modal"]').forEach(m =>
+    m.addEventListener('click', e => {
+        if (e.target === m) {
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+    }));
 
 // ── Tema ──────────────────────────────────────────────────────
 const themeToggle = document.getElementById('themeToggle');
@@ -32,7 +45,7 @@ let citaActivaId = null;
 async function cargarCitas() {
     if (!usuario.medicoId) {
         document.getElementById('tabla-citas').innerHTML =
-            `<tr><td colspan="7" class="empty-row">No se encontró tu perfil de médico</td></tr>`;
+            `<tr><td colspan="7" class="text-center text-neblina py-10 text-[13px]">No se encontró tu perfil de médico</td></tr>`;
         return;
     }
 
@@ -49,7 +62,7 @@ function renderTabla(citas) {
     const tbody = document.getElementById('tabla-citas');
 
     if (!citas.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">No tienes citas registradas</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-neblina py-10 text-[13px]">No tienes citas registradas</td></tr>`;
         return;
     }
 
@@ -65,22 +78,24 @@ function renderTabla(citas) {
         const yaAtendida = c.estado === 'ATENDIDA';
 
         return `<tr>
-      <td>${fecha}</td>
-      <td>${hora}</td>
-      <td style="font-weight:500;color:var(--text)">${c.pacienteNombre}</td>
-      <td><span style="font-family:monospace;font-size:13px;color:var(--text-2)">${c.pacienteDni || '—'}</span></td>
-      <td style="color:var(--text-2)">${c.motivo || '—'}</td>
-      <td>${UI.badgeEstado(c.estado)}</td>
-      <td>
+      <td class="px-4 py-3 text-tinta dark:text-white">${fecha}</td>
+      <td class="px-4 py-3 text-tinta dark:text-white">${hora}</td>
+      <td class="px-4 py-3 font-medium text-tinta dark:text-white">${c.pacienteNombre}</td>
+      <td class="px-4 py-3"><span class="font-jetbrains text-xs text-neblina">${c.pacienteDni || '—'}</span></td>
+      <td class="px-4 py-3 text-neblina">${c.motivo || '—'}</td>
+      <td class="px-4 py-3">${UI.badgeEstado(c.estado)}</td>
+      <td class="px-4 py-3">
         ${puedeAtender
-                ? `<button class="btn btn-sm btn-indigo" onclick="abrirAtender(${c.id})">
+                ? `<button onclick="abrirAtender(${c.id})"
+               class="inline-flex items-center gap-1.5 bg-guia hover:bg-guia-dark text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
                <i class="bi bi-clipboard2-pulse"></i> Atender
              </button>`
                 : yaAtendida
-                    ? `<button class="btn btn-sm btn-ghost" onclick="verAtencion(${c.id}, ${c.pacienteId})">
+                    ? `<button onclick="verAtencion(${c.id}, ${c.pacienteId})"
+               class="inline-flex items-center gap-1.5 text-neblina hover:text-tinta dark:hover:text-white text-xs font-medium px-3 py-1.5 rounded-lg border border-borde dark:border-borde-dark transition-colors">
                <i class="bi bi-eye"></i> Ver
              </button>`
-                    : '<span style="font-size:12px;color:var(--text-3)">Sin acciones</span>'}
+                    : '<span class="text-xs text-neblina">Sin acciones</span>'}
       </td>
     </tr>`;
     }).join('');
@@ -129,13 +144,13 @@ async function abrirAtender(citaId) {
         document.getElementById(id).disabled = false;
     });
 
-    document.getElementById('seccion-triaje').style.display = 'block';
-    document.getElementById('seccion-triaje-readonly').style.display = 'none';
-    document.getElementById('seccion-consulta').style.display = 'none';
-    document.getElementById('btn-finalizar-consulta').style.display = 'none';
-    document.getElementById('btn-editar-consulta').style.display = 'none';
-    document.getElementById('btn-guardar-edicion').style.display = 'none';
-    document.getElementById('aviso-no-editable').style.display = 'none';
+    document.getElementById('seccion-triaje').classList.remove('hidden');
+    document.getElementById('seccion-triaje-readonly').classList.add('hidden');
+    document.getElementById('seccion-consulta').classList.add('hidden');
+    document.getElementById('btn-finalizar-consulta').classList.add('hidden');
+    document.getElementById('btn-editar-consulta').classList.add('hidden');
+    document.getElementById('btn-guardar-edicion').classList.add('hidden');
+    document.getElementById('aviso-no-editable').classList.add('hidden');
     document.getElementById('btn-guardar-triaje').disabled = false;
     document.getElementById('btn-guardar-triaje').innerHTML = '<i class="bi bi-check-lg"></i> Guardar triaje';
 
@@ -150,7 +165,7 @@ async function abrirAtender(citaId) {
         if (yaConsultada) {
             document.getElementById('btn-guardar-triaje').disabled = true;
             document.getElementById('btn-guardar-triaje').innerHTML = '<i class="bi bi-check-circle"></i> Ya atendida';
-            document.getElementById('seccion-consulta').style.display = 'none';
+            document.getElementById('seccion-consulta').classList.add('hidden');
         }
     } catch (err) {
         // Si falla la verificación, dejamos el flujo normal (triaje primero)
@@ -172,16 +187,16 @@ async function guardarTriaje() {
 
         document.getElementById('btn-guardar-triaje').disabled = true;
         document.getElementById('btn-guardar-triaje').innerHTML = '<i class="bi bi-check-circle"></i> Triaje guardado';
-        document.getElementById('seccion-consulta').style.display = 'block';
-        document.getElementById('btn-finalizar-consulta').style.display = 'inline-flex';
+        document.getElementById('seccion-consulta').classList.remove('hidden');
+        document.getElementById('btn-finalizar-consulta').classList.remove('hidden');
         UI.mostrarAlerta('Triaje registrado correctamente', 'success');
 
     } catch (err) {
         if (err.message && err.message.toLowerCase().includes('ya existe un triaje')) {
             document.getElementById('btn-guardar-triaje').disabled = true;
             document.getElementById('btn-guardar-triaje').innerHTML = '<i class="bi bi-check-circle"></i> Triaje ya registrado';
-            document.getElementById('seccion-consulta').style.display = 'block';
-            document.getElementById('btn-finalizar-consulta').style.display = 'inline-flex';
+            document.getElementById('seccion-consulta').classList.remove('hidden');
+            document.getElementById('btn-finalizar-consulta').classList.remove('hidden');
         } else {
             UI.mostrarError(err);
         }
@@ -227,13 +242,13 @@ async function verAtencion(citaId, pacienteId) {
     document.getElementById('atender-info').textContent =
         `${fecha} — ${hora} · ${cita.motivo || 'Sin motivo especificado'}`;
 
-    document.getElementById('seccion-triaje').style.display = 'none';
-    document.getElementById('seccion-triaje-readonly').style.display = 'block';
-    document.getElementById('seccion-consulta').style.display = 'block';
-    document.getElementById('btn-finalizar-consulta').style.display = 'none';
-    document.getElementById('btn-guardar-edicion').style.display = 'none';
-    document.getElementById('btn-editar-consulta').style.display = 'none';
-    document.getElementById('aviso-no-editable').style.display = 'none';
+    document.getElementById('seccion-triaje').classList.add('hidden');
+    document.getElementById('seccion-triaje-readonly').classList.remove('hidden');
+    document.getElementById('seccion-consulta').classList.remove('hidden');
+    document.getElementById('btn-finalizar-consulta').classList.add('hidden');
+    document.getElementById('btn-guardar-edicion').classList.add('hidden');
+    document.getElementById('btn-editar-consulta').classList.add('hidden');
+    document.getElementById('aviso-no-editable').classList.add('hidden');
 
     try {
         const historial = await AtencionService.historial(pacienteId);
@@ -257,9 +272,9 @@ async function verAtencion(citaId, pacienteId) {
             // Solo el médico que atendió, y solo dentro de la ventana de edición
             const esMismoMedico = consulta.medicoId === usuario.medicoId;
             if (esMismoMedico && consulta.editable) {
-                document.getElementById('btn-editar-consulta').style.display = 'inline-flex';
+                document.getElementById('btn-editar-consulta').classList.remove('hidden');
             } else if (esMismoMedico && !consulta.editable) {
-                document.getElementById('aviso-no-editable').style.display = 'block';
+                document.getElementById('aviso-no-editable').classList.remove('hidden');
             }
         }
 
@@ -275,8 +290,8 @@ function habilitarEdicion() {
         'ver-presion', 'ver-temperatura', 'ver-peso'].forEach(id => {
             document.getElementById(id).disabled = false;
         });
-    document.getElementById('btn-editar-consulta').style.display = 'none';
-    document.getElementById('btn-guardar-edicion').style.display = 'inline-flex';
+    document.getElementById('btn-editar-consulta').classList.add('hidden');
+    document.getElementById('btn-guardar-edicion').classList.remove('hidden');
 }
 
 async function guardarEdicion() {

@@ -1,5 +1,5 @@
 /**
- * patients.js — Gestión de pacientes
+ * patients.js — Gestión de pacientes (recepcionista)
  */
 
 AuthService.requireAuth();
@@ -18,11 +18,19 @@ aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
   aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
-// ── Modales ───────────────────────────────────────────────────
-function abrirModal(id) { document.getElementById(id).classList.add('open'); }
-function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-backdrop').forEach(m =>
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+// ── Modales (Tailwind: toggle hidden/flex) ─────────────────────
+function abrirModal(id) {
+  const m = document.getElementById(id);
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+}
+function cerrarModal(id) {
+  const m = document.getElementById(id);
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+}
+document.querySelectorAll('[id^="modal"]').forEach(m =>
+  m.addEventListener('click', e => { if (e.target === m) cerrarModal(m.id); }));
 
 // ── Estado global ─────────────────────────────────────────────
 let pacienteActivoId = null;
@@ -52,9 +60,9 @@ function renderTabla(pacientes) {
   const tbody = document.getElementById('tabla-pacientes');
 
   if (!pacientes.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-row">
-      <i class="bi bi-people" style="font-size:24px;display:block;margin-bottom:8px;color:var(--text-3)"></i>
-      No se encontraron pacientes
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-[13px]">
+      <i class="bi bi-people text-2xl block mb-2 text-neblina"></i>
+      <span class="text-neblina">No se encontraron pacientes</span>
     </td></tr>`;
     return;
   }
@@ -62,32 +70,31 @@ function renderTabla(pacientes) {
   tbody.innerHTML = pacientes.map(p => {
     const iniciales = (p.nombres.charAt(0) + p.apellidos.charAt(0)).toUpperCase();
     const sexoIcon = p.sexo === 'M'
-      ? '<span class="badge badge-confirmada">♂ Masculino</span>'
-      : '<span class="badge badge-reprogramada">♀ Femenino</span>';
+      ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rumbo/10 text-rumbo">♂ Masculino</span>'
+      : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400">♀ Femenino</span>';
 
-    return `<tr>
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;
-                      background:linear-gradient(135deg,var(--indigo),var(--blue));
-                      display:flex;align-items:center;justify-content:center;
-                      font-size:13px;font-weight:700;color:white">${iniciales}</div>
-          <div>
-            <div style="font-weight:500;color:var(--text)">${p.nombres} ${p.apellidos}</div>
-            <div style="font-size:11px;color:var(--text-3)">ID: ${p.id}</div>
+    return `<tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">
+      <td class="px-4 py-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full flex-shrink-0 bg-guia flex items-center justify-center text-[13px] font-display font-bold text-tinta">${iniciales}</div>
+          <div class="min-w-0">
+            <div class="font-medium truncate">${p.nombres} ${p.apellidos}</div>
+            <div class="text-[11px] text-neblina">ID: ${p.id}</div>
           </div>
         </div>
       </td>
-      <td><span style="font-family:monospace;font-size:13px;color:var(--text-2)">${p.dni}</span></td>
-      <td>${p.celular}</td>
-      <td style="color:var(--text-2)">${p.correo || '—'}</td>
-      <td>${sexoIcon}</td>
-      <td>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-sm btn-ghost" onclick="abrirVer(${p.id})" title="Ver detalle">
+      <td class="px-4 py-3"><span class="font-mono text-xs text-neblina">${p.dni}</span></td>
+      <td class="px-4 py-3">${p.celular}</td>
+      <td class="px-4 py-3 text-neblina">${p.correo || '—'}</td>
+      <td class="px-4 py-3">${sexoIcon}</td>
+      <td class="px-4 py-3">
+        <div class="flex gap-1.5">
+          <button onclick="abrirVer(${p.id})" title="Ver detalle"
+            class="p-2 rounded-lg text-neblina hover:text-guia hover:bg-guia/10 transition-colors">
             <i class="bi bi-eye"></i>
           </button>
-          <button class="btn btn-sm btn-ghost" onclick="abrirEditar(${p.id})" title="Editar">
+          <button onclick="abrirEditar(${p.id})" title="Editar"
+            class="p-2 rounded-lg text-neblina hover:text-blue-500 hover:bg-blue-500/10 transition-colors">
             <i class="bi bi-pencil"></i>
           </button>
         </div>
@@ -126,48 +133,39 @@ async function abrirVer(id) {
     document.getElementById('ver-correo').textContent = p.correo || '—';
     document.getElementById('ver-sexo').textContent = p.sexo === 'M' ? 'Masculino' : 'Femenino';
 
-    // Seguros vinculados
     const segurosEl = document.getElementById('ver-seguros');
     if (p.seguros && p.seguros.length > 0) {
       segurosEl.innerHTML = `
-        <div style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;
-                    padding-right:4px">
+        <div class="max-h-[200px] overflow-y-auto flex flex-col gap-2 pr-1">
           ${p.seguros.map(s => `
-            <div style="background:var(--bg-card);border:1px solid var(--border);
-                        border-radius:10px;padding:12px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span style="font-weight:600;color:var(--text)">${s.nombre}</span>
-                <div style="display:flex;align-items:center;gap:6px">
+            <div class="bg-white dark:bg-superficie-dark border border-borde dark:border-borde-dark rounded-lg p-3">
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="font-semibold">${s.nombre}</span>
+                <div class="flex items-center gap-1.5">
                   ${s.convenioActivo
-          ? '<span class="badge badge-confirmada">Convenio activo</span>'
-          : '<span class="badge badge-pendiente">Sin convenio</span>'}
-                  <button class="btn btn-sm btn-red" title="Quitar seguro"
-                          onclick="quitarSeguro(${pacienteActivoId}, ${s.id}, '${s.nombre}')">
-                    <i class="bi bi-trash3"></i>
+          ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rumbo/10 text-rumbo">Convenio activo</span>'
+          : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-guia/10 text-guia">Sin convenio</span>'}
+                  <button title="Quitar seguro" onclick="quitarSeguro(${pacienteActivoId}, ${s.id}, '${s.nombre}')"
+                    class="p-1.5 rounded-lg bg-alerta text-white hover:opacity-90 transition-opacity">
+                    <i class="bi bi-trash3 text-xs"></i>
                   </button>
                 </div>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
-                <div style="color:var(--text-3)">Tipo: <span style="color:var(--text)">${s.tipo}</span></div>
-                <div style="color:var(--text-3)">Cobertura:
-                  <span style="color:var(--green);font-weight:600">${s.porcentajeCobertura}%</span>
-                </div>
-                ${s.deducible ? `<div style="color:var(--text-3)">Deducible:
-                  <span style="color:var(--text)">S/ ${s.deducible}</span></div>` : ''}
-                ${s.numeroPoliza ? `<div style="color:var(--text-3)">Póliza:
-                  <span style="color:var(--text)">${s.numeroPoliza}</span></div>` : ''}
+              <div class="grid grid-cols-2 gap-1.5 text-xs">
+                <div class="text-neblina">Tipo: <span class="text-tinta dark:text-white">${s.tipo}</span></div>
+                <div class="text-neblina">Cobertura: <span class="text-rumbo font-semibold">${s.porcentajeCobertura}%</span></div>
+                ${s.deducible ? `<div class="text-neblina">Deducible: <span class="text-tinta dark:text-white">S/ ${s.deducible}</span></div>` : ''}
+                ${s.numeroPoliza ? `<div class="text-neblina">Póliza: <span class="text-tinta dark:text-white">${s.numeroPoliza}</span></div>` : ''}
               </div>
-              <div style="margin-top:6px;font-size:11px;color:var(--green)">
-                <i class="bi bi-info-circle"></i>
-                Descuento automático de ${s.porcentajeCobertura}% al pagar una cita
+              <div class="mt-1.5 text-[11px] text-rumbo">
+                <i class="bi bi-info-circle"></i> Descuento automático de ${s.porcentajeCobertura}% al pagar una cita
               </div>
             </div>
           `).join('')}
         </div>`;
     } else {
       segurosEl.innerHTML = `
-        <div style="color:var(--text-3);font-size:13px;padding:10px;
-                    background:var(--bg-main);border-radius:10px;text-align:center">
+        <div class="text-neblina text-[13px] p-3 bg-lienzo dark:bg-tinta-dark rounded-lg text-center">
           <i class="bi bi-shield-x"></i> Sin seguro médico vinculado
         </div>`;
     }
@@ -241,7 +239,6 @@ async function guardarPaciente() {
       correo: document.getElementById('pac-correo').value
     });
     cerrarModal('modalRegistrar');
-    // Limpiar formulario
     ['pac-dni', 'pac-nombres', 'pac-apellidos', 'pac-celular', 'pac-correo', 'pac-fechaNacimiento']
       .forEach(id => document.getElementById(id).value = '');
     document.getElementById('pac-sexo').value = '';
@@ -249,6 +246,7 @@ async function guardarPaciente() {
     cargarContadores();
   } catch (err) { UI.mostrarError(err); }
 }
+
 // ── Vincular seguro ───────────────────────────────────────────
 async function abrirVincularSeguro() {
   cerrarModal('modalVer');
@@ -279,7 +277,6 @@ async function confirmarVincularSeguro() {
     await SeguroService.vincular(pacienteActivoId, seguroId, numeroPoliza || null);
     cerrarModal('modalVincularSeguro');
     UI.mostrarAlerta('Seguro vinculado correctamente');
-    // Re-abrir el modal ver con datos actualizados
     await abrirVer(pacienteActivoId);
   } catch (err) { UI.mostrarError(err); }
 }
@@ -290,7 +287,7 @@ async function quitarSeguro(pacienteId, vinculoId, nombreSeguro) {
   try {
     await SeguroService.desvincular(pacienteId, vinculoId);
     UI.mostrarAlerta('Seguro quitado correctamente');
-    await abrirVer(pacienteId); // recargar modal con datos actualizados
+    await abrirVer(pacienteId);
   } catch (err) { UI.mostrarError(err); }
 }
 
