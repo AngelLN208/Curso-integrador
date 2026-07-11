@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,11 +38,12 @@ public class StaffPasswordResetService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository resetTokenRepository;
     private final JavaMailSender mailSender;
+    private final EmailTemplateHelper emailTemplateHelper;
 
     @Value("${spring.mail.username}")
     private String correoRemitente;
 
-    @Value("${frontend.url:http://127.0.0.1:5500}")
+    @Value("${app.portal.staff.url:http://127.0.0.1:5502}")
     private String frontendUrl;
 
     /**
@@ -66,29 +69,36 @@ public class StaffPasswordResetService {
 
             String linkReset = frontendUrl + "/views/auth/reset-password.html?token=" + token;
 
-            SimpleMailMessage mensaje = new SimpleMailMessage();
-            mensaje.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-            mensaje.setTo(correo);
-            mensaje.setSubject("🔐 Recuperación de contraseña — Clínica Stella Maris");
-            mensaje.setText("""
-                    Hola,
+            String cuerpoHtml = emailTemplateHelper.plantillaCorreo(
+                    "Recuperación de contraseña",
+                    usuario.getNombreCompleto(),
+                    "Recibimos una solicitud para restablecer la contraseña de tu cuenta en el sistema de gestión.",
+                    "",
+                    emailTemplateHelper.cajaNota(
+                            "Este enlace es válido por 30 minutos. Si no solicitaste este cambio, puedes ignorar este correo — tu contraseña no cambiará.",
+                            EmailTemplateHelper.COLOR_GUIA, EmailTemplateHelper.COLOR_GUIA_BG,
+                            EmailTemplateHelper.COLOR_GUIA_TEXTO),
+                    "Restablecer contraseña", linkReset);
 
-                    Recibimos una solicitud para restablecer la contraseña de tu cuenta
-                    en el sistema de gestión de la Clínica Stella Maris.
+            try {
+                MimeMessage mimeMsg = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, false, "UTF-8");
+                helper.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
+                helper.setTo(correo);
+                helper.setSubject("Recuperación de contraseña — Clínica Stella Maris");
+                helper.setText(cuerpoHtml, true);
+                mailSender.send(mimeMsg);
+            } catch (Exception e) {
+                log.error("Error enviando correo de recuperación (staff): {}", e.getMessage());
+                SimpleMailMessage simple = new SimpleMailMessage();
+                simple.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
+                simple.setTo(correo);
+                simple.setSubject("Recuperación de contraseña — Clínica Stella Maris");
+                simple.setText("Ingresa a este enlace para restablecer tu contraseña (válido 30 minutos): "
+                        + linkReset);
+                mailSender.send(simple);
+            }
 
-                    Haz clic en el siguiente enlace para crear una nueva contraseña:
-
-                    %s
-
-                    Este enlace es válido por 30 minutos. Si no solicitaste este cambio,
-                    puedes ignorar este correo — tu contraseña no cambiará.
-
-                    ─────────────────────────────
-                    Clínica Stella Maris
-                    Tel: (01) 234-5678
-                    """.formatted(linkReset));
-
-            mailSender.send(mensaje);
             log.info("Correo de recuperación (staff) enviado a: {}", correo);
         });
     }

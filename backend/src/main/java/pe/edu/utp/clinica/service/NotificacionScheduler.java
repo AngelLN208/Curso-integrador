@@ -32,13 +32,8 @@ import jakarta.mail.internet.MimeMessage;
  * RF-47: Envía recordatorio 24 horas antes de la cita.
  * RF-44 al 46: Procesa notificaciones pendientes de registro,
  * reprogramación y cancelación.
- *
- * BUG CORREGIDO (RF-47): generarRecordatorios() cargaba TODAS las
- * notificaciones con estado ENVIADO en memoria para buscar duplicados
- * con stream().anyMatch(). Con el tiempo esa lista crece sin límite.
- * CORRECCIÓN: se agrega un método en NotificacionRepository que verifica
- * directamente en BD si ya existe un recordatorio para esa cita,
- * sin traer datos a memoria.
+ * RF-20: Notificaciones por correo electrónico con plantilla HTML
+ * (identidad visual Stella Maris — header navy, tarjeta central, footer).
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -54,8 +49,31 @@ public class NotificacionScheduler {
         @Value("${spring.mail.username}")
         private String correoRemitente;
 
+        @Value("${app.portal.paciente.url}")
+        private String portalPacienteUrl;
+
+        @Value("${app.portal.staff.url}")
+        private String portalStaffUrl;
+
         private static final DateTimeFormatter FMT_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         private static final DateTimeFormatter FMT_HORA = DateTimeFormatter.ofPattern("HH:mm");
+
+        // Paleta Stella Maris (misma que Tailwind, en hex — los correos no soportan CSS
+        // externo)
+        private static final String COLOR_TINTA = "#14213D";
+        private static final String COLOR_TINTA_CLARO = "#B9C2D6";
+        private static final String COLOR_GUIA = "#FF7A45";
+        private static final String COLOR_GUIA_BG = "#FFF4EE";
+        private static final String COLOR_GUIA_TEXTO = "#993C1D";
+        private static final String COLOR_RUMBO = "#2F9E6E";
+        private static final String COLOR_RUMBO_BG = "#EAF7F1";
+        private static final String COLOR_RUMBO_TEXTO = "#1F6E4C";
+        private static final String COLOR_ALERTA = "#E5484D";
+        private static final String COLOR_ALERTA_BG = "#FDEEEE";
+        private static final String COLOR_ALERTA_TEXTO = "#A72E32";
+        private static final String COLOR_NEBLINA = "#8A94A6";
+        private static final String COLOR_LIENZO = "#F7F8FA";
+        private static final String COLOR_BORDE = "#E4E7EC";
 
         private final PagoService pagoService;
 
@@ -102,10 +120,6 @@ public class NotificacionScheduler {
         /**
          * Genera recordatorios para citas del día siguiente.
          * RF-47: Se ejecuta una vez al día a las 8:00 AM.
-         *
-         * BUG CORREGIDO: antes verificaba duplicados con findByEstado("ENVIADO")
-         * + stream().anyMatch() — cargaba toda la tabla en memoria.
-         * CORRECCIÓN: usa existsByCitaIdAndTipo() que ejecuta un COUNT en BD.
          */
         @Scheduled(cron = "0 0 8 * * *")
         @Transactional
@@ -124,7 +138,6 @@ public class NotificacionScheduler {
                 for (CitaMedica cita : citasManana) {
                         Paciente paciente = cita.getPaciente();
 
-                        // CORRECCIÓN: consulta directa en BD — sin cargar tabla en memoria
                         boolean yaNotificado = notificacionRepository
                                         .existsByCitaIdAndTipo(cita.getId(), "RECORDATORIO");
 
@@ -149,16 +162,11 @@ public class NotificacionScheduler {
 
         /**
          * Cancela automáticamente las citas que pasaron su hora + 15 min de tolerancia.
-         * Se ejecuta cada 5 minutos para mantener los estados actualizados.
-         *
-         * Ejemplo: cita a las 15:00 → se cancela automáticamente a las 15:15
-         * si aún está en PENDIENTE o CONFIRMADA.
          */
         // @Scheduled(fixedDelay = 300_000) // DESACTIVADO — cancelación manual para
         // proyecto académico
         @Transactional
         public void cancelarCitasVencidas() {
-                // Límite = ahora - 15 minutos de tolerancia
                 LocalDateTime limite = LocalDateTime.now().minusMinutes(15);
 
                 List<CitaMedica> vencidas = citaRepository.findCitasVencidas(limite);
@@ -174,7 +182,6 @@ public class NotificacionScheduler {
                                 cita.setEstado(EstadoCita.CANCELADA);
                                 citaRepository.save(cita);
 
-                                // Notificar al paciente
                                 Notificacion notif = Notificacion.builder()
                                                 .paciente(cita.getPaciente())
                                                 .cita(cita)
@@ -196,9 +203,117 @@ public class NotificacionScheduler {
                 }
         }
 
+        // ==========================================================
+        // PLANTILLA HTML — helpers de construcción
+        // ==========================================================
+
+        /**
+         * Arma el esqueleto completo del correo (header navy + tarjeta + footer).
+         *
+         * @param subtituloHeader texto pequeño bajo el nombre de la clínica (ej.
+         *                        "Confirmación de cita médica")
+         * @param nombrePaciente  nombre completo del paciente
+         * @param introHtml       párrafo introductorio (ya en HTML, puede tener <span>)
+         * @param tablaHtml       bloque de detalles tipo tabla (puede ser cadena vacía
+         *                        si no aplica)
+         * @param notaHtml        caja de nota/alerta con color (puede ser cadena vacía
+         *                        si no aplica)
+         * @param ctaTexto        texto del botón CTA (puede ser null para omitirlo)
+         * @param ctaUrl          URL a la que apunta el botón CTA (puede ser null si
+         *                        ctaTexto es null)
+         */
+        private String plantillaCorreo(String subtituloHeader, String nombrePaciente, String introHtml,
+                        String tablaHtml, String notaHtml, String ctaTexto, String ctaUrl) {
+
+                String cta = (ctaTexto == null) ? ""
+                                : """
+                                                <div style="text-align:center; margin-bottom:6px;">
+                                                  <a href="%s" style="display:inline-block; background:%s; color:#FFFFFF; font-size:13px; font-weight:bold; padding:10px 22px; border-radius:6px; text-decoration:none;">%s</a>
+                                                </div>
+                                                """
+                                                .formatted(ctaUrl, COLOR_TINTA, ctaTexto);
+
+                return """
+                                <div style="background:%s; padding:32px 16px; font-family:Arial, Helvetica, sans-serif;">
+                                <div style="max-width:480px; margin:0 auto; background:#FFFFFF; border-radius:10px; overflow:hidden;">
+
+                                  <div style="background:%s; padding:28px 24px; text-align:center;">
+                                    <div style="color:#FFFFFF; font-size:18px; font-weight:bold;">Clínica Stella Maris</div>
+                                    <div style="color:%s; font-size:12px; margin-top:4px;">%s</div>
+                                  </div>
+
+                                  <div style="padding:24px;">
+                                    <p style="font-size:14px; color:%s; margin:0 0 4px; line-height:1.5;">Estimado(a) <strong>%s</strong>,</p>
+                                    <p style="font-size:13px; color:%s; line-height:1.6; margin:0 0 20px;">%s</p>
+
+                                    %s
+
+                                    %s
+
+                                    %s
+                                  </div>
+
+                                  <div style="border-top:1px solid %s; padding:16px 24px; text-align:center;">
+                                    <div style="font-size:11px; color:%s; line-height:1.6;">Clínica Stella Maris &middot; Tel (01) 234-5678<br/>Lunes a sábado, 7:00 am &ndash; 8:00 pm</div>
+                                  </div>
+
+                                </div>
+                                </div>
+                                """
+                                .formatted(
+                                                COLOR_LIENZO, COLOR_TINTA, COLOR_TINTA_CLARO, subtituloHeader,
+                                                COLOR_TINTA, nombrePaciente,
+                                                COLOR_NEBLINA, introHtml,
+                                                tablaHtml, notaHtml, cta,
+                                                COLOR_BORDE, COLOR_NEBLINA);
+        }
+
+        /**
+         * Construye una fila de la tabla de detalles (label a la izquierda, valor a la
+         * derecha).
+         */
+        private String filaDetalle(String label, String valor, boolean ultima) {
+                String borde = ultima ? "" : "border-bottom:1px solid " + COLOR_BORDE + ";";
+                return """
+                                <tr>
+                                  <td style="padding:6px 0; %s font-size:13px; color:%s;">%s</td>
+                                  <td style="padding:6px 0; %s font-size:13px; color:%s; font-weight:bold; text-align:right;">%s</td>
+                                </tr>
+                                """
+                                .formatted(borde, COLOR_NEBLINA, label, borde, COLOR_TINTA, valor);
+        }
+
+        /** Envuelve un conjunto de filas en la tarjeta gris de detalles. */
+        private String tablaDetalles(String filas) {
+                return """
+                                <table role="presentation" width="100%%" style="background:%s; border-radius:8px; padding:6px 12px; margin-bottom:20px; border-collapse:collapse;" cellpadding="0" cellspacing="0">
+                                  <tr><td>
+                                    <table role="presentation" width="100%%" style="border-collapse:collapse;" cellpadding="0" cellspacing="0">
+                                      %s
+                                    </table>
+                                  </td></tr>
+                                </table>
+                                """
+                                .formatted(COLOR_LIENZO, filas);
+        }
+
+        /** Caja de nota/alerta con color según el contexto (info, éxito o error). */
+        private String cajaNota(String texto, String colorBorde, String colorBg, String colorTexto) {
+                return """
+                                <div style="background:%s; border-left:3px solid %s; border-radius:0 6px 6px 0; padding:10px 14px; margin-bottom:22px;">
+                                  <span style="font-size:12px; color:%s; line-height:1.5;">%s</span>
+                                </div>
+                                """
+                                .formatted(colorBg, colorBorde, colorTexto, texto);
+        }
+
+        // ==========================================================
+        // ENVÍO DE CORREO
+        // ==========================================================
+
         /**
          * Envía el correo real al paciente según el tipo de notificación.
-         * RF-20: Notificaciones por correo electrónico.
+         * RF-20: Notificaciones por correo electrónico (HTML con inline CSS).
          * RF-44: Confirmación de registro de cita.
          * RF-45: Aviso de reprogramación.
          * RF-46: Aviso de cancelación.
@@ -210,9 +325,8 @@ public class NotificacionScheduler {
                 String nombrePaciente = paciente.getNombres() + " " + paciente.getApellidos();
 
                 String asunto;
-                String cuerpo;
+                String cuerpoHtml;
 
-                // Armar asunto y cuerpo según el tipo de notificación
                 switch (notificacion.getTipo()) {
                         case "REGISTRO" -> {
                                 CitaMedica cita = notificacion.getCita();
@@ -222,66 +336,53 @@ public class NotificacionScheduler {
                                                 + " " + cita.getMedico().getApellidos();
                                 String especialidad = cita.getMedico().getEspecialidad().getNombre();
 
-                                asunto = "✅ Cita registrada — Clínica Stella Maris";
-                                cuerpo = """
-                                                Estimado(a) %s,
+                                asunto = "Cita registrada — Clínica Stella Maris";
 
-                                                Su cita médica ha sido registrada exitosamente.
+                                String filas = filaDetalle("Médico", medico, false)
+                                                + filaDetalle("Especialidad", especialidad, false)
+                                                + filaDetalle("Fecha", fecha, false)
+                                                + filaDetalle("Hora", hora, false)
+                                                + filaDetalle("Costo", "S/ 80.00 (puede variar según seguro)", true);
 
-                                                📋 DETALLES DE LA CITA
-                                                ─────────────────────────────
-                                                Médico:       %s
-                                                Especialidad: %s
-                                                Fecha:        %s
-                                                Hora:         %s
-                                                Costo:        S/ 80.00 (puede variar según seguro)
-
-                                                ℹ️  Su cita quedará CONFIRMADA una vez registrado el pago.
-                                                Puede gestionar su cita desde el portal de pacientes.
-
-                                                ─────────────────────────────
-                                                Clínica Stella Maris
-                                                Tel: (01) 234-5678
-                                                Horario: Lunes a Sábado, 7:00 AM – 8:00 PM
-                                                """.formatted(nombrePaciente, medico, especialidad, fecha, hora);
+                                cuerpoHtml = plantillaCorreo(
+                                                "Confirmación de cita médica",
+                                                nombrePaciente,
+                                                "Su cita médica ha sido registrada exitosamente. Estos son los detalles:",
+                                                tablaDetalles(filas),
+                                                cajaNota("Su cita quedará <strong>confirmada</strong> una vez registrado el pago. Puede gestionarla desde el portal de pacientes.",
+                                                                COLOR_GUIA, COLOR_GUIA_BG, COLOR_GUIA_TEXTO),
+                                                "Ver mi cita", portalPacienteUrl + "/views/citas.html");
                         }
                         case "REPROGRAMACION" -> {
                                 CitaMedica cita = notificacion.getCita();
                                 String fecha = cita.getFechaHora().format(FMT_FECHA);
                                 String hora = cita.getFechaHora().format(FMT_HORA);
 
-                                asunto = "🔄 Cita reprogramada — Clínica Stella Maris";
-                                cuerpo = """
-                                                Estimado(a) %s,
+                                asunto = "Cita reprogramada — Clínica Stella Maris";
 
-                                                Su cita médica ha sido reprogramada.
+                                String filas = filaDetalle("Nueva fecha", fecha, false)
+                                                + filaDetalle("Nueva hora", hora, true);
 
-                                                📋 NUEVA FECHA Y HORA
-                                                ─────────────────────────────
-                                                Fecha: %s
-                                                Hora:  %s
-
-                                                Si no solicitó este cambio, comuníquese con nosotros al (01) 234-5678.
-
-                                                ─────────────────────────────
-                                                Clínica Stella Maris
-                                                """.formatted(nombrePaciente, fecha, hora);
+                                cuerpoHtml = plantillaCorreo(
+                                                "Cita reprogramada",
+                                                nombrePaciente,
+                                                "Su cita médica ha sido reprogramada. Estos son los nuevos datos:",
+                                                tablaDetalles(filas),
+                                                cajaNota("Si usted no solicitó este cambio, comuníquese con nosotros al (01) 234-5678.",
+                                                                COLOR_GUIA, COLOR_GUIA_BG, COLOR_GUIA_TEXTO),
+                                                "Ver mi cita", portalPacienteUrl + "/views/citas.html");
                         }
                         case "CANCELACION", "CANCELACION_AUTOMATICA" -> {
-                                asunto = "❌ Cita cancelada — Clínica Stella Maris";
-                                cuerpo = """
-                                                Estimado(a) %s,
+                                asunto = "Cita cancelada — Clínica Stella Maris";
 
-                                                Le informamos que su cita médica ha sido cancelada.
-
-                                                %s
-
-                                                Si desea agendar una nueva cita, puede hacerlo desde el
-                                                portal de pacientes o llamando al (01) 234-5678.
-
-                                                ─────────────────────────────
-                                                Clínica Stella Maris
-                                                """.formatted(nombrePaciente, notificacion.getMensaje());
+                                cuerpoHtml = plantillaCorreo(
+                                                "Cita cancelada",
+                                                nombrePaciente,
+                                                "Le informamos que su cita médica ha sido cancelada.",
+                                                "",
+                                                cajaNota(notificacion.getMensaje(),
+                                                                COLOR_ALERTA, COLOR_ALERTA_BG, COLOR_ALERTA_TEXTO),
+                                                "Agendar nueva cita", portalPacienteUrl + "/views/citas.html");
                         }
                         case "RECORDATORIO" -> {
                                 CitaMedica cita = notificacion.getCita();
@@ -290,25 +391,20 @@ public class NotificacionScheduler {
                                 String medico = "Dr(a). " + cita.getMedico().getNombres()
                                                 + " " + cita.getMedico().getApellidos();
 
-                                asunto = "🔔 Recordatorio de cita mañana — Clínica Stella Maris";
-                                cuerpo = """
-                                                Estimado(a) %s,
+                                asunto = "Recordatorio de cita mañana — Clínica Stella Maris";
 
-                                                Le recordamos que tiene una cita médica mañana.
+                                String filas = filaDetalle("Médico", medico, false)
+                                                + filaDetalle("Fecha", fecha, false)
+                                                + filaDetalle("Hora", hora, true);
 
-                                                📋 DETALLES
-                                                ─────────────────────────────
-                                                Médico: %s
-                                                Fecha:  %s
-                                                Hora:   %s
-
-                                                Por favor llegue 10 minutos antes de su cita.
-                                                Si no puede asistir, cancele desde el portal con anticipación.
-
-                                                ─────────────────────────────
-                                                Clínica Stella Maris
-                                                Tel: (01) 234-5678
-                                                """.formatted(nombrePaciente, medico, fecha, hora);
+                                cuerpoHtml = plantillaCorreo(
+                                                "Recordatorio de cita",
+                                                nombrePaciente,
+                                                "Le recordamos que tiene una cita médica mañana.",
+                                                tablaDetalles(filas),
+                                                cajaNota("Por favor llegue 10 minutos antes de su cita. Si no puede asistir, cancele desde el portal con anticipación.",
+                                                                COLOR_GUIA, COLOR_GUIA_BG, COLOR_GUIA_TEXTO),
+                                                "Ver mi cita", portalPacienteUrl + "/views/citas.html");
                         }
                         case "PAGO_CONFIRMADO" -> {
                                 CitaMedica cita = notificacion.getCita();
@@ -317,47 +413,43 @@ public class NotificacionScheduler {
                                 String medico = "Dr(a). " + cita.getMedico().getNombres()
                                                 + " " + cita.getMedico().getApellidos();
 
-                                asunto = "💳 Pago confirmado — Clínica Stella Maris";
-                                cuerpo = """
-                                                Estimado(a) %s,
+                                asunto = "Pago confirmado — Clínica Stella Maris";
 
-                                                Su pago ha sido registrado exitosamente y su cita queda CONFIRMADA.
+                                String filas = filaDetalle("Médico", medico, false)
+                                                + filaDetalle("Fecha", fecha, false)
+                                                + filaDetalle("Hora", hora, true);
 
-                                                📋 DETALLES
-                                                ─────────────────────────────
-                                                Médico: %s
-                                                Fecha:  %s
-                                                Hora:   %s
-                                                %s
-
-                                                Recuerde llegar 10 minutos antes de su cita.
-
-                                                ─────────────────────────────
-                                                Clínica Stella Maris
-                                                Tel: (01) 234-5678
-                                                """.formatted(nombrePaciente, medico, fecha, hora,
-                                                notificacion.getMensaje());
+                                cuerpoHtml = plantillaCorreo(
+                                                "Pago confirmado",
+                                                nombrePaciente,
+                                                "Su pago ha sido registrado exitosamente y su cita queda confirmada.",
+                                                tablaDetalles(filas),
+                                                cajaNota(notificacion.getMensaje()
+                                                                + " Adjuntamos su boleta en PDF. Recuerde llegar 10 minutos antes de su cita.",
+                                                                COLOR_RUMBO, COLOR_RUMBO_BG, COLOR_RUMBO_TEXTO),
+                                                null, null);
                         }
                         case "CONSULTA_REGISTRADA" -> {
-                                asunto = "📋 Consulta registrada — Clínica Stella Maris";
-                                cuerpo = """
-                                                Estimado(a) %s,
+                                asunto = "Consulta registrada — Clínica Stella Maris";
 
-                                                %s
-
-                                                Puede descargar su historial médico completo desde el
-                                                portal de pacientes en cualquier momento.
-
-                                                ─────────────────────────────
-                                                Clínica Stella Maris
-                                                Tel: (01) 234-5678
-                                                """.formatted(nombrePaciente, notificacion.getMensaje());
+                                cuerpoHtml = plantillaCorreo(
+                                                "Consulta registrada",
+                                                nombrePaciente,
+                                                notificacion.getMensaje(),
+                                                "",
+                                                "",
+                                                "Ver historial médico", portalPacienteUrl + "/views/citas.html");
                         }
                         default -> {
                                 asunto = "Notificación — Clínica Stella Maris";
-                                cuerpo = "Estimado(a) " + nombrePaciente + ",\n\n"
-                                                + notificacion.getMensaje() + "\n\n"
-                                                + "— Clínica Stella Maris";
+
+                                cuerpoHtml = plantillaCorreo(
+                                                "Notificación",
+                                                nombrePaciente,
+                                                notificacion.getMensaje(),
+                                                "",
+                                                "",
+                                                null, null);
                         }
                 }
 
@@ -369,9 +461,8 @@ public class NotificacionScheduler {
                                 helper.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
                                 helper.setTo(correoDestino);
                                 helper.setSubject(asunto);
-                                helper.setText(cuerpo);
+                                helper.setText(cuerpoHtml, true);
 
-                                // Buscar el pago de la cita para generar la boleta
                                 pe.edu.utp.clinica.repository.PagoRepository pagoRepo = pagoService.getPagoRepository();
                                 pe.edu.utp.clinica.model.Pago pago = pagoRepo
                                                 .findByCita(notificacion.getCita()).orElse(null);
@@ -385,21 +476,33 @@ public class NotificacionScheduler {
                                 mailSender.send(mimeMsg);
                         } catch (Exception e) {
                                 log.error("Error enviando correo con adjunto: {}", e.getMessage());
-                                // Fallback: enviar sin adjunto
+                                // Fallback: enviar en texto plano sin adjunto
                                 SimpleMailMessage simple = new SimpleMailMessage();
                                 simple.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
                                 simple.setTo(correoDestino);
                                 simple.setSubject(asunto);
-                                simple.setText(cuerpo);
+                                simple.setText("Su pago fue registrado exitosamente. Ingrese al portal de pacientes para ver el detalle.");
                                 mailSender.send(simple);
                         }
                 } else {
-                        SimpleMailMessage mensaje = new SimpleMailMessage();
-                        mensaje.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                        mensaje.setTo(correoDestino);
-                        mensaje.setSubject(asunto);
-                        mensaje.setText(cuerpo);
-                        mailSender.send(mensaje);
+                        try {
+                                MimeMessage mimeMsg = mailSender.createMimeMessage();
+                                MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, false, "UTF-8");
+                                helper.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
+                                helper.setTo(correoDestino);
+                                helper.setSubject(asunto);
+                                helper.setText(cuerpoHtml, true);
+                                mailSender.send(mimeMsg);
+                        } catch (Exception e) {
+                                log.error("Error enviando correo HTML: {}", e.getMessage());
+                                // Fallback: enviar en texto plano
+                                SimpleMailMessage simple = new SimpleMailMessage();
+                                simple.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
+                                simple.setTo(correoDestino);
+                                simple.setSubject(asunto);
+                                simple.setText(notificacion.getMensaje());
+                                mailSender.send(simple);
+                        }
                 }
                 log.debug("Correo enviado a {} — asunto: {}", correoDestino, asunto);
         }

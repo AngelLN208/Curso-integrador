@@ -22,6 +22,8 @@ import pe.edu.utp.clinica.model.PasswordResetToken;
 import pe.edu.utp.clinica.repository.PasswordResetTokenRepository;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -55,11 +57,12 @@ public class AuthPacienteService {
 
         private final PasswordResetTokenRepository resetTokenRepository;
         private final JavaMailSender mailSender;
+        private final EmailTemplateHelper emailTemplateHelper;
 
         @Value("${spring.mail.username}")
         private String correoRemitente;
 
-        @Value("${portal.url:http://127.0.0.1:5501}")
+        @Value("${app.portal.paciente.url:http://127.0.0.1:5501}")
         private String portalUrl;
 
         /**
@@ -225,29 +228,37 @@ public class AuthPacienteService {
                         // Enviar correo con el link de reset
                         String linkReset = portalUrl + "/views/reset-password.html?token=" + token;
 
-                        SimpleMailMessage mensaje = new SimpleMailMessage();
-                        mensaje.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                        mensaje.setTo(correo);
-                        mensaje.setSubject("🔐 Recuperación de contraseña — Clínica Stella Maris");
-                        mensaje.setText("""
-                                        Hola,
+                        String cuerpoHtml = emailTemplateHelper.plantillaCorreo(
+                                        "Recuperación de contraseña",
+                                        usuario.getNombreCompleto(),
+                                        "Recibimos una solicitud para restablecer la contraseña de tu cuenta en el portal de pacientes.",
+                                        "",
+                                        emailTemplateHelper.cajaNota(
+                                                        "Este enlace es válido por 30 minutos. Si no solicitaste este cambio, puedes ignorar este correo — tu contraseña no cambiará.",
+                                                        EmailTemplateHelper.COLOR_GUIA,
+                                                        EmailTemplateHelper.COLOR_GUIA_BG,
+                                                        EmailTemplateHelper.COLOR_GUIA_TEXTO),
+                                        "Restablecer contraseña", linkReset);
 
-                                        Recibimos una solicitud para restablecer la contraseña de tu cuenta
-                                        en el portal de pacientes de la Clínica Stella Maris.
+                        try {
+                                MimeMessage mimeMsg = mailSender.createMimeMessage();
+                                MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, false, "UTF-8");
+                                helper.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
+                                helper.setTo(correo);
+                                helper.setSubject("Recuperación de contraseña — Clínica Stella Maris");
+                                helper.setText(cuerpoHtml, true);
+                                mailSender.send(mimeMsg);
+                        } catch (Exception e) {
+                                log.error("Error enviando correo de recuperación: {}", e.getMessage());
+                                SimpleMailMessage simple = new SimpleMailMessage();
+                                simple.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
+                                simple.setTo(correo);
+                                simple.setSubject("Recuperación de contraseña — Clínica Stella Maris");
+                                simple.setText("Ingresa a este enlace para restablecer tu contraseña (válido 30 minutos): "
+                                                + linkReset);
+                                mailSender.send(simple);
+                        }
 
-                                        Haz clic en el siguiente enlace para crear una nueva contraseña:
-
-                                        %s
-
-                                        Este enlace es válido por 30 minutos. Si no solicitaste este cambio,
-                                        puedes ignorar este correo — tu contraseña no cambiará.
-
-                                        ─────────────────────────────
-                                        Clínica Stella Maris
-                                        Tel: (01) 234-5678
-                                        """.formatted(linkReset));
-
-                        mailSender.send(mensaje);
                         log.info("Correo de recuperación enviado a: {}", correo);
                 });
         }
