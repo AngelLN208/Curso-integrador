@@ -5,17 +5,34 @@
 
 PortalAuthService.requireAuth();
 const pacienteActualCitas = PortalAuth.getPaciente();
-document.getElementById('saludo-usuario').textContent = pacienteActualCitas?.nombreCompleto?.split(' ')[0] || '';
+const nombreCortoCitas = pacienteActualCitas?.nombreCompleto?.split(' ')[0] || '';
+document.getElementById('saludo-usuario').textContent = nombreCortoCitas;
+document.getElementById('saludo-usuario-mobile').textContent = nombreCortoCitas;
 
 let todasLasCitas = [];
 let estadoActivo = '';
+
+const CLASE_CHIP_INACTIVO = 'flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/80 text-xs font-medium rounded-lg px-3.5 py-2 transition hover:bg-white/[0.16]';
+const CLASE_CHIP_ACTIVO = 'flex items-center gap-1.5 bg-guia text-white text-xs font-semibold rounded-lg px-3.5 py-2 transition';
+
+function abrirModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function cerrarModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
 
 // ── Modal: Ver comprobante ────────────────────────────────────────
 
 async function abrirModalComprobante(citaId) {
     document.getElementById('comp-estado').innerHTML =
-        '<span style="color:var(--text-3);font-size:13px">Cargando...</span>';
-    document.getElementById('modalComprobante').style.display = 'flex';
+        '<span class="text-neblina text-[13px]">Cargando...</span>';
+    abrirModal('modalComprobante');
 
     try {
         const pago = await PortalService.obtenerComprobante(citaId);
@@ -31,8 +48,8 @@ async function abrirModalComprobante(citaId) {
 
         document.getElementById('comp-estado').innerHTML =
             pago.estado === 'PAGADO'
-                ? '<span style="color:var(--green);font-weight:700;font-size:13px"><i class="bi bi-check-circle"></i> Pago confirmado</span>'
-                : '<span style="color:var(--amber);font-weight:700;font-size:13px"><i class="bi bi-hourglass-split"></i> Pago pendiente</span>';
+                ? '<span class="text-rumbo font-bold text-[13px]"><i class="bi bi-check-circle"></i> Pago confirmado</span>'
+                : '<span class="text-guia font-bold text-[13px]"><i class="bi bi-hourglass-split"></i> Pago pendiente</span>';
 
         document.getElementById('comp-medico').textContent = pago.medicoNombre || '—';
         document.getElementById('comp-monto').textContent = `S/ ${monto.toFixed(2)}`;
@@ -42,20 +59,22 @@ async function abrirModalComprobante(citaId) {
 
         const seguroEl = document.getElementById('comp-seguro');
         if (descuento > 0) {
-            seguroEl.style.display = 'flex';
+            seguroEl.classList.remove('hidden');
+            seguroEl.classList.add('flex');
             document.getElementById('comp-descuento').textContent = `-S/ ${descuento.toFixed(2)}`;
         } else {
-            seguroEl.style.display = 'none';
+            seguroEl.classList.add('hidden');
+            seguroEl.classList.remove('flex');
         }
 
     } catch (err) {
         document.getElementById('comp-estado').innerHTML =
-            '<span style="color:var(--red);font-size:13px">No se pudo cargar el comprobante</span>';
+            '<span class="text-alerta text-[13px]">No se pudo cargar el comprobante</span>';
     }
 }
 
 function cerrarModalComprobante() {
-    document.getElementById('modalComprobante').style.display = 'none';
+    cerrarModal('modalComprobante');
 }
 
 function imprimirComprobante() {
@@ -71,17 +90,17 @@ async function cargarMisCitas() {
         renderCitas(todasLasCitas);
     } catch (err) {
         cont.innerHTML = `
-      <div class="card card-pad">
-        <div class="empty-row" style="color:var(--red)">No se pudieron cargar tus citas</div>
+      <div class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card text-center text-sm text-alerta py-8">
+        No se pudieron cargar tus citas
       </div>`;
     }
 }
 
 function filtrarPorEstado(estado, btnClickeado) {
     document.querySelectorAll('#filtros-estado button').forEach(b => {
-        b.className = 'btn btn-ghost btn-sm';
+        b.className = CLASE_CHIP_INACTIVO;
     });
-    btnClickeado.className = 'btn btn-primary btn-sm';
+    btnClickeado.className = CLASE_CHIP_ACTIVO;
     estadoActivo = estado;
     aplicarFiltrosCitas();
 }
@@ -114,8 +133,8 @@ function limpiarFiltrosCitas() {
     document.getElementById('filtro-citas-texto').value = '';
     document.getElementById('filtro-citas-fecha').value = '';
     estadoActivo = '';
-    document.querySelectorAll('#filtros-estado button').forEach(b => b.className = 'btn btn-ghost btn-sm');
-    document.querySelector('#filtros-estado button[data-estado=""]').className = 'btn btn-primary btn-sm';
+    document.querySelectorAll('#filtros-estado button').forEach(b => b.className = CLASE_CHIP_INACTIVO);
+    document.querySelector('#filtros-estado button[data-estado=""]').className = CLASE_CHIP_ACTIVO;
     renderCitas(todasLasCitas);
 }
 
@@ -126,39 +145,37 @@ function renderCitas(citas) {
 
     if (!citas.length) {
         cont.innerHTML = `
-      <div class="card card-pad">
-        <div class="empty-row">No tienes citas en esta categoría</div>
+      <div class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card text-center text-sm text-white/60 py-8">
+        No tienes citas en esta categoría
       </div>`;
         return;
     }
 
     cont.innerHTML = citas.map(cita => {
-        const { etiqueta, color, fondo, icono } = estiloEstado(cita.estado);
+        const { etiqueta, badge, icono } = estiloEstado(cita.estado);
         const fecha = new Date(cita.fechaHora);
         const fechaTexto = fecha.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
         const horaTexto = fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
 
         return `
-      <div class="card card-pad" style="display:flex;flex-direction:column;gap:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:14px">
-            <div style="width:46px;height:46px;border-radius:12px;background:${fondo};
-                        display:flex;align-items:center;justify-content:center;font-size:18px;color:${color}">
+      <div class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card p-5 flex flex-col gap-3.5">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <div class="flex items-center gap-3.5">
+            <div class="w-[46px] h-[46px] rounded-xl ${badge} flex items-center justify-center text-lg flex-shrink-0">
               <i class="bi ${icono}"></i>
             </div>
             <div>
-              <div style="font-weight:700;font-size:14.5px">${cita.medicoNombre}</div>
-              <div style="font-size:12.5px;color:var(--text-2)">${cita.especialidad}</div>
-              ${cita.motivo ? `<div style="font-size:11.5px;color:var(--text-3);margin-top:2px">${cita.motivo}</div>` : ''}
+              <div class="font-semibold text-[14.5px] text-white">${cita.medicoNombre}</div>
+              <div class="text-[12.5px] text-white/60">${cita.especialidad}</div>
+              ${cita.motivo ? `<div class="text-[11.5px] text-white/40 mt-0.5">${cita.motivo}</div>` : ''}
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:18px">
-            <div style="text-align:right">
-              <div style="font-size:13px;font-weight:600">${fechaTexto}</div>
-              <div style="font-size:12px;color:var(--text-2)">${horaTexto}</div>
+          <div class="flex items-center gap-4">
+            <div class="text-right">
+              <div class="text-[13px] font-semibold text-white">${fechaTexto}</div>
+              <div class="text-[12px] text-white/60">${horaTexto}</div>
             </div>
-            <span style="font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:20px;
-                         background:${fondo};color:${color};white-space:nowrap">
+            <span class="text-[11.5px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap ${badge}">
               ${etiqueta}
             </span>
           </div>
@@ -170,13 +187,13 @@ function renderCitas(citas) {
 
 function estiloEstado(estado) {
     const mapa = {
-        PENDIENTE: { etiqueta: 'Pendiente', color: 'var(--amber)', fondo: 'var(--amber-lt)', icono: 'bi-hourglass-split' },
-        CONFIRMADA: { etiqueta: 'Confirmada', color: 'var(--green)', fondo: '#DCFCE7', icono: 'bi-check-circle' },
-        ATENDIDA: { etiqueta: 'Atendida', color: 'var(--accent)', fondo: 'var(--accent-lt)', icono: 'bi-clipboard2-pulse' },
-        REPROGRAMADA: { etiqueta: 'Reprogramada', color: 'var(--primary)', fondo: 'var(--primary-lt)', icono: 'bi-arrow-repeat' },
-        CANCELADA: { etiqueta: 'Cancelada', color: 'var(--red)', fondo: '#FEE2E2', icono: 'bi-x-circle' },
+        PENDIENTE: { etiqueta: 'Pendiente', badge: 'bg-guia/15 text-guia', icono: 'bi-hourglass-split' },
+        CONFIRMADA: { etiqueta: 'Confirmada', badge: 'bg-rumbo/15 text-rumbo', icono: 'bi-check-circle' },
+        ATENDIDA: { etiqueta: 'Atendida', badge: 'bg-[#7DA6FF]/15 text-[#7DA6FF]', icono: 'bi-clipboard2-pulse' },
+        REPROGRAMADA: { etiqueta: 'Reprogramada', badge: 'bg-[#C9A6FF]/15 text-[#C9A6FF]', icono: 'bi-arrow-repeat' },
+        CANCELADA: { etiqueta: 'Cancelada', badge: 'bg-alerta/15 text-alerta', icono: 'bi-x-circle' },
     };
-    return mapa[estado] || { etiqueta: estado, color: 'var(--text-2)', fondo: 'var(--bg-soft)', icono: 'bi-calendar' };
+    return mapa[estado] || { etiqueta: estado, badge: 'bg-white/10 text-white/60', icono: 'bi-calendar' };
 }
 
 // Botones de acción según el estado de la cita.
@@ -190,24 +207,27 @@ function renderAcciones(cita) {
     if (!puedeAccionarCita && cita.estado !== 'ATENDIDA') return '';
 
     const botones = [];
+    const claseBtn = 'flex items-center gap-1.5 border border-white/15 text-white/80 hover:bg-white/10 text-xs font-medium rounded-lg px-3 py-1.5 transition';
+    const claseBtnPrimario = 'flex items-center gap-1.5 bg-guia hover:bg-guia/90 text-white text-xs font-semibold rounded-lg px-3 py-1.5 transition';
+    const claseBtnPeligro = 'flex items-center gap-1.5 border border-alerta/30 text-alerta hover:bg-alerta/10 text-xs font-medium rounded-lg px-3 py-1.5 transition';
 
     // Pagar: aplica si está PENDIENTE o si fue REPROGRAMADA
     // (una reprogramación no cambia el estado del pago, sigue pendiente).
     if (cita.estado === 'PENDIENTE' || cita.estado === 'REPROGRAMADA') {
         botones.push(`
-      <button class="btn btn-primary btn-sm" onclick='abrirModalPagar(${JSON.stringify(cita)})'>
+      <button class="${claseBtnPrimario}" onclick='abrirModalPagar(${JSON.stringify(cita)})'>
         <i class="bi bi-credit-card"></i> Pagar
       </button>`);
     }
 
     if (puedeAccionarCita) {
         botones.push(`
-      <button class="btn btn-ghost btn-sm" onclick='abrirModalReprogramar(${JSON.stringify(cita)})'>
+      <button class="${claseBtn}" onclick='abrirModalReprogramar(${JSON.stringify(cita)})'>
         <i class="bi bi-arrow-repeat"></i> Reprogramar
       </button>`);
 
         botones.push(`
-      <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="abrirModalCancelar(${cita.id})">
+      <button class="${claseBtnPeligro}" onclick="abrirModalCancelar(${cita.id})">
         <i class="bi bi-x-circle"></i> Cancelar
       </button>`);
     }
@@ -215,7 +235,7 @@ function renderAcciones(cita) {
     // Ver comprobante: aplica si la cita ya fue confirmada (pago hecho) o atendida
     if (tienePagoConfirmado) {
         botones.push(`
-      <button class="btn btn-ghost btn-sm" onclick="abrirModalComprobante(${cita.id})">
+      <button class="${claseBtn}" onclick="abrirModalComprobante(${cita.id})">
         <i class="bi bi-receipt"></i> Ver comprobante
       </button>`);
     }
@@ -223,19 +243,19 @@ function renderAcciones(cita) {
     // Calificar: solo en citas ATENDIDA que aún no han sido valoradas
     if (cita.estado === 'ATENDIDA' && !cita.yaValorada) {
         botones.push(`
-      <button class="btn btn-ghost btn-sm" style="color:var(--amber)" onclick='abrirModalCalificar(${JSON.stringify(cita)})'>
+      <button class="flex items-center gap-1.5 border border-guia/30 text-guia hover:bg-guia/10 text-xs font-medium rounded-lg px-3 py-1.5 transition" onclick='abrirModalCalificar(${JSON.stringify(cita)})'>
         <i class="bi bi-star"></i> Calificar
       </button>`);
     } else if (cita.estado === 'ATENDIDA' && cita.yaValorada) {
         botones.push(`
-      <span style="font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:4px">
-        <i class="bi bi-star-fill" style="color:var(--amber)"></i> Ya calificaste esta consulta
+      <span class="text-xs text-white/50 flex items-center gap-1.5">
+        <i class="bi bi-star-fill text-guia"></i> Ya calificaste esta consulta
       </span>`);
     }
 
     if (!botones.length) return '';
 
-    return `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--border);padding-top:12px">
+    return `<div class="flex gap-2.5 flex-wrap items-center border-t border-white/10 pt-3">
       ${botones.join('')}
     </div>`;
 }
@@ -259,9 +279,9 @@ async function abrirModalPagar(cita) {
 
     document.getElementById('pagar-monto-display').textContent = 'S/ —';
     document.getElementById('pagar-seguro-info').innerHTML =
-        '<span style="color:var(--text-3);font-size:12px">Calculando...</span>';
+        '<span class="text-neblina text-xs">Calculando...</span>';
 
-    document.getElementById('modalPagar').style.display = 'flex';
+    abrirModal('modalPagar');
 
     try {
         const calculo = await PortalService.previsualizarPago(cita.id);
@@ -271,35 +291,35 @@ async function abrirModalPagar(cita) {
 
         if (calculo.tieneSeguro) {
             document.getElementById('pagar-seguro-info').innerHTML = `
-        <div style="display:flex;align-items:center;gap:6px;justify-content:center;
-                    color:var(--green);font-size:12px;font-weight:500">
+        <div class="flex items-center gap-1.5 justify-center text-rumbo text-xs font-medium">
           <i class="bi bi-shield-check"></i>
           ${calculo.nombreSeguro} aplica ${calculo.porcentajeCobertura}% de descuento
         </div>
-        <div style="font-size:11px;color:var(--text-3);text-align:center;margin-top:2px">
+        <div class="text-[11px] text-neblina text-center mt-0.5">
           Precio base S/ ${parseFloat(calculo.monto).toFixed(2)} −
           descuento S/ ${parseFloat(calculo.descuento).toFixed(2)}
         </div>`;
         } else {
             document.getElementById('pagar-seguro-info').innerHTML = `
-        <div style="color:var(--text-3);font-size:12px;text-align:center">
+        <div class="text-neblina text-xs text-center">
           <i class="bi bi-shield-x"></i> Sin seguro vinculado — precio regular
         </div>`;
         }
     } catch (err) {
         document.getElementById('pagar-monto-display').textContent = 'S/ 80.00';
         document.getElementById('pagar-seguro-info').innerHTML =
-            '<span style="color:var(--red);font-size:12px">No se pudo calcular el descuento</span>';
+            '<span class="text-alerta text-xs">No se pudo calcular el descuento</span>';
     }
 }
 
 function cerrarModalPagar() {
-    document.getElementById('modalPagar').style.display = 'none';
+    cerrarModal('modalPagar');
 }
 
 function toggleCamposTarjeta() {
     const esTarjeta = document.getElementById('pagar-metodo').value === 'TARJETA';
-    document.getElementById('pagar-campos-tarjeta').style.display = esTarjeta ? 'block' : 'none';
+    const cont = document.getElementById('pagar-campos-tarjeta');
+    cont.classList.toggle('hidden', !esTarjeta);
 }
 
 async function confirmarPago() {
@@ -357,16 +377,19 @@ function abrirModalReprogramar(cita) {
     document.getElementById('reprogramar-fecha').min = new Date().toISOString().split('T')[0];
     document.getElementById('reprogramar-fechahora-elegida').value = '';
     document.getElementById('reprogramar-slots').innerHTML =
-        '<span style="font-size:13px;color:var(--text-3)">Selecciona una fecha primero</span>';
+        '<span class="text-[13px] text-neblina">Selecciona una fecha primero</span>';
 
-    document.getElementById('modalReprogramar').style.display = 'flex';
+    abrirModal('modalReprogramar');
 }
 
 function cerrarModalReprogramar() {
-    document.getElementById('modalReprogramar').style.display = 'none';
+    cerrarModal('modalReprogramar');
 }
 
 let slotsReprogramarActuales = [];
+
+const CLASE_SLOT_INACTIVO = 'border border-borde text-tinta text-xs font-medium rounded-lg px-3 py-1.5 transition hover:border-guia';
+const CLASE_SLOT_ACTIVO = 'bg-guia border border-guia text-white text-xs font-semibold rounded-lg px-3 py-1.5 transition';
 
 async function cargarSlotsReprogramar() {
     const fecha = document.getElementById('reprogramar-fecha').value;
@@ -375,7 +398,7 @@ async function cargarSlotsReprogramar() {
 
     if (!fecha) return;
 
-    cont.innerHTML = '<span style="font-size:13px;color:var(--text-3)">Cargando horarios...</span>';
+    cont.innerHTML = '<span class="text-[13px] text-neblina">Cargando horarios...</span>';
     document.getElementById('reprogramar-fechahora-elegida').value = '';
 
     try {
@@ -383,23 +406,23 @@ async function cargarSlotsReprogramar() {
         slotsReprogramarActuales = slots;
 
         if (!slots.length) {
-            cont.innerHTML = '<span style="font-size:13px;color:var(--text-3)">No hay horarios disponibles este día</span>';
+            cont.innerHTML = '<span class="text-[13px] text-neblina">No hay horarios disponibles este día</span>';
             return;
         }
 
         cont.innerHTML = slots.map((s, idx) => `
-      <button type="button" class="btn btn-ghost btn-sm" onclick="elegirSlotReprogramar(${idx}, this)">
+      <button type="button" class="${CLASE_SLOT_INACTIVO}" onclick="elegirSlotReprogramar(${idx}, this)">
         ${s.hora}
       </button>`).join('');
 
     } catch (err) {
-        cont.innerHTML = '<span style="font-size:13px;color:var(--red)">No se pudo cargar la disponibilidad</span>';
+        cont.innerHTML = '<span class="text-[13px] text-alerta">No se pudo cargar la disponibilidad</span>';
     }
 }
 
 function elegirSlotReprogramar(idx, btnClickeado) {
-    document.querySelectorAll('#reprogramar-slots button').forEach(b => b.className = 'btn btn-ghost btn-sm');
-    btnClickeado.className = 'btn btn-primary btn-sm';
+    document.querySelectorAll('#reprogramar-slots button').forEach(b => b.className = CLASE_SLOT_INACTIVO);
+    btnClickeado.className = CLASE_SLOT_ACTIVO;
     document.getElementById('reprogramar-fechahora-elegida').value = slotsReprogramarActuales[idx].fechaHora;
 }
 
@@ -431,11 +454,11 @@ async function confirmarReprogramacion() {
 
 function abrirModalCancelar(citaId) {
     document.getElementById('cancelar-cita-id').value = citaId;
-    document.getElementById('modalCancelar').style.display = 'flex';
+    abrirModal('modalCancelar');
 }
 
 function cerrarModalCancelar() {
-    document.getElementById('modalCancelar').style.display = 'none';
+    cerrarModal('modalCancelar');
 }
 
 async function confirmarCancelacion() {
@@ -469,11 +492,11 @@ function abrirModalCalificar(cita) {
     document.getElementById('calificar-comentario').value = '';
     puntuacionSeleccionada = 0;
     renderEstrellasCalificar();
-    document.getElementById('modalCalificar').style.display = 'flex';
+    abrirModal('modalCalificar');
 }
 
 function cerrarModalCalificar() {
-    document.getElementById('modalCalificar').style.display = 'none';
+    cerrarModal('modalCalificar');
 }
 
 function seleccionarPuntuacion(valor) {
@@ -484,8 +507,7 @@ function seleccionarPuntuacion(valor) {
 function renderEstrellasCalificar() {
     const cont = document.getElementById('calificar-estrellas');
     cont.innerHTML = [1, 2, 3, 4, 5].map(n => `
-      <i class="bi ${n <= puntuacionSeleccionada ? 'bi-star-fill' : 'bi-star'}"
-         style="font-size:28px;color:var(--amber);cursor:pointer"
+      <i class="bi ${n <= puntuacionSeleccionada ? 'bi-star-fill' : 'bi-star'} text-guia text-[28px] cursor-pointer"
          onclick="seleccionarPuntuacion(${n})"></i>
     `).join('');
 }

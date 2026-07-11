@@ -6,55 +6,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Médicos — Clínica Stella Maris</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../css/portal.css">
+    <link rel="stylesheet" href="../css/tailwind.css">
 </head>
 
-<body>
+<body class="font-sans text-white transition-colors min-h-screen pb-20 lg:pb-0 relative">
 
-    <header class="portal-topbar">
-        <a href="dashboard.html" class="portal-logo">
-            <div class="portal-logo-icon">🏥</div>
-            <div class="portal-logo-text">Clínica <span>Stella Maris</span></div>
+    <!-- Fondo navy fijo con estrellas -->
+    <div class="fixed inset-0 -z-10 bg-gradient-to-b from-tinta via-tinta-light to-tinta"></div>
+    <svg class="fixed inset-0 -z-10 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <pattern id="starfield" width="140" height="140" patternUnits="userSpaceOnUse">
+                <circle cx="15" cy="20" r="1" fill="white" opacity="0.5" />
+                <circle cx="55" cy="55" r="0.8" fill="white" opacity="0.35" />
+                <circle cx="95" cy="15" r="1.1" fill="white" opacity="0.5" />
+                <circle cx="120" cy="70" r="0.9" fill="white" opacity="0.4" />
+                <circle cx="30" cy="100" r="0.9" fill="white" opacity="0.4" />
+                <circle cx="75" cy="115" r="1" fill="white" opacity="0.45" />
+                <circle cx="110" cy="125" r="0.8" fill="white" opacity="0.35" />
+            </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#starfield)" />
+    </svg>
+
+    <!-- ═══ Topbar Desktop ═══ -->
+    <header
+        class="hidden lg:flex sticky top-0 z-40 bg-tinta/60 backdrop-blur-md border-b border-white/10 px-8 py-2 items-center justify-between">
+        <a href="dashboard.html" class="flex items-center gap-2.5 flex-shrink-0">
+            <img src="../img/stella-maris-logo.png" alt="Stella Maris" class="h-16 w-auto object-contain">
         </a>
-        <nav class="portal-nav">
-            <a href="dashboard.html">Mi panel</a>
-            <a href="directorio.html" class="active">Médicos</a>
-            <a href="citas.html">Mis citas</a>
-            <a href="chatbot.html">Asistente</a>
+        <nav class="flex items-center gap-7">
+            <a href="dashboard.html" class="text-sm font-medium text-white/70 hover:text-white transition">Mi panel</a>
+            <a href="directorio.html" class="text-sm font-semibold text-guia">Médicos</a>
+            <a href="citas.html" class="text-sm font-medium text-white/70 hover:text-white transition">Mis citas</a>
+            <a href="chatbot.html" class="text-sm font-medium text-white/70 hover:text-white transition">Asistente</a>
         </nav>
-        <div style="display:flex;align-items:center;gap:10px">
-            <a href="perfil.html" class="btn btn-ghost btn-sm" style="text-decoration:none" title="Mi perfil">
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <a href="perfil.html" title="Mi perfil"
+                class="w-9 h-9 rounded-lg border border-white/15 flex items-center justify-center text-white/70 hover:text-guia hover:border-guia transition">
                 <i class="bi bi-person-circle"></i>
             </a>
-            <span style="font-size:13px;color:var(--text-2)" id="saludo-usuario"></span>
-            <button class="btn btn-ghost btn-sm" onclick="PortalAuthService.logout()">
+            <span class="text-[13px] text-white/70" id="saludo-usuario"></span>
+            <button onclick="PortalAuthService.logout()"
+                class="w-9 h-9 rounded-lg border border-white/15 flex items-center justify-center text-white/70 hover:text-alerta hover:border-alerta transition">
                 <i class="bi bi-box-arrow-right"></i>
             </button>
         </div>
     </header>
 
-    <div class="container">
+    <!-- ═══ Header Mobile ═══ -->
+    <header
+        class="lg:hidden sticky top-0 z-40 bg-tinta/60 backdrop-blur-md border-b border-white/10 px-4 py-1.5 flex items-center justify-between">
+        <a href="dashboard.html" class="flex items-center gap-2 flex-shrink-0">
+            <img src="../img/stella-maris-logo.png" alt="Stella Maris" class="h-14 w-auto object-contain">
+        </a>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-[12.5px] text-white/70" id="saludo-usuario-mobile"></span>
+            <button onclick="PortalAuthService.logout()"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-white/70">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </header>
 
-        <div style="margin-bottom:24px">
-            <h1 style="font-size:24px;font-weight:800">Encuentra a tu médico</h1>
-            <p style="color:var(--text-2);font-size:14px">Explora especialidades y agenda tu cita con el especialista
-                que necesitas</p>
+    <!-- ═══ Contenido ═══ -->
+    <main class="relative px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
+
+        <div class="mb-6">
+            <h1 class="font-display font-semibold text-xl lg:text-[22px] text-white">Encuentra a tu médico</h1>
+            <p class="text-[13px] text-white/70 mt-1">Explora especialidades y agenda tu cita con el especialista que
+                necesitas</p>
         </div>
 
         <!-- Filtros de búsqueda -->
-        <div class="card"
-            style="padding:16px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
-            <div class="form-group" style="margin:0;flex:1 1 220px">
-                <label class="form-label" style="font-size:12px">Buscar por nombre o apellido</label>
-                <input type="text" id="filtro-texto" class="form-control" placeholder="Ej: Carlos López"
-                    oninput="aplicarFiltros()">
+        <div
+            class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card p-4 mb-4 flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[220px]">
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                    Buscar por nombre o apellido
+                </label>
+                <input type="text" id="filtro-texto" placeholder="Ej: Carlos López" oninput="aplicarFiltros()"
+                    class="w-full rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
             </div>
-            <div class="form-group" style="margin:0;flex:1 1 160px">
-                <label class="form-label" style="font-size:12px">Día de atención</label>
-                <select id="filtro-dia" class="form-control" onchange="aplicarFiltros()">
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                    Día de atención
+                </label>
+                <select id="filtro-dia" onchange="aplicarFiltros()"
+                    class="w-full rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition [&>option]:text-tinta">
                     <option value="">Todos los días</option>
                     <option value="MONDAY">Lunes</option>
                     <option value="TUESDAY">Martes</option>
@@ -65,73 +108,109 @@
                     <option value="SUNDAY">Domingo</option>
                 </select>
             </div>
-            <div class="form-group" style="margin:0;flex:1 1 160px">
-                <label class="form-label" style="font-size:12px">Disponible en fecha</label>
-                <input type="date" id="filtro-fecha" class="form-control" onchange="aplicarFiltros()">
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                    Disponible en fecha
+                </label>
+                <input type="date" id="filtro-fecha" onchange="aplicarFiltros()"
+                    class="w-full rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="limpiarFiltros()" style="height:38px">
+            <button onclick="limpiarFiltros()"
+                class="h-[42px] px-4 rounded-xl border border-white/15 text-white/70 hover:text-white hover:border-white/30 text-sm font-medium transition flex items-center gap-1.5">
                 <i class="bi bi-x-circle"></i> Limpiar
             </button>
         </div>
 
         <!-- Filtro por especialidad -->
-        <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:24px"
-            id="filtros-especialidad">
-            <button class="btn btn-primary btn-sm" data-esp="" onclick="filtrarPorEspecialidad('', this)">
+        <div class="flex flex-wrap gap-2.5 mb-6" id="filtros-especialidad">
+            <button
+                class="flex items-center gap-1.5 bg-guia text-white text-xs font-semibold rounded-lg px-3.5 py-2 transition"
+                data-esp="" onclick="filtrarPorEspecialidad('', this)">
                 <i class="bi bi-grid"></i> Todas
             </button>
         </div>
 
         <!-- Lista de médicos -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px" id="grid-medicos">
-            <div class="empty-row" style="grid-column:1/-1">Cargando médicos...</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="grid-medicos">
+            <div class="text-center text-sm text-white/60 py-10 col-span-full">Cargando médicos...</div>
         </div>
 
-    </div>
+        <!-- Paginación -->
+        <div class="flex items-center justify-center gap-1.5 mt-8" id="paginacion-medicos"></div>
 
-    <!-- Modal Agendar Cita -->
-    <div class="modal-backdrop-portal" id="modalAgendar" style="display:none;position:fixed;inset:0;
-     background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px">
-        <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
-            <div
-                style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-                <h3 style="font-size:16px;font-weight:700">Agendar cita</h3>
-                <button onclick="cerrarModalAgendar()"
-                    style="background:none;border:none;font-size:20px;color:var(--text-3);cursor:pointer">
+    </main>
+
+    <!-- ═══ Modal Agendar Cita ═══ -->
+    <div id="modalAgendar"
+        class="hidden fixed inset-0 bg-tinta/80 backdrop-blur-sm z-[200] items-center justify-center p-4">
+        <div class="bg-[#FFFDF9] rounded-2xl w-full max-w-lg max-h-[88vh] overflow-y-auto shadow-2xl">
+            <div class="px-6 py-4 border-b border-borde flex justify-between items-center">
+                <h3 class="font-display font-semibold text-base text-tinta">Agendar cita</h3>
+                <button onclick="cerrarModalAgendar()" class="text-neblina hover:text-tinta text-xl transition">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
-            <div style="padding:24px">
-                <div style="background:var(--primary-lt);border-radius:12px;padding:14px;margin-bottom:18px">
-                    <div style="font-weight:700;color:var(--text)" id="agendar-medico-nombre">—</div>
-                    <div style="font-size:13px;color:var(--text-2)" id="agendar-medico-especialidad">—</div>
+            <div class="p-6">
+                <div class="bg-guia/10 rounded-xl p-3.5 mb-5">
+                    <div class="font-semibold text-tinta" id="agendar-medico-nombre">—</div>
+                    <div class="text-[13px] text-neblina" id="agendar-medico-especialidad">—</div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Fecha</label>
-                    <input type="date" id="agendar-fecha" class="form-control" onchange="cargarSlotsDisponibles()">
+                <div class="mb-4">
+                    <label
+                        class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Fecha</label>
+                    <input type="date" id="agendar-fecha" onchange="cargarSlotsDisponibles()"
+                        class="w-full rounded-xl border border-borde bg-lienzo px-4 py-3 text-sm text-tinta focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Horario disponible</label>
-                    <div id="agendar-slots" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
-                        <span style="font-size:13px;color:var(--text-3)">Selecciona una fecha primero</span>
+                <div class="mb-4">
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Horario
+                        disponible</label>
+                    <div id="agendar-slots" class="flex flex-wrap gap-2 mt-1.5">
+                        <span class="text-[13px] text-neblina">Selecciona una fecha primero</span>
                     </div>
                     <input type="hidden" id="agendar-fechahora-elegida">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Motivo de consulta (opcional)</label>
-                    <textarea id="agendar-motivo" class="form-control" rows="2"
-                        placeholder="Describe brevemente el motivo..."></textarea>
+                <div class="mb-5">
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Motivo
+                        de consulta (opcional)</label>
+                    <textarea id="agendar-motivo" rows="2" placeholder="Describe brevemente el motivo..."
+                        class="w-full rounded-xl border border-borde bg-lienzo px-4 py-3 text-sm text-tinta placeholder:text-neblina/60 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition resize-none"></textarea>
                 </div>
 
-                <button class="btn btn-primary btn-block" onclick="confirmarAgendarCita()" id="btn-confirmar-cita">
+                <button onclick="confirmarAgendarCita()" id="btn-confirmar-cita"
+                    class="w-full bg-guia hover:bg-guia/90 text-white font-semibold text-sm rounded-xl py-3 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     <i class="bi bi-calendar-check"></i> Confirmar cita
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- ═══ Barra de navegación inferior (mobile) ═══ -->
+    <nav
+        class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-tinta/70 backdrop-blur-md border-t border-white/10 flex items-center justify-around py-2 px-1">
+        <a href="dashboard.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-house-door text-lg"></i>
+            <span class="text-[10.5px] font-medium">Panel</span>
+        </a>
+        <a href="directorio.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-guia">
+            <i class="bi bi-people-fill text-lg"></i>
+            <span class="text-[10.5px] font-semibold">Médicos</span>
+        </a>
+        <a href="citas.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-calendar-check text-lg"></i>
+            <span class="text-[10.5px] font-medium">Citas</span>
+        </a>
+        <a href="chatbot.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-robot text-lg"></i>
+            <span class="text-[10.5px] font-medium">Asistente</span>
+        </a>
+        <a href="perfil.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-person text-lg"></i>
+            <span class="text-[10.5px] font-medium">Perfil</span>
+        </a>
+    </nav>
 
     <script src="../js/config.js"></script>
     <script src="../js/utils/notify.js"></script>

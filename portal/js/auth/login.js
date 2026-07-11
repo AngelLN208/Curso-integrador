@@ -28,16 +28,16 @@ function resaltarSugerenciaRegistro() {
     const footer = document.querySelector('.auth-footer');
     if (!footer) return;
 
-    // Resaltar el footer con un mensaje más explícito
-    footer.style.cssText = `
-        margin-top:16px;padding:12px 14px;border-radius:10px;
-        background:var(--primary-lt);border:1px solid var(--primary);
-        text-align:center;font-size:13px;transition:all .3s ease
-    `;
+    // Resaltar el footer con clases Tailwind (antes: estilos inline con variables CSS de portal.css)
+    footer.classList.remove('text-neblina');
+    footer.classList.add(
+        'bg-guia/10', 'border-guia', 'text-tinta', 'dark:text-white',
+        'rounded-xl', 'p-3', '!border'
+    );
     footer.innerHTML = `
-        <i class="bi bi-info-circle" style="color:var(--primary);margin-right:4px"></i>
-        ¿No tienes cuenta aún? <a href="registro.html" style="color:var(--primary);font-weight:700">Regístrate aquí</a>
-        <span style="display:block;font-size:11.5px;color:var(--text-3);margin-top:4px">
+        <i class="bi bi-info-circle text-guia mr-1"></i>
+        ¿No tienes cuenta aún? <a href="registro.html" class="text-guia font-bold hover:underline">Regístrate aquí</a>
+        <span class="block text-[11px] text-neblina mt-1">
             Si ya tienes cuenta, verifica que tu correo y contraseña sean correctos
         </span>
     `;

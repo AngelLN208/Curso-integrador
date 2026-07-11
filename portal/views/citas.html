@@ -6,117 +6,171 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Citas — Clínica Stella Maris</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../css/portal.css">
+    <link rel="stylesheet" href="../css/tailwind.css">
 </head>
 
-<body>
+<body class="font-sans text-white transition-colors min-h-screen pb-20 lg:pb-0 relative">
 
-    <header class="portal-topbar">
-        <a href="dashboard.html" class="portal-logo">
-            <div class="portal-logo-icon">🏥</div>
-            <div class="portal-logo-text">Clínica <span>Stella Maris</span></div>
+    <!-- Fondo navy fijo con estrellas -->
+    <div class="fixed inset-0 -z-10 bg-gradient-to-b from-tinta via-tinta-light to-tinta"></div>
+    <svg class="fixed inset-0 -z-10 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <pattern id="starfield" width="140" height="140" patternUnits="userSpaceOnUse">
+                <circle cx="15" cy="20" r="1" fill="white" opacity="0.5" />
+                <circle cx="55" cy="55" r="0.8" fill="white" opacity="0.35" />
+                <circle cx="95" cy="15" r="1.1" fill="white" opacity="0.5" />
+                <circle cx="120" cy="70" r="0.9" fill="white" opacity="0.4" />
+                <circle cx="30" cy="100" r="0.9" fill="white" opacity="0.4" />
+                <circle cx="75" cy="115" r="1" fill="white" opacity="0.45" />
+                <circle cx="110" cy="125" r="0.8" fill="white" opacity="0.35" />
+            </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#starfield)" />
+    </svg>
+
+    <!-- ═══ Topbar Desktop ═══ -->
+    <header
+        class="hidden lg:flex sticky top-0 z-40 bg-tinta/60 backdrop-blur-md border-b border-white/10 px-8 py-2 items-center justify-between">
+        <a href="dashboard.html" class="flex items-center gap-2.5 flex-shrink-0">
+            <img src="../img/stella-maris-logo.png" alt="Stella Maris" class="h-16 w-auto object-contain">
         </a>
-        <nav class="portal-nav">
-            <a href="dashboard.html">Mi panel</a>
-            <a href="directorio.html">Médicos</a>
-            <a href="citas.html" class="active">Mis citas</a>
-            <a href="chatbot.html">Asistente</a>
+        <nav class="flex items-center gap-7">
+            <a href="dashboard.html" class="text-sm font-medium text-white/70 hover:text-white transition">Mi panel</a>
+            <a href="directorio.html" class="text-sm font-medium text-white/70 hover:text-white transition">Médicos</a>
+            <a href="citas.html" class="text-sm font-semibold text-guia">Mis citas</a>
+            <a href="chatbot.html" class="text-sm font-medium text-white/70 hover:text-white transition">Asistente</a>
         </nav>
-        <div style="display:flex;align-items:center;gap:10px">
-            <a href="perfil.html" class="btn btn-ghost btn-sm" style="text-decoration:none" title="Mi perfil">
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <a href="perfil.html" title="Mi perfil"
+                class="w-9 h-9 rounded-lg border border-white/15 flex items-center justify-center text-white/70 hover:text-guia hover:border-guia transition">
                 <i class="bi bi-person-circle"></i>
             </a>
-            <span style="font-size:13px;color:var(--text-2)" id="saludo-usuario"></span>
-            <button class="btn btn-ghost btn-sm" onclick="PortalAuthService.logout()">
+            <span class="text-[13px] text-white/70" id="saludo-usuario"></span>
+            <button onclick="PortalAuthService.logout()"
+                class="w-9 h-9 rounded-lg border border-white/15 flex items-center justify-center text-white/70 hover:text-alerta hover:border-alerta transition">
                 <i class="bi bi-box-arrow-right"></i>
             </button>
         </div>
     </header>
 
-    <div class="container">
+    <!-- ═══ Header Mobile ═══ -->
+    <header
+        class="lg:hidden sticky top-0 z-40 bg-tinta/60 backdrop-blur-md border-b border-white/10 px-4 py-1.5 flex items-center justify-between">
+        <a href="dashboard.html" class="flex items-center gap-2 flex-shrink-0">
+            <img src="../img/stella-maris-logo.png" alt="Stella Maris" class="h-14 w-auto object-contain">
+        </a>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-[12.5px] text-white/70" id="saludo-usuario-mobile"></span>
+            <button onclick="PortalAuthService.logout()"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-white/70">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </header>
 
-        <div style="margin-bottom:24px">
-            <h1 style="font-size:24px;font-weight:800">Mis citas</h1>
-            <p style="color:var(--text-2);font-size:14px">Consulta el historial completo de tus citas médicas</p>
+    <!-- ═══ Contenido ═══ -->
+    <main class="relative px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto">
+
+        <div class="mb-6">
+            <h1 class="font-display font-semibold text-xl lg:text-[22px] text-white">Mis citas</h1>
+            <p class="text-[13px] text-white/70 mt-1">Consulta el historial completo de tus citas médicas</p>
         </div>
 
         <!-- Filtros de búsqueda -->
-        <div class="card"
-            style="padding:16px 18px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
-            <div class="form-group" style="margin:0;flex:1 1 200px">
-                <label class="form-label" style="font-size:12px">Buscar por médico o especialidad</label>
-                <input type="text" id="filtro-citas-texto" class="form-control"
-                    placeholder="Ej: Carlos López o Cardiología" oninput="aplicarFiltrosCitas()">
+        <div
+            class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card p-4 mb-4 flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[220px]">
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                    Buscar por médico o especialidad
+                </label>
+                <input type="text" id="filtro-citas-texto" placeholder="Ej: Carlos López o Cardiología"
+                    oninput="aplicarFiltrosCitas()"
+                    class="w-full rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
             </div>
-            <div class="form-group" style="margin:0;flex:1 1 160px">
-                <label class="form-label" style="font-size:12px">Fecha</label>
-                <input type="date" id="filtro-citas-fecha" class="form-control" onchange="aplicarFiltrosCitas()">
+            <div class="flex-1 min-w-[160px]">
+                <label
+                    class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Fecha</label>
+                <input type="date" id="filtro-citas-fecha" onchange="aplicarFiltrosCitas()"
+                    class="w-full rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="limpiarFiltrosCitas()" style="height:38px">
+            <button onclick="limpiarFiltrosCitas()"
+                class="h-[42px] px-4 rounded-xl border border-white/15 text-white/70 hover:text-white hover:border-white/30 text-sm font-medium transition flex items-center gap-1.5">
                 <i class="bi bi-x-circle"></i> Limpiar
             </button>
         </div>
 
         <!-- Filtros por estado -->
-        <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px" id="filtros-estado">
-            <button class="btn btn-primary btn-sm" data-estado="" onclick="filtrarPorEstado('', this)">
+        <div class="flex flex-wrap gap-2.5 mb-6" id="filtros-estado">
+            <button
+                class="flex items-center gap-1.5 bg-guia text-white text-xs font-semibold rounded-lg px-3.5 py-2 transition"
+                data-estado="" onclick="filtrarPorEstado('', this)">
                 <i class="bi bi-grid"></i> Todas
             </button>
-            <button class="btn btn-ghost btn-sm" data-estado="PENDIENTE" onclick="filtrarPorEstado('PENDIENTE', this)">
+            <button
+                class="flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/80 text-xs font-medium rounded-lg px-3.5 py-2 transition hover:bg-white/[0.16]"
+                data-estado="PENDIENTE" onclick="filtrarPorEstado('PENDIENTE', this)">
                 <i class="bi bi-hourglass-split"></i> Pendientes
             </button>
-            <button class="btn btn-ghost btn-sm" data-estado="CONFIRMADA"
-                onclick="filtrarPorEstado('CONFIRMADA', this)">
+            <button
+                class="flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/80 text-xs font-medium rounded-lg px-3.5 py-2 transition hover:bg-white/[0.16]"
+                data-estado="CONFIRMADA" onclick="filtrarPorEstado('CONFIRMADA', this)">
                 <i class="bi bi-check-circle"></i> Confirmadas
             </button>
-            <button class="btn btn-ghost btn-sm" data-estado="ATENDIDA" onclick="filtrarPorEstado('ATENDIDA', this)">
+            <button
+                class="flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/80 text-xs font-medium rounded-lg px-3.5 py-2 transition hover:bg-white/[0.16]"
+                data-estado="ATENDIDA" onclick="filtrarPorEstado('ATENDIDA', this)">
                 <i class="bi bi-clipboard2-pulse"></i> Atendidas
             </button>
-            <button class="btn btn-ghost btn-sm" data-estado="REPROGRAMADA"
-                onclick="filtrarPorEstado('REPROGRAMADA', this)">
+            <button
+                class="flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/80 text-xs font-medium rounded-lg px-3.5 py-2 transition hover:bg-white/[0.16]"
+                data-estado="REPROGRAMADA" onclick="filtrarPorEstado('REPROGRAMADA', this)">
                 <i class="bi bi-arrow-repeat"></i> Reprogramadas
             </button>
-            <button class="btn btn-ghost btn-sm" data-estado="CANCELADA" onclick="filtrarPorEstado('CANCELADA', this)">
+            <button
+                class="flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/80 text-xs font-medium rounded-lg px-3.5 py-2 transition hover:bg-white/[0.16]"
+                data-estado="CANCELADA" onclick="filtrarPorEstado('CANCELADA', this)">
                 <i class="bi bi-x-circle"></i> Canceladas
             </button>
         </div>
 
         <!-- Listado de citas -->
-        <div style="display:flex;flex-direction:column;gap:12px" id="lista-citas">
-            <div class="card card-pad">
-                <div class="empty-row">Cargando tus citas...</div>
+        <div class="flex flex-col gap-3" id="lista-citas">
+            <div
+                class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card text-center text-sm text-white/60 py-8">
+                Cargando tus citas...
             </div>
         </div>
 
-    </div>
+    </main>
 
-    <!-- Modal Pagar -->
-    <div class="modal-backdrop-portal" id="modalPagar" style="display:none;position:fixed;inset:0;
-     background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px">
-        <div class="card" style="max-width:480px;width:100%;max-height:88vh;overflow-y:auto">
-            <div
-                style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-                <h3 style="font-size:16px;font-weight:700">Pagar cita</h3>
-                <button onclick="cerrarModalPagar()"
-                    style="background:none;border:none;font-size:20px;color:var(--text-3);cursor:pointer">
+    <!-- ═══ Modal Pagar ═══ -->
+    <div id="modalPagar"
+        class="hidden fixed inset-0 bg-tinta/80 backdrop-blur-sm z-[200] items-center justify-center p-4">
+        <div class="bg-[#FFFDF9] rounded-2xl w-full max-w-md max-h-[88vh] overflow-y-auto shadow-2xl">
+            <div class="px-6 py-4 border-b border-borde flex justify-between items-center">
+                <h3 class="font-display font-semibold text-base text-tinta">Pagar cita</h3>
+                <button onclick="cerrarModalPagar()" class="text-neblina hover:text-tinta text-xl transition">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
-            <div style="padding:24px">
-                <div style="background:var(--primary-lt);border-radius:12px;padding:14px;margin-bottom:18px">
-                    <div style="font-weight:700;color:var(--text)" id="pagar-medico-nombre">—</div>
-                    <div style="font-size:13px;color:var(--text-2)" id="pagar-fecha-info">—</div>
-                    <div style="font-size:16px;font-weight:800;color:var(--primary);margin-top:6px"
-                        id="pagar-monto-display">S/ —</div>
-                    <div id="pagar-seguro-info" style="margin-top:6px"></div>
+            <div class="p-6">
+                <div class="bg-guia/10 rounded-xl p-3.5 mb-5">
+                    <div class="font-semibold text-tinta" id="pagar-medico-nombre">—</div>
+                    <div class="text-[13px] text-neblina" id="pagar-fecha-info">—</div>
+                    <div class="text-lg font-bold text-guia mt-1.5" id="pagar-monto-display">S/ —</div>
+                    <div id="pagar-seguro-info" class="mt-1.5"></div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Método de pago</label>
-                    <select id="pagar-metodo" class="form-control" onchange="toggleCamposTarjeta()">
+                <div class="mb-4">
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Método
+                        de pago</label>
+                    <select id="pagar-metodo" onchange="toggleCamposTarjeta()"
+                        class="w-full rounded-xl border border-borde bg-lienzo px-4 py-3 text-sm text-tinta focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                         <option value="EFECTIVO">Efectivo</option>
                         <option value="TARJETA">Tarjeta</option>
                         <option value="TRANSFERENCIA">Transferencia</option>
@@ -125,55 +179,61 @@
                     </select>
                 </div>
 
-                <div id="pagar-campos-tarjeta" style="display:none">
-                    <div class="form-group">
-                        <label class="form-label">Número de tarjeta</label>
-                        <input type="text" id="pagar-numero-tarjeta" class="form-control" maxlength="16"
-                            placeholder="16 dígitos">
+                <div id="pagar-campos-tarjeta" class="hidden">
+                    <div class="mb-4">
+                        <label
+                            class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Número
+                            de tarjeta</label>
+                        <input type="text" id="pagar-numero-tarjeta" maxlength="16" placeholder="16 dígitos"
+                            class="w-full rounded-xl border border-borde bg-lienzo px-4 py-3 text-sm text-tinta placeholder:text-neblina/60 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Titular de la tarjeta</label>
-                        <input type="text" id="pagar-titular-tarjeta" class="form-control"
-                            placeholder="Nombre como aparece en la tarjeta">
+                    <div class="mb-4">
+                        <label
+                            class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Titular
+                            de la tarjeta</label>
+                        <input type="text" id="pagar-titular-tarjeta" placeholder="Nombre como aparece en la tarjeta"
+                            class="w-full rounded-xl border border-borde bg-lienzo px-4 py-3 text-sm text-tinta placeholder:text-neblina/60 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                     </div>
                 </div>
 
                 <input type="hidden" id="pagar-cita-id">
 
-                <button class="btn btn-primary btn-block" onclick="confirmarPago()" id="btn-confirmar-pago">
+                <button onclick="confirmarPago()" id="btn-confirmar-pago"
+                    class="w-full bg-guia hover:bg-guia/90 text-white font-semibold text-sm rounded-xl py-3 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     <i class="bi bi-credit-card"></i> Confirmar pago
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Reprogramar -->
-    <div class="modal-backdrop-portal" id="modalReprogramar" style="display:none;position:fixed;inset:0;
-     background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px">
-        <div class="card" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto">
-            <div
-                style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-                <h3 style="font-size:16px;font-weight:700">Reprogramar cita</h3>
-                <button onclick="cerrarModalReprogramar()"
-                    style="background:none;border:none;font-size:20px;color:var(--text-3);cursor:pointer">
+    <!-- ═══ Modal Reprogramar ═══ -->
+    <div id="modalReprogramar"
+        class="hidden fixed inset-0 bg-tinta/80 backdrop-blur-sm z-[200] items-center justify-center p-4">
+        <div class="bg-[#FFFDF9] rounded-2xl w-full max-w-lg max-h-[88vh] overflow-y-auto shadow-2xl">
+            <div class="px-6 py-4 border-b border-borde flex justify-between items-center">
+                <h3 class="font-display font-semibold text-base text-tinta">Reprogramar cita</h3>
+                <button onclick="cerrarModalReprogramar()" class="text-neblina hover:text-tinta text-xl transition">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
-            <div style="padding:24px">
-                <div style="background:var(--primary-lt);border-radius:12px;padding:14px;margin-bottom:18px">
-                    <div style="font-weight:700;color:var(--text)" id="reprogramar-medico-nombre">—</div>
-                    <div style="font-size:13px;color:var(--text-2)" id="reprogramar-fecha-actual">—</div>
+            <div class="p-6">
+                <div class="bg-guia/10 rounded-xl p-3.5 mb-5">
+                    <div class="font-semibold text-tinta" id="reprogramar-medico-nombre">—</div>
+                    <div class="text-[13px] text-neblina" id="reprogramar-fecha-actual">—</div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Nueva fecha</label>
-                    <input type="date" id="reprogramar-fecha" class="form-control" onchange="cargarSlotsReprogramar()">
+                <div class="mb-4">
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Nueva
+                        fecha</label>
+                    <input type="date" id="reprogramar-fecha" onchange="cargarSlotsReprogramar()"
+                        class="w-full rounded-xl border border-borde bg-lienzo px-4 py-3 text-sm text-tinta focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Nuevo horario disponible</label>
-                    <div id="reprogramar-slots" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
-                        <span style="font-size:13px;color:var(--text-3)">Selecciona una fecha primero</span>
+                <div class="mb-5">
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Nuevo
+                        horario disponible</label>
+                    <div id="reprogramar-slots" class="flex flex-wrap gap-2 mt-1.5">
+                        <span class="text-[13px] text-neblina">Selecciona una fecha primero</span>
                     </div>
                     <input type="hidden" id="reprogramar-fechahora-elegida">
                 </div>
@@ -181,122 +241,148 @@
                 <input type="hidden" id="reprogramar-cita-id">
                 <input type="hidden" id="reprogramar-medico-id">
 
-                <button class="btn btn-primary btn-block" onclick="confirmarReprogramacion()"
-                    id="btn-confirmar-reprogramacion">
+                <button onclick="confirmarReprogramacion()" id="btn-confirmar-reprogramacion"
+                    class="w-full bg-guia hover:bg-guia/90 text-white font-semibold text-sm rounded-xl py-3 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     <i class="bi bi-arrow-repeat"></i> Confirmar nuevo horario
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Confirmar Cancelación -->
-    <div class="modal-backdrop-portal" id="modalCancelar" style="display:none;position:fixed;inset:0;
-     background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px">
-        <div class="card" style="max-width:420px;width:100%">
-            <div style="padding:24px;text-align:center">
-                <div style="width:54px;height:54px;border-radius:50%;background:#FEE2E2;margin:0 auto 14px;
-                            display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--red)">
+    <!-- ═══ Modal Confirmar Cancelación ═══ -->
+    <div id="modalCancelar"
+        class="hidden fixed inset-0 bg-tinta/80 backdrop-blur-sm z-[200] items-center justify-center p-4">
+        <div class="bg-[#FFFDF9] rounded-2xl w-full max-w-sm shadow-2xl">
+            <div class="p-6 text-center">
+                <div
+                    class="w-14 h-14 rounded-full bg-alerta/10 mx-auto mb-3.5 flex items-center justify-center text-2xl text-alerta">
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
-                <h3 style="font-size:16px;font-weight:700;margin-bottom:8px">¿Cancelar esta cita?</h3>
-                <p style="font-size:13.5px;color:var(--text-2);margin-bottom:20px" id="cancelar-info-texto">
+                <h3 class="font-display font-semibold text-base text-tinta mb-2">¿Cancelar esta cita?</h3>
+                <p class="text-[13.5px] text-neblina mb-5" id="cancelar-info-texto">
                     Esta acción no se puede deshacer.
                 </p>
                 <input type="hidden" id="cancelar-cita-id">
-                <div style="display:flex;gap:10px">
-                    <button class="btn btn-ghost btn-block" onclick="cerrarModalCancelar()">No, mantener</button>
-                    <button class="btn btn-block" style="background:var(--red);color:white"
-                        onclick="confirmarCancelacion()" id="btn-confirmar-cancelacion">
+                <div class="flex gap-2.5">
+                    <button onclick="cerrarModalCancelar()"
+                        class="flex-1 border border-borde text-tinta text-sm font-medium rounded-xl py-2.5 hover:bg-lienzo transition">
+                        No, mantener
+                    </button>
+                    <button onclick="confirmarCancelacion()" id="btn-confirmar-cancelacion"
+                        class="flex-1 bg-alerta hover:bg-alerta/90 text-white text-sm font-semibold rounded-xl py-2.5 transition disabled:opacity-60">
                         Sí, cancelar
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Modal Comprobante -->
-    <div class="modal-backdrop-portal" id="modalComprobante" style="display:none;position:fixed;inset:0;
-     background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px">
-        <div class="card" style="max-width:420px;width:100%;max-height:88vh;overflow-y:auto">
-            <div
-                style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-                <h3 style="font-size:16px;font-weight:700">Boleta de pago</h3>
-                <button onclick="cerrarModalComprobante()"
-                    style="background:none;border:none;font-size:20px;color:var(--text-3);cursor:pointer">
+
+    <!-- ═══ Modal Comprobante ═══ -->
+    <div id="modalComprobante"
+        class="hidden fixed inset-0 bg-tinta/80 backdrop-blur-sm z-[200] items-center justify-center p-4">
+        <div class="bg-[#FFFDF9] rounded-2xl w-full max-w-sm max-h-[88vh] overflow-y-auto shadow-2xl">
+            <div class="px-6 py-4 border-b border-borde flex justify-between items-center">
+                <h3 class="font-display font-semibold text-base text-tinta">Boleta de pago</h3>
+                <button onclick="cerrarModalComprobante()" class="text-neblina hover:text-tinta text-xl transition">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
-            <div style="padding:24px">
-                <div style="text-align:center;margin-bottom:16px" id="comp-estado">—</div>
+            <div class="p-6">
+                <div class="text-center mb-4" id="comp-estado">—</div>
 
-                <div style="display:flex;flex-direction:column;gap:10px;font-size:13.5px">
-                    <div style="display:flex;justify-content:space-between">
-                        <span style="color:var(--text-2)">Médico</span>
-                        <span style="font-weight:600" id="comp-medico">—</span>
+                <div class="flex flex-col gap-2.5 text-[13.5px]">
+                    <div class="flex justify-between">
+                        <span class="text-neblina">Médico</span>
+                        <span class="font-semibold text-tinta" id="comp-medico">—</span>
                     </div>
-                    <div style="display:flex;justify-content:space-between">
-                        <span style="color:var(--text-2)">Precio base</span>
-                        <span id="comp-monto">—</span>
+                    <div class="flex justify-between">
+                        <span class="text-neblina">Precio base</span>
+                        <span class="text-tinta" id="comp-monto">—</span>
                     </div>
-                    <div style="display:none;justify-content:space-between;color:var(--green)" id="comp-seguro">
+                    <div class="hidden justify-between text-rumbo" id="comp-seguro">
                         <span>Descuento seguro</span>
                         <span id="comp-descuento">—</span>
                     </div>
-                    <div
-                        style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px">
-                        <span style="font-weight:700">Total pagado</span>
-                        <span style="font-weight:800;color:var(--primary)" id="comp-monto-final">—</span>
+                    <div class="flex justify-between border-t border-borde pt-2.5">
+                        <span class="font-bold text-tinta">Total pagado</span>
+                        <span class="font-bold text-guia" id="comp-monto-final">—</span>
                     </div>
-                    <div style="display:flex;justify-content:space-between">
-                        <span style="color:var(--text-2)">Método de pago</span>
-                        <span id="comp-metodo">—</span>
+                    <div class="flex justify-between">
+                        <span class="text-neblina">Método de pago</span>
+                        <span class="text-tinta" id="comp-metodo">—</span>
                     </div>
-                    <div style="display:flex;justify-content:space-between">
-                        <span style="color:var(--text-2)">Fecha de pago</span>
-                        <span id="comp-fecha">—</span>
+                    <div class="flex justify-between">
+                        <span class="text-neblina">Fecha de pago</span>
+                        <span class="text-tinta" id="comp-fecha">—</span>
                     </div>
                 </div>
 
-                <button class="btn btn-primary btn-block" style="margin-top:20px" onclick="imprimirComprobante()">
+                <button onclick="imprimirComprobante()"
+                    class="w-full bg-guia hover:bg-guia/90 text-white font-semibold text-sm rounded-xl py-3 transition flex items-center justify-center gap-2 mt-5">
                     <i class="bi bi-printer"></i> Imprimir / Descargar
                 </button>
             </div>
         </div>
     </div>
-    <!-- Modal Calificar -->
-    <div class="modal-backdrop-portal" id="modalCalificar" style="display:none;position:fixed;inset:0;
-     background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px">
-        <div class="card" style="max-width:440px;width:100%;max-height:88vh;overflow-y:auto">
-            <div
-                style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-                <h3 style="font-size:16px;font-weight:700">Calificar consulta</h3>
-                <button onclick="cerrarModalCalificar()"
-                    style="background:none;border:none;font-size:20px;color:var(--text-3);cursor:pointer">
+
+    <!-- ═══ Modal Calificar ═══ -->
+    <div id="modalCalificar"
+        class="hidden fixed inset-0 bg-tinta/80 backdrop-blur-sm z-[200] items-center justify-center p-4">
+        <div class="bg-[#FFFDF9] rounded-2xl w-full max-w-sm max-h-[88vh] overflow-y-auto shadow-2xl">
+            <div class="px-6 py-4 border-b border-borde flex justify-between items-center">
+                <h3 class="font-display font-semibold text-base text-tinta">Calificar consulta</h3>
+                <button onclick="cerrarModalCalificar()" class="text-neblina hover:text-tinta text-xl transition">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
-            <div style="padding:24px;text-align:center">
-                <div style="font-weight:700;margin-bottom:4px" id="calificar-medico-nombre">—</div>
-                <div style="font-size:13px;color:var(--text-2);margin-bottom:18px">¿Cómo fue tu experiencia con esta
-                    consulta?</div>
+            <div class="p-6 text-center">
+                <div class="font-semibold text-tinta mb-1" id="calificar-medico-nombre">—</div>
+                <div class="text-[13px] text-neblina mb-4">¿Cómo fue tu experiencia con esta consulta?</div>
 
-                <div id="calificar-estrellas" style="display:flex;justify-content:center;gap:8px;margin-bottom:18px">
-                </div>
+                <div id="calificar-estrellas" class="flex justify-center gap-2 mb-4"></div>
 
-                <div class="form-group" style="text-align:left">
-                    <label class="form-label">Comentario (opcional)</label>
-                    <textarea id="calificar-comentario" class="form-control" rows="3"
-                        placeholder="Cuéntanos más sobre tu experiencia..."></textarea>
+                <div class="text-left mb-5">
+                    <label
+                        class="block text-[11px] font-semibold uppercase tracking-wider text-neblina mb-1.5">Comentario
+                        (opcional)</label>
+                    <textarea id="calificar-comentario" rows="3" placeholder="Cuéntanos más sobre tu experiencia..."
+                        class="w-full rounded-xl border border-borde bg-lienzo px-4 py-3 text-sm text-tinta placeholder:text-neblina/60 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition resize-none"></textarea>
                 </div>
 
                 <input type="hidden" id="calificar-cita-id">
 
-                <button class="btn btn-primary btn-block" onclick="confirmarCalificacion()"
-                    id="btn-confirmar-calificacion">
+                <button onclick="confirmarCalificacion()" id="btn-confirmar-calificacion"
+                    class="w-full bg-guia hover:bg-guia/90 text-white font-semibold text-sm rounded-xl py-3 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     <i class="bi bi-star"></i> Enviar calificación
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- ═══ Barra de navegación inferior (mobile) ═══ -->
+    <nav
+        class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-tinta/70 backdrop-blur-md border-t border-white/10 flex items-center justify-around py-2 px-1">
+        <a href="dashboard.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-house-door text-lg"></i>
+            <span class="text-[10.5px] font-medium">Panel</span>
+        </a>
+        <a href="directorio.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-people text-lg"></i>
+            <span class="text-[10.5px] font-medium">Médicos</span>
+        </a>
+        <a href="citas.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-guia">
+            <i class="bi bi-calendar-check-fill text-lg"></i>
+            <span class="text-[10.5px] font-semibold">Citas</span>
+        </a>
+        <a href="chatbot.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-robot text-lg"></i>
+            <span class="text-[10.5px] font-medium">Asistente</span>
+        </a>
+        <a href="perfil.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-person text-lg"></i>
+            <span class="text-[10.5px] font-medium">Perfil</span>
+        </a>
+    </nav>
 
     <script src="../js/config.js"></script>
     <script src="../js/utils/notify.js"></script>

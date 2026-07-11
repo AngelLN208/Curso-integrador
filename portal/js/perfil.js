@@ -4,7 +4,9 @@
 
 PortalAuthService.requireAuth();
 const pacienteActualPerfil = PortalAuth.getPaciente();
-document.getElementById('saludo-usuario').textContent = pacienteActualPerfil?.nombreCompleto?.split(' ')[0] || '';
+const nombreCortoPerfil = pacienteActualPerfil?.nombreCompleto?.split(' ')[0] || '';
+document.getElementById('saludo-usuario').textContent = nombreCortoPerfil;
+document.getElementById('saludo-usuario-mobile').textContent = nombreCortoPerfil;
 
 let correoOriginal = '';
 
@@ -22,14 +24,16 @@ async function cargarPerfil() {
 
         correoOriginal = perfil.correo;
 
-        document.getElementById('perfil-loading').style.display = 'none';
-        document.getElementById('form-perfil').style.display = 'block';
+        document.getElementById('perfil-loading').classList.add('hidden');
+        const form = document.getElementById('form-perfil');
+        form.classList.remove('hidden');
+        form.classList.add('block');
 
         renderSeguros(perfil.seguros || []);
 
     } catch (err) {
         document.getElementById('perfil-loading').innerHTML =
-            '<span style="color:var(--red)">No se pudo cargar tu perfil</span>';
+            '<span class="text-alerta">No se pudo cargar tu perfil</span>';
     }
 }
 
@@ -38,19 +42,18 @@ function renderSeguros(seguros) {
     const cont = document.getElementById('lista-seguros');
 
     if (!seguros.length) {
-        cardSeguros.style.display = 'none';
+        cardSeguros.classList.add('hidden');
         return;
     }
 
-    cardSeguros.style.display = 'block';
+    cardSeguros.classList.remove('hidden');
     cont.innerHTML = seguros.map(s => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;
-                  border-bottom:1px solid var(--border)">
+      <div class="flex justify-between items-center py-2.5 border-b border-white/10 last:border-b-0">
         <div>
-          <div style="font-weight:600;font-size:13.5px">${s.nombre}</div>
-          <div style="font-size:11.5px;color:var(--text-3)">${s.tipo} ${s.numeroPoliza ? '— Póliza: ' + s.numeroPoliza : ''}</div>
+          <div class="font-semibold text-[13.5px] text-white">${s.nombre}</div>
+          <div class="text-[11.5px] text-white/50">${s.tipo} ${s.numeroPoliza ? '— Póliza: ' + s.numeroPoliza : ''}</div>
         </div>
-        <span style="font-size:12px;font-weight:700;color:var(--green)">
+        <span class="text-xs font-bold text-rumbo">
           ${s.porcentajeCobertura}% cobertura
         </span>
       </div>`).join('');
@@ -92,7 +95,9 @@ document.getElementById('form-perfil').addEventListener('submit', async function
                 username: pacienteActualPerfil.username,
                 nombreCompleto: datos.nombres + ' ' + datos.apellidos
             });
-            document.getElementById('saludo-usuario').textContent = datos.nombres.split(' ')[0];
+            const nombreCorto = datos.nombres.split(' ')[0];
+            document.getElementById('saludo-usuario').textContent = nombreCorto;
+            document.getElementById('saludo-usuario-mobile').textContent = nombreCorto;
 
             PortalNotify.success('Perfil actualizado correctamente');
             btn.disabled = false;
@@ -158,4 +163,5 @@ function togglePwd(inputId, btn) {
         icon.className = 'bi bi-eye';
     }
 }
+
 cargarPerfil();

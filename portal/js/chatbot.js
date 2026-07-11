@@ -4,7 +4,9 @@
 
 PortalAuthService.requireAuth();
 const pacienteActualChat = PortalAuth.getPaciente();
-document.getElementById('saludo-usuario').textContent = pacienteActualChat?.nombreCompleto?.split(' ')[0] || '';
+const nombreCortoChat = pacienteActualChat?.nombreCompleto?.split(' ')[0] || '';
+document.getElementById('saludo-usuario').textContent = nombreCortoChat;
+document.getElementById('saludo-usuario-mobile').textContent = nombreCortoChat;
 
 // Historial en formato esperado por el backend: [{rol: 'user'|'assistant', contenido: '...'}]
 let historialChat = [];
@@ -76,12 +78,12 @@ function agregarMensaje(rol, texto, especialidadSugerida, esFallback, citaPropue
     const esUsuario = rol === 'user';
 
     const burbuja = document.createElement('div');
-    burbuja.style.cssText = `display:flex;${esUsuario ? 'justify-content:flex-end' : 'justify-content:flex-start'}`;
+    burbuja.className = `flex ${esUsuario ? 'justify-end' : 'justify-start'}`;
 
     let botonEspecialidad = '';
     if (especialidadSugerida) {
         botonEspecialidad = `
-      <button class="btn btn-primary btn-sm" style="margin-top:10px"
+      <button class="mt-2.5 flex items-center gap-1.5 bg-guia hover:bg-guia/90 text-white text-xs font-semibold rounded-lg px-3.5 py-2 transition"
         onclick="irADirectorioConEspecialidad('${especialidadSugerida.replace(/'/g, "\\'")}')">
         <i class="bi bi-search"></i> Ver médicos de ${especialidadSugerida}
       </button>`;
@@ -96,13 +98,13 @@ function agregarMensaje(rol, texto, especialidadSugerida, esFallback, citaPropue
             const horaTexto = fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
 
             tarjetaCita = `
-        <div style="margin-top:10px;background:white;border:1px solid var(--border);border-radius:10px;padding:12px">
-          <div style="font-weight:700;font-size:13px">${cita.medicoNombre}</div>
-          <div style="font-size:12px;color:var(--text-2)">${cita.especialidad}</div>
-          <div style="font-size:12px;color:var(--text-2);margin-top:4px">
+        <div class="mt-2.5 bg-[#FFFDF9] border border-borde rounded-xl p-3">
+          <div class="font-bold text-[13px] text-tinta">${cita.medicoNombre}</div>
+          <div class="text-xs text-neblina">${cita.especialidad}</div>
+          <div class="text-xs text-neblina mt-1">
             <i class="bi bi-calendar"></i> ${fechaTexto} — ${horaTexto}
           </div>
-          <button class="btn btn-primary btn-sm btn-block" style="margin-top:10px"
+          <button class="w-full mt-2.5 bg-guia hover:bg-guia/90 text-white text-xs font-semibold rounded-lg py-2 transition flex items-center justify-center gap-1.5"
             onclick="confirmarCitaDesdeChat()">
             <i class="bi bi-check-circle"></i> Sí, confirmar cita
           </button>
@@ -113,18 +115,18 @@ function agregarMensaje(rol, texto, especialidadSugerida, esFallback, citaPropue
         }
     }
 
+    const claseBurbuja = esUsuario
+        ? 'bg-guia text-white rounded-2xl rounded-br-md'
+        : 'bg-white/10 text-white rounded-2xl rounded-bl-md';
+
     burbuja.innerHTML = `
-      <div style="max-width:78%;display:flex;flex-direction:column;gap:4px;${esUsuario ? 'align-items:flex-end' : 'align-items:flex-start'}">
-        <div style="background:${esUsuario ? 'var(--primary)' : 'var(--bg-soft)'};
-                    color:${esUsuario ? 'white' : 'var(--text)'};
-                    padding:11px 15px;border-radius:14px;
-                    border-bottom-${esUsuario ? 'right' : 'left'}-radius:4px;
-                    font-size:13.5px;line-height:1.5;white-space:pre-wrap">
+      <div class="max-w-[78%] flex flex-col gap-1 ${esUsuario ? 'items-end' : 'items-start'}">
+        <div class="${claseBurbuja} px-4 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap">
           ${escaparHtml(texto)}
           ${botonEspecialidad}
           ${tarjetaCita}
         </div>
-        ${esFallback ? '<span style="font-size:10.5px;color:var(--text-3)">Respuesta automática</span>' : ''}
+        ${esFallback ? '<span class="text-[10.5px] text-white/40">Respuesta automática</span>' : ''}
       </div>`;
 
     cont.appendChild(burbuja);
@@ -136,10 +138,10 @@ function mostrarEscribiendo() {
     const id = 'escribiendo-' + Date.now();
     const burbuja = document.createElement('div');
     burbuja.id = id;
-    burbuja.style.cssText = 'display:flex;justify-content:flex-start';
+    burbuja.className = 'flex justify-start';
     burbuja.innerHTML = `
-      <div style="background:var(--bg-soft);padding:11px 15px;border-radius:14px;border-bottom-left-radius:4px">
-        <i class="bi bi-three-dots" style="color:var(--text-3)"></i>
+      <div class="bg-white/10 px-4 py-2.5 rounded-2xl rounded-bl-md">
+        <i class="bi bi-three-dots text-white/50"></i>
       </div>`;
     cont.appendChild(burbuja);
     cont.scrollTop = cont.scrollHeight;

@@ -6,160 +6,244 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil — Clínica Stella Maris</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../css/portal.css">
+    <link rel="stylesheet" href="../css/tailwind.css">
 </head>
 
-<body>
+<body class="font-sans text-white transition-colors min-h-screen pb-20 lg:pb-0 relative">
 
-    <header class="portal-topbar">
-        <a href="dashboard.html" class="portal-logo">
-            <div class="portal-logo-icon">🏥</div>
-            <div class="portal-logo-text">Clínica <span>Stella Maris</span></div>
+    <!-- Fondo navy fijo con estrellas -->
+    <div class="fixed inset-0 -z-10 bg-gradient-to-b from-tinta via-tinta-light to-tinta"></div>
+    <svg class="fixed inset-0 -z-10 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <pattern id="starfield" width="140" height="140" patternUnits="userSpaceOnUse">
+                <circle cx="15" cy="20" r="1" fill="white" opacity="0.5" />
+                <circle cx="55" cy="55" r="0.8" fill="white" opacity="0.35" />
+                <circle cx="95" cy="15" r="1.1" fill="white" opacity="0.5" />
+                <circle cx="120" cy="70" r="0.9" fill="white" opacity="0.4" />
+                <circle cx="30" cy="100" r="0.9" fill="white" opacity="0.4" />
+                <circle cx="75" cy="115" r="1" fill="white" opacity="0.45" />
+                <circle cx="110" cy="125" r="0.8" fill="white" opacity="0.35" />
+            </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#starfield)" />
+    </svg>
+
+    <!-- ═══ Topbar Desktop ═══ -->
+    <header
+        class="hidden lg:flex sticky top-0 z-40 bg-tinta/60 backdrop-blur-md border-b border-white/10 px-8 py-2 items-center justify-between">
+        <a href="dashboard.html" class="flex items-center gap-2.5 flex-shrink-0">
+            <img src="../img/stella-maris-logo.png" alt="Stella Maris" class="h-16 w-auto object-contain">
         </a>
-        <nav class="portal-nav">
-            <a href="dashboard.html">Mi panel</a>
-            <a href="directorio.html">Médicos</a>
-            <a href="citas.html">Mis citas</a>
-            <a href="chatbot.html">Asistente</a>
+        <nav class="flex items-center gap-7">
+            <a href="dashboard.html" class="text-sm font-medium text-white/70 hover:text-white transition">Mi panel</a>
+            <a href="directorio.html" class="text-sm font-medium text-white/70 hover:text-white transition">Médicos</a>
+            <a href="citas.html" class="text-sm font-medium text-white/70 hover:text-white transition">Mis citas</a>
+            <a href="chatbot.html" class="text-sm font-medium text-white/70 hover:text-white transition">Asistente</a>
         </nav>
-        <div style="display:flex;align-items:center;gap:10px">
-            <a href="perfil.html" class="btn btn-ghost btn-sm" style="text-decoration:none">
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <a href="perfil.html" title="Mi perfil"
+                class="w-9 h-9 rounded-lg border border-guia bg-guia/15 flex items-center justify-center text-guia transition">
                 <i class="bi bi-person-circle"></i>
             </a>
-            <span style="font-size:13px;color:var(--text-2)" id="saludo-usuario"></span>
-            <button class="btn btn-ghost btn-sm" onclick="PortalAuthService.logout()">
+            <span class="text-[13px] text-white/70" id="saludo-usuario"></span>
+            <button onclick="PortalAuthService.logout()"
+                class="w-9 h-9 rounded-lg border border-white/15 flex items-center justify-center text-white/70 hover:text-alerta hover:border-alerta transition">
                 <i class="bi bi-box-arrow-right"></i>
             </button>
         </div>
     </header>
 
-    <div class="container" style="max-width:640px">
+    <!-- ═══ Header Mobile ═══ -->
+    <header
+        class="lg:hidden sticky top-0 z-40 bg-tinta/60 backdrop-blur-md border-b border-white/10 px-4 py-1.5 flex items-center justify-between">
+        <a href="dashboard.html" class="flex items-center gap-2 flex-shrink-0">
+            <img src="../img/stella-maris-logo.png" alt="Stella Maris" class="h-14 w-auto object-contain">
+        </a>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-[12.5px] text-white/70" id="saludo-usuario-mobile"></span>
+            <button onclick="PortalAuthService.logout()"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-white/70">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </header>
 
-        <div style="margin-bottom:24px">
-            <h1 style="font-size:24px;font-weight:800">Mi perfil</h1>
-            <p style="color:var(--text-2);font-size:14px">Actualiza tu información personal</p>
+    <!-- ═══ Contenido ═══ -->
+    <main class="relative px-4 sm:px-6 lg:px-8 py-6 max-w-2xl mx-auto">
+
+        <div class="mb-6">
+            <h1 class="font-display font-semibold text-xl lg:text-[22px] text-white">Mi perfil</h1>
+            <p class="text-[13px] text-white/70 mt-1">Actualiza tu información personal</p>
         </div>
 
-        <div class="card card-pad">
-            <div id="perfil-loading" class="empty-row">Cargando tu información...</div>
+        <!-- Datos personales -->
+        <div class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card p-5 sm:p-6">
+            <div id="perfil-loading" class="text-center text-sm text-white/60 py-6">Cargando tu información...</div>
 
-            <form id="form-perfil" style="display:none">
+            <form id="form-perfil" class="hidden space-y-4">
 
-                <div class="form-group">
-                    <label class="form-label">DNI</label>
-                    <input type="text" id="perfil-dni" class="form-control" disabled
-                        style="background:var(--bg-soft);color:var(--text-3)">
-                    <span style="font-size:11.5px;color:var(--text-3)">El DNI no puede modificarse</span>
+                <div>
+                    <label
+                        class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">DNI</label>
+                    <input type="text" id="perfil-dni" disabled
+                        class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50 cursor-not-allowed">
+                    <span class="text-[11.5px] text-white/40">El DNI no puede modificarse</span>
                 </div>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-                    <div class="form-group">
-                        <label class="form-label">Nombres</label>
-                        <input type="text" id="perfil-nombres" class="form-control" required>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label
+                            class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Nombres</label>
+                        <input type="text" id="perfil-nombres" required
+                            class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Apellidos</label>
-                        <input type="text" id="perfil-apellidos" class="form-control" required>
+                    <div>
+                        <label
+                            class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Apellidos</label>
+                        <input type="text" id="perfil-apellidos" required
+                            class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                     </div>
                 </div>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-                    <div class="form-group">
-                        <label class="form-label">Fecha de nacimiento</label>
-                        <input type="date" id="perfil-fecha-nacimiento" class="form-control" required>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label
+                            class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Fecha
+                            de nacimiento</label>
+                        <input type="date" id="perfil-fecha-nacimiento" required
+                            class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Sexo</label>
-                        <select id="perfil-sexo" class="form-control" required>
+                    <div>
+                        <label
+                            class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Sexo</label>
+                        <select id="perfil-sexo" required
+                            class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition [&>option]:text-tinta">
                             <option value="M">Masculino</option>
                             <option value="F">Femenino</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Celular</label>
-                    <input type="text" id="perfil-celular" class="form-control" required>
+                <div>
+                    <label
+                        class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Celular</label>
+                    <input type="text" id="perfil-celular" required
+                        class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Correo electrónico</label>
-                    <input type="email" id="perfil-correo" class="form-control" required>
-                    <span style="font-size:11.5px;color:var(--amber)">
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Correo
+                        electrónico</label>
+                    <input type="email" id="perfil-correo" required
+                        class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
+                    <span class="text-[11.5px] text-guia flex items-center gap-1 mt-1">
                         <i class="bi bi-exclamation-triangle"></i> Si cambias tu correo, deberás iniciar sesión de nuevo
                         con el nuevo correo
                     </span>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block" id="btn-guardar-perfil">
+                <button type="submit" id="btn-guardar-perfil"
+                    class="w-full bg-guia hover:bg-guia/90 text-white font-semibold text-sm rounded-xl py-3 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                     <i class="bi bi-check-circle"></i> Guardar cambios
                 </button>
             </form>
         </div>
 
         <!-- Cambiar contraseña -->
-        <div class="card" style="margin-top:18px">
-            <div
-                style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
-                <i class="bi bi-shield-lock" style="color:var(--primary)"></i>
-                <span style="font-weight:700;font-size:14.5px">Cambiar contraseña</span>
+        <div class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card mt-5 overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 border-b border-white/10 flex items-center gap-2">
+                <i class="bi bi-shield-lock text-guia"></i>
+                <span class="font-semibold text-[14.5px] text-white">Cambiar contraseña</span>
             </div>
-            <div class="card-pad">
-                <div class="form-group">
-                    <label class="form-label">Contraseña actual</label>
-                    <div style="position:relative">
-                        <input type="password" id="pwd-actual" class="form-control" placeholder="Tu contraseña actual"
-                            style="padding-right:42px">
-                        <button type="button" onclick="togglePwd('pwd-actual', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                                   background:none;border:none;cursor:pointer;color:var(--text-3);font-size:15px">
+            <div class="p-5 sm:p-6 space-y-4">
+                <div>
+                    <label
+                        class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Contraseña
+                        actual</label>
+                    <div class="relative">
+                        <input type="password" id="pwd-actual" placeholder="Tu contraseña actual"
+                            class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 pr-11 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
+                        <button type="button" onclick="togglePwd('pwd-actual', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Nueva contraseña</label>
-                    <div style="position:relative">
-                        <input type="password" id="pwd-nueva" class="form-control" placeholder="Mínimo 6 caracteres"
-                            style="padding-right:42px">
-                        <button type="button" onclick="togglePwd('pwd-nueva', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                                   background:none;border:none;cursor:pointer;color:var(--text-3);font-size:15px">
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Nueva
+                        contraseña</label>
+                    <div class="relative">
+                        <input type="password" id="pwd-nueva" placeholder="Mínimo 6 caracteres"
+                            class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 pr-11 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
+                        <button type="button" onclick="togglePwd('pwd-nueva', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Confirmar nueva contraseña</label>
-                    <div style="position:relative">
-                        <input type="password" id="pwd-confirmacion" class="form-control"
-                            placeholder="Repite la nueva contraseña" style="padding-right:42px">
-                        <button type="button" onclick="togglePwd('pwd-confirmacion', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                                   background:none;border:none;cursor:pointer;color:var(--text-3);font-size:15px">
+                <div>
+                    <label
+                        class="block text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">Confirmar
+                        nueva contraseña</label>
+                    <div class="relative">
+                        <input type="password" id="pwd-confirmacion" placeholder="Repite la nueva contraseña"
+                            class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 pr-11 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-guia/40 focus:border-guia transition">
+                        <button type="button" onclick="togglePwd('pwd-confirmacion', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="cambiarPassword()" id="btn-cambiar-pwd">
+                <button onclick="cambiarPassword()" id="btn-cambiar-pwd"
+                    class="bg-guia hover:bg-guia/90 text-white font-semibold text-sm rounded-xl px-5 py-2.5 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">
                     <i class="bi bi-shield-check"></i> Cambiar contraseña
                 </button>
             </div>
         </div>
 
         <!-- Seguros vinculados (solo lectura) -->
-        <div class="card" style="margin-top:18px" id="card-seguros" style="display:none">
-            <div
-                style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
-                <i class="bi bi-shield-check" style="color:var(--primary)"></i>
-                <span style="font-weight:700;font-size:14.5px">Mis seguros</span>
+        <div class="hidden bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card mt-5 overflow-hidden"
+            id="card-seguros">
+            <div class="px-5 sm:px-6 py-4 border-b border-white/10 flex items-center gap-2">
+                <i class="bi bi-shield-check text-rumbo"></i>
+                <span class="font-semibold text-[14.5px] text-white">Mis seguros</span>
             </div>
-            <div class="card-pad" id="lista-seguros">
-                <div class="empty-row">Cargando...</div>
+            <div class="p-5 sm:p-6" id="lista-seguros">
+                <div class="text-center text-sm text-white/60">Cargando...</div>
             </div>
         </div>
 
-    </div>
+    </main>
+
+    <!-- ═══ Barra de navegación inferior (mobile) ═══ -->
+    <nav
+        class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-tinta/70 backdrop-blur-md border-t border-white/10 flex items-center justify-around py-2 px-1">
+        <a href="dashboard.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-house-door text-lg"></i>
+            <span class="text-[10.5px] font-medium">Panel</span>
+        </a>
+        <a href="directorio.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-people text-lg"></i>
+            <span class="text-[10.5px] font-medium">Médicos</span>
+        </a>
+        <a href="citas.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-calendar-check text-lg"></i>
+            <span class="text-[10.5px] font-medium">Citas</span>
+        </a>
+        <a href="chatbot.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-white/60">
+            <i class="bi bi-robot text-lg"></i>
+            <span class="text-[10.5px] font-medium">Asistente</span>
+        </a>
+        <a href="perfil.html" class="flex flex-col items-center gap-0.5 px-3 py-1 text-guia">
+            <i class="bi bi-person-fill text-lg"></i>
+            <span class="text-[10.5px] font-semibold">Perfil</span>
+        </a>
+    </nav>
 
     <script src="../js/config.js"></script>
     <script src="../js/utils/notify.js"></script>

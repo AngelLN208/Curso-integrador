@@ -17,11 +17,13 @@ function validarRequisitosPassword() {
         const el = document.querySelector(`[data-req="${key}"]`);
         const icon = el.querySelector('i');
         if (cumple) {
-            el.style.color = 'var(--green)';
-            icon.className = 'bi bi-check-circle-fill';
+            el.classList.remove('text-neblina');
+            el.classList.add('text-rumbo');
+            icon.className = 'bi bi-check-circle-fill text-[10px]';
         } else {
-            el.style.color = 'var(--text-3)';
-            icon.className = 'bi bi-circle';
+            el.classList.remove('text-rumbo');
+            el.classList.add('text-neblina');
+            icon.className = 'bi bi-circle text-[10px]';
         }
     });
 }
