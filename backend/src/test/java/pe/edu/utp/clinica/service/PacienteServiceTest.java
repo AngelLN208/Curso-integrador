@@ -12,6 +12,8 @@ import pe.edu.utp.clinica.dto.paciente.PacienteRequest;
 import pe.edu.utp.clinica.dto.paciente.PacienteResponse;
 import pe.edu.utp.clinica.model.Paciente;
 import pe.edu.utp.clinica.repository.PacienteRepository;
+import pe.edu.utp.clinica.repository.PacienteSeguroRepository;
+import pe.edu.utp.clinica.repository.UsuarioRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +41,12 @@ class PacienteServiceTest {
 
     @Mock
     private PacienteRepository pacienteRepository;
+
+    @Mock
+    private PacienteSeguroRepository pacienteSeguroRepository;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
 
     @InjectMocks
     private PacienteService pacienteService;
@@ -77,6 +85,8 @@ class PacienteServiceTest {
         // Arrange
         when(pacienteRepository.existsByDni("12345678")).thenReturn(false);
         when(pacienteRepository.save(any(Paciente.class))).thenReturn(paciente);
+        when(pacienteSeguroRepository.findByPacienteAndActivoTrue(any(Paciente.class)))
+                .thenReturn(List.of());
 
         // Act
         PacienteResponse response = pacienteService.registrar(request);
@@ -97,8 +107,7 @@ class PacienteServiceTest {
         // Act & Assert
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
-                () -> pacienteService.registrar(request)
-        );
+                () -> pacienteService.registrar(request));
 
         assertTrue(ex.getMessage().contains("12345678"));
         verify(pacienteRepository, never()).save(any());
@@ -112,6 +121,8 @@ class PacienteServiceTest {
         // Arrange
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(pacienteRepository.save(any(Paciente.class))).thenReturn(paciente);
+        when(pacienteSeguroRepository.findByPacienteAndActivoTrue(any(Paciente.class)))
+                .thenReturn(List.of());
 
         request.setNombres("Juan Carlos");
 
@@ -133,8 +144,7 @@ class PacienteServiceTest {
         // Act & Assert
         assertThrows(
                 IllegalArgumentException.class,
-                () -> pacienteService.actualizar(99L, request)
-        );
+                () -> pacienteService.actualizar(99L, request));
     }
 
     // ─── RF-03: Buscar paciente ───────────────────────────────────────
@@ -145,6 +155,8 @@ class PacienteServiceTest {
         // Arrange
         when(pacienteRepository.buscarPorCriterio("Juan"))
                 .thenReturn(List.of(paciente));
+        when(pacienteSeguroRepository.findByPacienteAndActivoTrue(any(Paciente.class)))
+                .thenReturn(List.of());
 
         // Act
         List<PacienteResponse> resultados = pacienteService.buscar("Juan");
@@ -176,6 +188,8 @@ class PacienteServiceTest {
     void debeListarTodosLosPacientes() {
         // Arrange
         when(pacienteRepository.findAll()).thenReturn(List.of(paciente));
+        when(pacienteSeguroRepository.findByPacienteAndActivoTrue(any(Paciente.class)))
+                .thenReturn(List.of());
 
         // Act
         List<PacienteResponse> lista = pacienteService.listarTodos();
