@@ -5,8 +5,6 @@ import pe.edu.utp.clinica.model.CitaMedica;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +20,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.springframework.mail.javamail.MimeMessageHelper;
-import jakarta.mail.internet.MimeMessage;
-
 /**
  * Scheduler para procesamiento automático de notificaciones.
  *
@@ -35,6 +30,12 @@ import jakarta.mail.internet.MimeMessage;
  * RF-20: Notificaciones por correo electrónico con plantilla HTML
  * (identidad visual Stella Maris — header navy, tarjeta central, footer).
  *
+ * NOTA DE DESPLIEGUE: el envío de correo se realiza vía la API HTTPS de
+ * Brevo (EmailApiService), no vía SMTP directo. Esto se debe a que el
+ * hosting gratuito de Render bloquea las conexiones salientes a los
+ * puertos SMTP estándar (587 y 465), confirmado durante las pruebas de
+ * despliegue — ver Plan de Despliegue.
+ *
  * @author Equipo Curso Integrador UTP 2026
  */
 @Slf4j
@@ -44,10 +45,7 @@ public class NotificacionScheduler {
 
         private final NotificacionRepository notificacionRepository;
         private final CitaMedicaRepository citaRepository;
-        private final JavaMailSender mailSender;
-
-        @Value("${spring.mail.username}")
-        private String correoRemitente;
+        private final EmailApiService emailApiService;
 
         @Value("${app.portal.paciente.url}")
         private String portalPacienteUrl;
@@ -80,9 +78,6 @@ public class NotificacionScheduler {
         /**
          * Procesa todas las notificaciones en estado PENDIENTE.
          * RNF-07: Se ejecuta cada 60 segundos.
-         *
-         * En producción aquí se integra el envío real por correo (RF-20).
-         * Por ahora marca las notificaciones como ENVIADO y las registra en log.
          */
         @Scheduled(fixedDelay = 60_000)
         @Transactional
@@ -207,21 +202,6 @@ public class NotificacionScheduler {
         // PLANTILLA HTML — helpers de construcción
         // ==========================================================
 
-        /**
-         * Arma el esqueleto completo del correo (header navy + tarjeta + footer).
-         *
-         * @param subtituloHeader texto pequeño bajo el nombre de la clínica (ej.
-         *                        "Confirmación de cita médica")
-         * @param nombrePaciente  nombre completo del paciente
-         * @param introHtml       párrafo introductorio (ya en HTML, puede tener <span>)
-         * @param tablaHtml       bloque de detalles tipo tabla (puede ser cadena vacía
-         *                        si no aplica)
-         * @param notaHtml        caja de nota/alerta con color (puede ser cadena vacía
-         *                        si no aplica)
-         * @param ctaTexto        texto del botón CTA (puede ser null para omitirlo)
-         * @param ctaUrl          URL a la que apunta el botón CTA (puede ser null si
-         *                        ctaTexto es null)
-         */
         private String plantillaCorreo(String subtituloHeader, String nombrePaciente, String introHtml,
                         String tablaHtml, String notaHtml, String ctaTexto, String ctaUrl) {
 
@@ -268,10 +248,6 @@ public class NotificacionScheduler {
                                                 COLOR_BORDE, COLOR_NEBLINA);
         }
 
-        /**
-         * Construye una fila de la tabla de detalles (label a la izquierda, valor a la
-         * derecha).
-         */
         private String filaDetalle(String label, String valor, boolean ultima) {
                 String borde = ultima ? "" : "border-bottom:1px solid " + COLOR_BORDE + ";";
                 return """
@@ -283,7 +259,6 @@ public class NotificacionScheduler {
                                 .formatted(borde, COLOR_NEBLINA, label, borde, COLOR_TINTA, valor);
         }
 
-        /** Envuelve un conjunto de filas en la tarjeta gris de detalles. */
         private String tablaDetalles(String filas) {
                 return """
                                 <table role="presentation" width="100%%" style="background:%s; border-radius:8px; padding:6px 12px; margin-bottom:20px; border-collapse:collapse;" cellpadding="0" cellspacing="0">
@@ -297,7 +272,6 @@ public class NotificacionScheduler {
                                 .formatted(COLOR_LIENZO, filas);
         }
 
-        /** Caja de nota/alerta con color según el contexto (info, éxito o error). */
         private String cajaNota(String texto, String colorBorde, String colorBg, String colorTexto) {
                 return """
                                 <div style="background:%s; border-left:3px solid %s; border-radius:0 6px 6px 0; padding:10px 14px; margin-bottom:22px;">
@@ -313,11 +287,8 @@ public class NotificacionScheduler {
 
         /**
          * Envía el correo real al paciente según el tipo de notificación.
-         * RF-20: Notificaciones por correo electrónico (HTML con inline CSS).
-         * RF-44: Confirmación de registro de cita.
-         * RF-45: Aviso de reprogramación.
-         * RF-46: Aviso de cancelación.
-         * RF-47: Recordatorio 24 horas antes.
+         * RF-20: Notificaciones por correo electrónico (HTML).
+         * Envío vía Brevo API (HTTPS) — ver nota de clase.
          */
         private void enviarCorreo(Notificacion notificacion) {
                 Paciente paciente = notificacion.getPaciente();
@@ -326,6 +297,8 @@ public class NotificacionScheduler {
 
                 String asunto;
                 String cuerpoHtml;
+                byte[] adjuntoPdf = null;
+                String nombreAdjunto = null;
 
                 switch (notificacion.getTipo()) {
                         case "REGISTRO" -> {
@@ -428,6 +401,15 @@ public class NotificacionScheduler {
                                                                 + " Adjuntamos su boleta en PDF. Recuerde llegar 10 minutos antes de su cita.",
                                                                 COLOR_RUMBO, COLOR_RUMBO_BG, COLOR_RUMBO_TEXTO),
                                                 null, null);
+
+                                // Adjuntar boleta PDF
+                                pe.edu.utp.clinica.repository.PagoRepository pagoRepo = pagoService.getPagoRepository();
+                                pe.edu.utp.clinica.model.Pago pago = pagoRepo
+                                                .findByCita(cita).orElse(null);
+                                if (pago != null) {
+                                        adjuntoPdf = pagoService.generarBoletaPdf(pago);
+                                        nombreAdjunto = "boleta-pago.pdf";
+                                }
                         }
                         case "CONSULTA_REGISTRADA" -> {
                                 asunto = "Consulta registrada — Clínica Stella Maris";
@@ -453,57 +435,7 @@ public class NotificacionScheduler {
                         }
                 }
 
-                // Si es pago confirmado, adjuntar la boleta PDF
-                if ("PAGO_CONFIRMADO".equals(notificacion.getTipo()) && notificacion.getCita() != null) {
-                        try {
-                                MimeMessage mimeMsg = mailSender.createMimeMessage();
-                                MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, true, "UTF-8");
-                                helper.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                                helper.setTo(correoDestino);
-                                helper.setSubject(asunto);
-                                helper.setText(cuerpoHtml, true);
-
-                                pe.edu.utp.clinica.repository.PagoRepository pagoRepo = pagoService.getPagoRepository();
-                                pe.edu.utp.clinica.model.Pago pago = pagoRepo
-                                                .findByCita(notificacion.getCita()).orElse(null);
-
-                                if (pago != null) {
-                                        byte[] pdfBytes = pagoService.generarBoletaPdf(pago);
-                                        helper.addAttachment("boleta-pago.pdf",
-                                                        new org.springframework.core.io.ByteArrayResource(pdfBytes));
-                                }
-
-                                mailSender.send(mimeMsg);
-                        } catch (Exception e) {
-                                log.error("Error enviando correo con adjunto: {}", e.getMessage());
-                                // Fallback: enviar en texto plano sin adjunto
-                                SimpleMailMessage simple = new SimpleMailMessage();
-                                simple.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                                simple.setTo(correoDestino);
-                                simple.setSubject(asunto);
-                                simple.setText("Su pago fue registrado exitosamente. Ingrese al portal de pacientes para ver el detalle.");
-                                mailSender.send(simple);
-                        }
-                } else {
-                        try {
-                                MimeMessage mimeMsg = mailSender.createMimeMessage();
-                                MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, false, "UTF-8");
-                                helper.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                                helper.setTo(correoDestino);
-                                helper.setSubject(asunto);
-                                helper.setText(cuerpoHtml, true);
-                                mailSender.send(mimeMsg);
-                        } catch (Exception e) {
-                                log.error("Error enviando correo HTML: {}", e.getMessage());
-                                // Fallback: enviar en texto plano
-                                SimpleMailMessage simple = new SimpleMailMessage();
-                                simple.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                                simple.setTo(correoDestino);
-                                simple.setSubject(asunto);
-                                simple.setText(notificacion.getMensaje());
-                                mailSender.send(simple);
-                        }
-                }
+                emailApiService.enviarCorreo(correoDestino, asunto, cuerpoHtml, adjuntoPdf, nombreAdjunto);
                 log.debug("Correo enviado a {} — asunto: {}", correoDestino, asunto);
         }
 }
