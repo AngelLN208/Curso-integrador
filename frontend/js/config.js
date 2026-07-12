@@ -4,8 +4,7 @@
  * Incluir SIEMPRE como PRIMER script en cada HTML.
  */
 const CONFIG = {
-  API_URL: 'http://localhost:8080/api',
-  // API_URL: 'https://clinica-api.onrender.com/api', // producción
+  API_URL: 'https://clinica-stella-maris-api.onrender.com/api',
 
   ROUTES: {
     LOGIN: '/views/auth/login.html',

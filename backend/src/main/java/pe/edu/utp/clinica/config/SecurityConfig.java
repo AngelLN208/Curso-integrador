@@ -114,14 +114,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Se usa un patrón en vez de una lista fija de puertos, ya que
-        // Live Server asigna un puerto distinto cada vez que se inicia
-        // (especialmente al abrir varias carpetas como frontend/ y portal/
-        // por separado). Esto permite cualquier puerto en localhost/127.0.0.1
-        // sin tener que actualizar esta lista manualmente cada vez.
+        // Localhost para desarrollo + dominios de produccion (Render/Netlify)
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
-                "http://127.0.0.1:*"));
+                "http://127.0.0.1:*",
+                "https://*.onrender.com",
+                "https://*.netlify.app"));
 
         config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
