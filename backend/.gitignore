@@ -36,3 +36,5 @@ application-prod.properties
 *.jar
 *.war
 *.ear
+# Backups de base de datos
+backups/
