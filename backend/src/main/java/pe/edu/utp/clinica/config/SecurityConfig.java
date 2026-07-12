@@ -36,6 +36,10 @@ import java.util.List;
  * - POST /api/auth/login
  * - GET /swagger-ui/**
  * - GET /api-docs/**
+ * - GET /actuator/health (monitoreo — RNF de disponibilidad)
+ *
+ * Rutas restringidas a ADMIN:
+ * - /actuator/** (excepto /actuator/health)
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -97,6 +101,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers("/api/portal/auth/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

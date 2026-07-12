@@ -3,6 +3,7 @@ package pe.edu.utp.clinica.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -46,12 +47,20 @@ public class AuthService {
         public LoginResponse login(LoginRequest request) {
                 // Spring Security valida las credenciales
                 // Lanza BadCredentialsException si son inválidas
-                authenticationManager.authenticate(
-                                new UsernamePasswordAuthenticationToken(
-                                                request.getUsername(),
-                                                request.getPassword()));
+                try {
+                        authenticationManager.authenticate(
+                                        new UsernamePasswordAuthenticationToken(
+                                                        request.getUsername(),
+                                                        request.getPassword()));
+                } catch (BadCredentialsException ex) {
+                        // RNF-04: no se loguea el username completo ni la contraseña,
+                        // solo el hecho de que hubo un intento fallido (útil para
+                        // detectar patrones de fuerza bruta en el plan de monitoreo).
+                        log.warn("Intento de login fallido: credenciales inválidas");
+                        throw ex;
+                }
 
-                log.debug("Autenticación exitosa para usuario");
+                log.info("Autenticación exitosa para usuario");
 
                 UserDetails userDetails = userDetailsService
                                 .loadUserByUsername(request.getUsername());
@@ -70,6 +79,8 @@ public class AuthService {
                                         .map(m -> m.getId())
                                         .orElse(null);
                 }
+
+                log.debug("Token JWT generado correctamente para rol: {}", usuario.getRol().name());
 
                 return LoginResponse.builder()
                                 .token(token)

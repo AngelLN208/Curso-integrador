@@ -39,6 +39,12 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
+    <!-- Spring Boot Actuator (monitoreo: health, metrics, info) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
     <!-- Spring Data JPA (DAO layer) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -175,6 +181,23 @@
           </annotationProcessorPaths>
         </configuration>
       </plugin>
+
+      <!-- OWASP Dependency-Check — Pruebas de seguridad sobre dependencias -->
+     
+     <plugin>
+    <groupId>org.owasp</groupId>
+    <artifactId>dependency-check-maven</artifactId>
+    <version>9.2.0</version>
+    <configuration>
+        </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <goal>check</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
 
       <!-- Spring Boot plugin — excluye Lombok del JAR final -->
       <plugin>

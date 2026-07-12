@@ -74,6 +74,7 @@ public class PagoService {
 
                 // RF-19: No se puede pagar una cita cancelada
                 if (cita.getEstado() == EstadoCita.CANCELADA) {
+                        log.warn("Intento de pago sobre cita cancelada — cita ID: {}", request.getCitaId());
                         throw new IllegalStateException(
                                         "No se puede registrar el pago de una cita cancelada.");
                 }
@@ -84,6 +85,7 @@ public class PagoService {
                                                                 + request.getCitaId()));
 
                 if (pago.getEstado() == EstadoPago.PAGADO) {
+                        log.warn("Intento de pago duplicado — cita ID: {}", request.getCitaId());
                         throw new IllegalStateException(
                                         "Esta cita ya tiene un pago registrado.");
                 }

@@ -73,6 +73,8 @@ public class CitaService {
 
                 // RF-10: Validar disponibilidad del médico (hora exacta)
                 if (citaRepository.existeConflictoHorario(medico, fechaHora)) {
+                        log.warn("Conflicto de horario al agendar desde portal — médico ID: {} | fecha: {}",
+                                        medicoId, fechaHora);
                         throw new IllegalStateException(
                                         "El médico no tiene disponibilidad en el horario seleccionado.");
                 }
@@ -80,6 +82,8 @@ public class CitaService {
                 LocalDateTime desde = fechaHora.minusMinutes(44);
                 LocalDateTime hasta = fechaHora.plusMinutes(44);
                 if (citaRepository.existeCitaCercana(medico, desde, hasta)) {
+                        log.warn("Cita muy cercana a otra existente desde portal — médico ID: {} | fecha: {}",
+                                        medicoId, fechaHora);
                         throw new IllegalStateException(
                                         "Debe haber al menos 45 minutos entre citas del mismo médico. "
                                                         + "Por favor elige otro horario.");
@@ -110,7 +114,7 @@ public class CitaService {
                                                 + fechaHora.toLocalDate()
                                                 + " a las " + fechaHora.toLocalTime());
 
-                log.debug("Cita registrada desde portal — paciente: {} | cita ID: {}", correoPaciente, cita.getId());
+                log.info("Cita registrada desde portal — cita ID: {} | médico ID: {}", cita.getId(), medicoId);
                 return toResponse(cita);
         }
 
@@ -150,6 +154,7 @@ public class CitaService {
 
                 // Validar ownership — la cita debe pertenecer al paciente autenticado
                 if (!cita.getPaciente().getId().equals(paciente.getId())) {
+                        log.warn("Intento de cancelar cita ajena desde portal — cita ID: {}", citaId);
                         throw new IllegalStateException(
                                         "No tienes permiso para cancelar esta cita.");
                 }
@@ -173,7 +178,7 @@ public class CitaService {
                                 "Su cita médica del "
                                                 + cita.getFechaHora().toLocalDate() + " ha sido cancelada.");
 
-                log.debug("Cita cancelada desde portal — paciente: {} | cita ID: {}", correoPaciente, citaId);
+                log.info("Cita cancelada desde portal — cita ID: {}", citaId);
                 return toResponse(cita);
         }
 
@@ -195,6 +200,7 @@ public class CitaService {
 
                 // Validar ownership
                 if (!cita.getPaciente().getId().equals(paciente.getId())) {
+                        log.warn("Intento de reprogramar cita ajena desde portal — cita ID: {}", citaId);
                         throw new IllegalStateException(
                                         "No tienes permiso para reprogramar esta cita.");
                 }
@@ -209,6 +215,8 @@ public class CitaService {
 
                 // RF-10: Validar disponibilidad en el nuevo horario
                 if (citaRepository.existeConflictoHorario(cita.getMedico(), nuevaFechaHora)) {
+                        log.warn("Conflicto de horario al reprogramar desde portal — cita ID: {} | nueva fecha: {}",
+                                        citaId, nuevaFechaHora);
                         throw new IllegalStateException(
                                         "El médico no tiene disponibilidad en el nuevo horario seleccionado.");
                 }
@@ -234,7 +242,7 @@ public class CitaService {
                                                 + nuevaFechaHora.toLocalDate()
                                                 + " a las " + nuevaFechaHora.toLocalTime());
 
-                log.debug("Cita reprogramada desde portal — paciente: {} | cita ID: {}", correoPaciente, citaId);
+                log.info("Cita reprogramada desde portal — cita ID: {}", citaId);
                 return toResponse(cita);
         }
 
@@ -254,6 +262,8 @@ public class CitaService {
 
                 // RF-10: Validar disponibilidad del médico (hora exacta)
                 if (citaRepository.existeConflictoHorario(medico, request.getFechaHora())) {
+                        log.warn("Conflicto de horario al registrar cita — médico ID: {} | fecha: {}",
+                                        request.getMedicoId(), request.getFechaHora());
                         throw new IllegalStateException(
                                         "El médico no tiene disponibilidad en el horario seleccionado.");
                 }
@@ -262,6 +272,8 @@ public class CitaService {
                 LocalDateTime desde = request.getFechaHora().minusMinutes(44);
                 LocalDateTime hasta = request.getFechaHora().plusMinutes(44);
                 if (citaRepository.existeCitaCercana(medico, desde, hasta)) {
+                        log.warn("Cita muy cercana a otra existente — médico ID: {} | fecha: {}",
+                                        request.getMedicoId(), request.getFechaHora());
                         throw new IllegalStateException(
                                         "Debe haber al menos 45 minutos entre citas del mismo médico. "
                                                         + "Por favor elige otro horario.");
@@ -296,7 +308,7 @@ public class CitaService {
                                                 + request.getFechaHora().toLocalDate()
                                                 + " a las " + request.getFechaHora().toLocalTime());
 
-                log.debug("Cita registrada con ID: {}", cita.getId());
+                log.info("Cita registrada — cita ID: {} | médico ID: {}", cita.getId(), request.getMedicoId());
                 return toResponse(cita);
         }
 
@@ -320,6 +332,8 @@ public class CitaService {
 
                 // RF-10: Validar disponibilidad en nuevo horario
                 if (citaRepository.existeConflictoHorario(cita.getMedico(), request.getNuevaFechaHora())) {
+                        log.warn("Conflicto de horario al reprogramar — cita ID: {} | nueva fecha: {}",
+                                        id, request.getNuevaFechaHora());
                         throw new IllegalStateException(
                                         "El médico no tiene disponibilidad en el nuevo horario seleccionado.");
                 }
@@ -339,7 +353,7 @@ public class CitaService {
                                                 + request.getNuevaFechaHora().toLocalDate()
                                                 + " a las " + request.getNuevaFechaHora().toLocalTime());
 
-                log.debug("Cita reprogramada ID: {}", id);
+                log.info("Cita reprogramada ID: {}", id);
                 return toResponse(cita);
         }
 
@@ -373,7 +387,7 @@ public class CitaService {
                                 "Su cita médica del "
                                                 + cita.getFechaHora().toLocalDate() + " ha sido cancelada.");
 
-                log.debug("Cita cancelada ID: {}", id);
+                log.info("Cita cancelada ID: {}", id);
                 return toResponse(cita);
         }
 
@@ -398,7 +412,7 @@ public class CitaService {
                 registrarAuditoria(cita, usuario, TipoAccion.CONFIRMACION,
                                 estadoAnterior, EstadoCita.CONFIRMADA);
 
-                log.debug("Cita confirmada ID: {}", id);
+                log.info("Cita confirmada ID: {}", id);
                 return toResponse(cita);
         }
 
