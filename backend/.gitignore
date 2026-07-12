@@ -29,7 +29,7 @@ Thumbs.db
 
 # Variables de entorno y configuración sensible
 .env
-application-prod.properties
+# application-prod.properties -- se versiona a proposito (sin secretos, solo referencias a variables de entorno)
 
 # Archivos compilados
 *.class

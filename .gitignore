@@ -7,7 +7,7 @@ logs/
 
 # Variables de entorno — NUNCA subir
 .env
-backend/src/main/resources/application-prod.properties
+# backend/src/main/resources/application-prod.properties -- se versiona a proposito (sin secretos, solo referencias a variables de entorno)
 
 # IntelliJ
 .idea/
