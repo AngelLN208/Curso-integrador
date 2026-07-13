@@ -13,12 +13,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Servicio de envío de correos vía API HTTPS de Brevo.
+ * Servicio de envío de correos vía API HTTPS de Resend.
  *
  * Se usa en reemplazo de SMTP directo (JavaMailSender) porque el hosting
  * gratuito de Render bloquea las conexiones salientes a los puertos SMTP
- * (587 y 465 verificados y bloqueados — ver Plan de Despliegue).
- * La API de Brevo funciona sobre HTTPS estándar, que sí está permitido.
+ * (587 y 465 verificados y bloqueados — ver Plan de Despliegue). La API
+ * de Resend funciona sobre HTTPS estándar, que sí está permitido.
+ *
+ * Nota: en el plan gratuito, el remitente esta limitado a
+ * onboarding@resend.dev hasta verificar un dominio propio.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -26,54 +29,53 @@ import java.util.Map;
 @Service
 public class EmailApiService {
 
-        private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+    private static final String RESEND_API_URL = "https://api.resend.com/emails";
 
-        @Value("${brevo.api.key}")
-        private String apiKey;
+    @Value("${resend.api.key}")
+    private String apiKey;
 
-        @Value("${brevo.sender.email}")
-        private String senderEmail;
+    @Value("${resend.sender.email}")
+    private String senderEmail;
 
-        private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate();
 
-        /**
-         * Envía un correo HTML, con adjunto PDF opcional, vía la API de Brevo.
-         *
-         * @param destino       correo del destinatario
-         * @param asunto        asunto del correo
-         * @param htmlBody      cuerpo en HTML
-         * @param adjuntoPdf    bytes del PDF a adjuntar (null si no aplica)
-         * @param nombreAdjunto nombre del archivo adjunto (ej. "boleta-pago.pdf")
-         */
-        public void enviarCorreo(String destino, String asunto, String htmlBody,
-                        byte[] adjuntoPdf, String nombreAdjunto) {
+    /**
+     * Envía un correo HTML, con adjunto PDF opcional, vía la API de Resend.
+     *
+     * @param destino       correo del destinatario
+     * @param asunto        asunto del correo
+     * @param htmlBody      cuerpo en HTML
+     * @param adjuntoPdf    bytes del PDF a adjuntar (null si no aplica)
+     * @param nombreAdjunto nombre del archivo adjunto (ej. "boleta-pago.pdf")
+     */
+    public void enviarCorreo(String destino, String asunto, String htmlBody,
+            byte[] adjuntoPdf, String nombreAdjunto) {
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.set("api-key", apiKey);
-                headers.set("accept", "application/json");
-                headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(apiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-                Map<String, Object> body = new java.util.HashMap<>();
-                body.put("sender", Map.of("name", "Clínica Stella Maris", "email", senderEmail));
-                body.put("to", List.of(Map.of("email", destino)));
-                body.put("subject", asunto);
-                body.put("htmlContent", htmlBody);
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("from", "Clínica Stella Maris <" + senderEmail + ">");
+        body.put("to", List.of(destino));
+        body.put("subject", asunto);
+        body.put("html", htmlBody);
 
-                if (adjuntoPdf != null && nombreAdjunto != null) {
-                        String base64 = Base64.getEncoder().encodeToString(adjuntoPdf);
-                        body.put("attachment", List.of(Map.of(
-                                        "content", base64,
-                                        "name", nombreAdjunto)));
-                }
-
-                HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
-                try {
-                        restTemplate.postForEntity(BREVO_API_URL, request, String.class);
-                        log.debug("Correo enviado vía Brevo API a {} — asunto: {}", destino, asunto);
-                } catch (Exception e) {
-                        log.error("Error enviando correo vía Brevo API a {}: {}", destino, e.getMessage());
-                        throw e;
-                }
+        if (adjuntoPdf != null && nombreAdjunto != null) {
+            String base64 = Base64.getEncoder().encodeToString(adjuntoPdf);
+            body.put("attachments", List.of(Map.of(
+                    "filename", nombreAdjunto,
+                    "content", base64)));
         }
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        try {
+            restTemplate.postForEntity(RESEND_API_URL, request, String.class);
+            log.debug("Correo enviado vía Resend API a {} — asunto: {}", destino, asunto);
+        } catch (Exception e) {
+            log.error("Error enviando correo vía Resend API a {}: {}", destino, e.getMessage());
+            throw e;
+        }
+    }
 }
