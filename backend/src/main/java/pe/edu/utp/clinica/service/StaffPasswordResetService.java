@@ -3,10 +3,6 @@ package pe.edu.utp.clinica.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import jakarta.mail.internet.MimeMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +23,9 @@ import java.util.UUID;
  * pacientes, pero con copy de correo y link apuntando al frontend
  * de staff en vez del portal.
  *
+ * NOTA DE DESPLIEGUE: el envío de correo se realiza vía la API HTTPS de
+ * SendGrid (EmailApiService), no vía SMTP directo — ver Plan de Despliegue.
+ *
  * @author Equipo Curso Integrador UTP 2026
  */
 @Slf4j
@@ -37,11 +36,8 @@ public class StaffPasswordResetService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenRepository resetTokenRepository;
-    private final JavaMailSender mailSender;
+    private final EmailApiService emailApiService;
     private final EmailTemplateHelper emailTemplateHelper;
-
-    @Value("${spring.mail.username}")
-    private String correoRemitente;
 
     @Value("${app.portal.staff.url:http://127.0.0.1:5502}")
     private String frontendUrl;
@@ -80,24 +76,9 @@ public class StaffPasswordResetService {
                             EmailTemplateHelper.COLOR_GUIA_TEXTO),
                     "Restablecer contraseña", linkReset);
 
-            try {
-                MimeMessage mimeMsg = mailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, false, "UTF-8");
-                helper.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                helper.setTo(correo);
-                helper.setSubject("Recuperación de contraseña — Clínica Stella Maris");
-                helper.setText(cuerpoHtml, true);
-                mailSender.send(mimeMsg);
-            } catch (Exception e) {
-                log.error("Error enviando correo de recuperación (staff): {}", e.getMessage());
-                SimpleMailMessage simple = new SimpleMailMessage();
-                simple.setFrom("Clínica Stella Maris <" + correoRemitente + ">");
-                simple.setTo(correo);
-                simple.setSubject("Recuperación de contraseña — Clínica Stella Maris");
-                simple.setText("Ingresa a este enlace para restablecer tu contraseña (válido 30 minutos): "
-                        + linkReset);
-                mailSender.send(simple);
-            }
+            emailApiService.enviarCorreo(correo,
+                    "Recuperación de contraseña — Clínica Stella Maris",
+                    cuerpoHtml, null, null);
 
             log.info("Correo de recuperación (staff) enviado a: {}", correo);
         });
