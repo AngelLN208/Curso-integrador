@@ -80,22 +80,24 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // ─── Especialidades ───────────────────────────────────────────────
+        // Precios de referencia para clínicas privadas de nivel medio en
+        // Lima (estimación de mercado 2026, no un dato verificado exacto).
 
         private void crearEspecialidades() {
                 Object[][] especialidades = {
                                 { "Medicina General", "Atención primaria y consultas generales",
-                                                new BigDecimal("60.00") },
+                                                new BigDecimal("70.00") },
                                 { "Cardiología", "Diagnóstico y tratamiento de enfermedades cardíacas",
-                                                new BigDecimal("120.00") },
+                                                new BigDecimal("150.00") },
                                 { "Pediatría", "Atención médica para niños y adolescentes", new BigDecimal("90.00") },
-                                { "Ginecología", "Salud reproductiva y atención femenina", new BigDecimal("100.00") },
+                                { "Ginecología", "Salud reproductiva y atención femenina", new BigDecimal("120.00") },
                                 { "Traumatología", "Lesiones del sistema musculoesquelético",
-                                                new BigDecimal("110.00") },
-                                { "Dermatología", "Enfermedades de la piel", new BigDecimal("95.00") },
-                                { "Neurología", "Trastornos del sistema nervioso", new BigDecimal("130.00") },
-                                { "Oftalmología", "Enfermedades de los ojos", new BigDecimal("100.00") },
-                                { "Psiquiatría", "Salud mental y trastornos psiquiátricos", new BigDecimal("120.00") },
-                                { "Endocrinología", "Trastornos hormonales y metabólicos", new BigDecimal("110.00") }
+                                                new BigDecimal("130.00") },
+                                { "Dermatología", "Enfermedades de la piel", new BigDecimal("140.00") },
+                                { "Neurología", "Trastornos del sistema nervioso", new BigDecimal("160.00") },
+                                { "Oftalmología", "Enfermedades de los ojos", new BigDecimal("110.00") },
+                                { "Psiquiatría", "Salud mental y trastornos psiquiátricos", new BigDecimal("180.00") },
+                                { "Endocrinología", "Trastornos hormonales y metabólicos", new BigDecimal("140.00") }
                 };
 
                 for (Object[] esp : especialidades) {
@@ -110,32 +112,41 @@ public class DataInitializer implements CommandLineRunner {
                         }
                 }
         }
+
         // ─── Médicos ──────────────────────────────────────────────────────
+        // Un médico por cada una de las 10 especialidades registradas.
 
         private void crearMedicos() {
                 if (medicoRepository.existsByDni("45123678"))
                         return;
 
-                Especialidad medGeneral = especialidadRepository
-                                .findByNombreIgnoreCase("Medicina General").orElseThrow();
-                Especialidad cardiologia = especialidadRepository
-                                .findByNombreIgnoreCase("Cardiología").orElseThrow();
-                Especialidad pediatria = especialidadRepository
-                                .findByNombreIgnoreCase("Pediatría").orElseThrow();
+                Especialidad medGeneral = especialidadRepository.findByNombreIgnoreCase("Medicina General")
+                                .orElseThrow();
+                Especialidad cardiologia = especialidadRepository.findByNombreIgnoreCase("Cardiología")
+                                .orElseThrow();
+                Especialidad pediatria = especialidadRepository.findByNombreIgnoreCase("Pediatría").orElseThrow();
+                Especialidad ginecologia = especialidadRepository.findByNombreIgnoreCase("Ginecología").orElseThrow();
+                Especialidad traumatologia = especialidadRepository.findByNombreIgnoreCase("Traumatología")
+                                .orElseThrow();
+                Especialidad dermatologia = especialidadRepository.findByNombreIgnoreCase("Dermatología")
+                                .orElseThrow();
+                Especialidad neurologia = especialidadRepository.findByNombreIgnoreCase("Neurología").orElseThrow();
+                Especialidad oftalmologia = especialidadRepository.findByNombreIgnoreCase("Oftalmología")
+                                .orElseThrow();
+                Especialidad psiquiatria = especialidadRepository.findByNombreIgnoreCase("Psiquiatría").orElseThrow();
+                Especialidad endocrinologia = especialidadRepository.findByNombreIgnoreCase("Endocrinología")
+                                .orElseThrow();
 
-                // Médico 1
+                // Médico 1 — Medicina General
                 Usuario u1 = usuarioRepository.save(Usuario.builder()
                                 .username("carlos.lopez@clinica.pe")
                                 .password(passwordEncoder.encode("Medico123*"))
                                 .nombreCompleto("Carlos López Ramírez")
                                 .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
-
                 Medico m1 = medicoRepository.save(Medico.builder()
                                 .dni("45123678").nombres("Carlos").apellidos("López Ramírez")
                                 .especialidad(medGeneral).celular("987111222")
                                 .correo("carlos.lopez@clinica.pe").usuario(u1).activo(true).build());
-
-                // Horario médico 1 (Lunes a Viernes 8am-2pm)
                 for (DayOfWeek dia : new DayOfWeek[] {
                                 DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
                                 DayOfWeek.THURSDAY, DayOfWeek.FRIDAY }) {
@@ -145,19 +156,16 @@ public class DataInitializer implements CommandLineRunner {
                                         .horaFin(LocalTime.of(14, 0)).build());
                 }
 
-                // Médico 2
+                // Médico 2 — Cardiología
                 Usuario u2 = usuarioRepository.save(Usuario.builder()
                                 .username("ana.torres@clinica.pe")
                                 .password(passwordEncoder.encode("Medico123*"))
                                 .nombreCompleto("Ana Torres Vega")
                                 .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
-
                 Medico m2 = medicoRepository.save(Medico.builder()
                                 .dni("52398741").nombres("Ana").apellidos("Torres Vega")
                                 .especialidad(cardiologia).celular("987333444")
                                 .correo("ana.torres@clinica.pe").usuario(u2).activo(true).build());
-
-                // Horario médico 2 (Lunes, Miércoles, Viernes 9am-1pm)
                 for (DayOfWeek dia : new DayOfWeek[] {
                                 DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY }) {
                         horarioRepository.save(HorarioMedico.builder()
@@ -166,19 +174,148 @@ public class DataInitializer implements CommandLineRunner {
                                         .horaFin(LocalTime.of(13, 0)).build());
                 }
 
-                // Médico 3
+                // Médico 3 — Pediatría
                 Usuario u3 = usuarioRepository.save(Usuario.builder()
                                 .username("luis.mendoza@clinica.pe")
                                 .password(passwordEncoder.encode("Medico123*"))
                                 .nombreCompleto("Luis Mendoza Castillo")
                                 .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
-
-                medicoRepository.save(Medico.builder()
+                Medico m3 = medicoRepository.save(Medico.builder()
                                 .dni("63741852").nombres("Luis").apellidos("Mendoza Castillo")
                                 .especialidad(pediatria).celular("987555666")
                                 .correo("luis.mendoza@clinica.pe").usuario(u3).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] {
+                                DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m3).dia(dia)
+                                        .horaInicio(LocalTime.of(8, 0))
+                                        .horaFin(LocalTime.of(12, 0)).build());
+                }
 
-                log.info("✅ Médicos creados: Carlos López, Ana Torres, Luis Mendoza");
+                // Médico 4 — Ginecología
+                Usuario u4 = usuarioRepository.save(Usuario.builder()
+                                .username("patricia.salazar@clinica.pe")
+                                .password(passwordEncoder.encode("Medico123*"))
+                                .nombreCompleto("Patricia Salazar Ruiz")
+                                .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+                Medico m4 = medicoRepository.save(Medico.builder()
+                                .dni("48234567").nombres("Patricia").apellidos("Salazar Ruiz")
+                                .especialidad(ginecologia).celular("987222111")
+                                .correo("patricia.salazar@clinica.pe").usuario(u4).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] {
+                                DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.THURSDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m4).dia(dia)
+                                        .horaInicio(LocalTime.of(9, 0))
+                                        .horaFin(LocalTime.of(13, 0)).build());
+                }
+
+                // Médico 5 — Traumatología
+                Usuario u5 = usuarioRepository.save(Usuario.builder()
+                                .username("jorge.ramirez@clinica.pe")
+                                .password(passwordEncoder.encode("Medico123*"))
+                                .nombreCompleto("Jorge Ramírez Ochoa")
+                                .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+                Medico m5 = medicoRepository.save(Medico.builder()
+                                .dni("47345678").nombres("Jorge").apellidos("Ramírez Ochoa")
+                                .especialidad(traumatologia).celular("987444555")
+                                .correo("jorge.ramirez@clinica.pe").usuario(u5).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] {
+                                DayOfWeek.TUESDAY, DayOfWeek.THURSDAY, DayOfWeek.SATURDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m5).dia(dia)
+                                        .horaInicio(LocalTime.of(8, 0))
+                                        .horaFin(LocalTime.of(12, 0)).build());
+                }
+
+                // Médico 6 — Dermatología
+                Usuario u6 = usuarioRepository.save(Usuario.builder()
+                                .username("fiorella.castro@clinica.pe")
+                                .password(passwordEncoder.encode("Medico123*"))
+                                .nombreCompleto("Fiorella Castro Núñez")
+                                .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+                Medico m6 = medicoRepository.save(Medico.builder()
+                                .dni("46456789").nombres("Fiorella").apellidos("Castro Núñez")
+                                .especialidad(dermatologia).celular("987666777")
+                                .correo("fiorella.castro@clinica.pe").usuario(u6).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m6).dia(dia)
+                                        .horaInicio(LocalTime.of(10, 0))
+                                        .horaFin(LocalTime.of(14, 0)).build());
+                }
+
+                // Médico 7 — Neurología
+                Usuario u7 = usuarioRepository.save(Usuario.builder()
+                                .username("ricardo.paredes@clinica.pe")
+                                .password(passwordEncoder.encode("Medico123*"))
+                                .nombreCompleto("Ricardo Paredes Guevara")
+                                .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+                Medico m7 = medicoRepository.save(Medico.builder()
+                                .dni("49567890").nombres("Ricardo").apellidos("Paredes Guevara")
+                                .especialidad(neurologia).celular("987888999")
+                                .correo("ricardo.paredes@clinica.pe").usuario(u7).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m7).dia(dia)
+                                        .horaInicio(LocalTime.of(9, 0))
+                                        .horaFin(LocalTime.of(13, 0)).build());
+                }
+
+                // Médico 8 — Oftalmología
+                Usuario u8 = usuarioRepository.save(Usuario.builder()
+                                .username("silvia.cabrera@clinica.pe")
+                                .password(passwordEncoder.encode("Medico123*"))
+                                .nombreCompleto("Silvia Cabrera León")
+                                .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+                Medico m8 = medicoRepository.save(Medico.builder()
+                                .dni("44678901").nombres("Silvia").apellidos("Cabrera León")
+                                .especialidad(oftalmologia).celular("987101112")
+                                .correo("silvia.cabrera@clinica.pe").usuario(u8).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] {
+                                DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m8).dia(dia)
+                                        .horaInicio(LocalTime.of(8, 0))
+                                        .horaFin(LocalTime.of(12, 0)).build());
+                }
+
+                // Médico 9 — Psiquiatría
+                Usuario u9 = usuarioRepository.save(Usuario.builder()
+                                .username("manuel.ortega@clinica.pe")
+                                .password(passwordEncoder.encode("Medico123*"))
+                                .nombreCompleto("Manuel Ortega Salinas")
+                                .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+                Medico m9 = medicoRepository.save(Medico.builder()
+                                .dni("43789012").nombres("Manuel").apellidos("Ortega Salinas")
+                                .especialidad(psiquiatria).celular("987131415")
+                                .correo("manuel.ortega@clinica.pe").usuario(u9).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m9).dia(dia)
+                                        .horaInicio(LocalTime.of(14, 0))
+                                        .horaFin(LocalTime.of(18, 0)).build());
+                }
+
+                // Médico 10 — Endocrinología
+                Usuario u10 = usuarioRepository.save(Usuario.builder()
+                                .username("lucia.herrera@clinica.pe")
+                                .password(passwordEncoder.encode("Medico123*"))
+                                .nombreCompleto("Lucía Herrera Campos")
+                                .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+                Medico m10 = medicoRepository.save(Medico.builder()
+                                .dni("40890123").nombres("Lucía").apellidos("Herrera Campos")
+                                .especialidad(endocrinologia).celular("987161718")
+                                .correo("lucia.herrera@clinica.pe").usuario(u10).activo(true).build());
+                for (DayOfWeek dia : new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY }) {
+                        horarioRepository.save(HorarioMedico.builder()
+                                        .medico(m10).dia(dia)
+                                        .horaInicio(LocalTime.of(9, 0))
+                                        .horaFin(LocalTime.of(13, 0)).build());
+                }
+
+                log.info("✅ 10 médicos creados (uno por especialidad): López, Torres, Mendoza, Salazar, "
+                                + "Ramírez, Castro, Paredes, Cabrera, Ortega, Herrera");
         }
 
         // ─── Pacientes ────────────────────────────────────────────────────
@@ -221,6 +358,7 @@ public class DataInitializer implements CommandLineRunner {
                 }
                 log.info("✅ 8 pacientes creados");
         }
+
         // ─── Seguros médicos ──────────────────────────────────────────────
 
         private void crearSeguros() {
@@ -250,6 +388,8 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // ─── Citas de hoy ─────────────────────────────────────────────────
+        // Los montos ahora corresponden al costo real de la especialidad
+        // de cada médico (antes estaban fijos en 80.00 para todos).
 
         private void crearCitasDeHoy() {
                 Paciente p1 = pacienteRepository.findByDni("71234567").orElseThrow();
@@ -258,12 +398,14 @@ public class DataInitializer implements CommandLineRunner {
                 Paciente p4 = pacienteRepository.findByDni("74567890").orElseThrow();
                 Paciente p5 = pacienteRepository.findByDni("75678901").orElseThrow();
 
-                Medico m1 = medicoRepository.findByDni("45123678").orElseThrow();
-                Medico m2 = medicoRepository.findByDni("52398741").orElseThrow();
+                Medico m1 = medicoRepository.findByDni("45123678").orElseThrow(); // Medicina General — 70.00
+                Medico m2 = medicoRepository.findByDni("52398741").orElseThrow(); // Cardiología — 150.00
 
                 Usuario admin = usuarioRepository.findByUsername("admin@clinica.pe").orElseThrow();
 
                 LocalDate hoy = LocalDate.now();
+                BigDecimal costoM1 = m1.getEspecialidad().getCosto();
+                BigDecimal costoM2 = m2.getEspecialidad().getCosto();
 
                 // Cita 1 — CONFIRMADA con pago
                 if (!citaRepository.existeConflictoHorario(m1,
@@ -275,8 +417,8 @@ public class DataInitializer implements CommandLineRunner {
                                         .estado(EstadoCita.CONFIRMADA)
                                         .registradoPor(admin).build());
                         pagoRepository.save(Pago.builder()
-                                        .cita(c1).monto(new BigDecimal("80.00"))
-                                        .montoFinal(new BigDecimal("80.00"))
+                                        .cita(c1).monto(costoM1)
+                                        .montoFinal(costoM1)
                                         .metodoPago("EFECTIVO")
                                         .fechaPago(hoy.atTime(7, 45))
                                         .estado(EstadoPago.PAGADO).build());
@@ -293,8 +435,8 @@ public class DataInitializer implements CommandLineRunner {
                                         .estado(EstadoCita.CONFIRMADA)
                                         .registradoPor(admin).build());
                         pagoRepository.save(Pago.builder()
-                                        .cita(c2).monto(new BigDecimal("80.00"))
-                                        .montoFinal(new BigDecimal("80.00"))
+                                        .cita(c2).monto(costoM1)
+                                        .montoFinal(costoM1)
                                         .metodoPago("TARJETA")
                                         .fechaPago(hoy.atTime(8, 50))
                                         .estado(EstadoPago.PAGADO).build());
@@ -311,8 +453,8 @@ public class DataInitializer implements CommandLineRunner {
                                         .estado(EstadoCita.PENDIENTE)
                                         .registradoPor(admin).build());
                         pagoRepository.save(Pago.builder()
-                                        .cita(c3).monto(new BigDecimal("80.00"))
-                                        .montoFinal(new BigDecimal("80.00"))
+                                        .cita(c3).monto(costoM1)
+                                        .montoFinal(costoM1)
                                         .estado(EstadoPago.PENDIENTE).build());
                         log.info("✅ Cita 3 PENDIENTE — Carmen Flores 10:00");
                 }
@@ -327,8 +469,8 @@ public class DataInitializer implements CommandLineRunner {
                                         .estado(EstadoCita.CONFIRMADA)
                                         .registradoPor(admin).build());
                         pagoRepository.save(Pago.builder()
-                                        .cita(c4).monto(new BigDecimal("80.00"))
-                                        .montoFinal(new BigDecimal("80.00"))
+                                        .cita(c4).monto(costoM2)
+                                        .montoFinal(costoM2)
                                         .metodoPago("TRANSFERENCIA")
                                         .fechaPago(hoy.atTime(8, 55))
                                         .estado(EstadoPago.PAGADO).build());
@@ -345,8 +487,8 @@ public class DataInitializer implements CommandLineRunner {
                                         .estado(EstadoCita.CANCELADA)
                                         .registradoPor(admin).build());
                         pagoRepository.save(Pago.builder()
-                                        .cita(c5).monto(new BigDecimal("80.00"))
-                                        .montoFinal(new BigDecimal("80.00"))
+                                        .cita(c5).monto(costoM1)
+                                        .montoFinal(costoM1)
                                         .estado(EstadoPago.ANULADO).build());
                         log.info("✅ Cita 5 CANCELADA — Rosa Mamani 11:00");
                 }
