@@ -15,6 +15,8 @@ import pe.edu.utp.clinica.repository.*;
 import java.math.BigDecimal;
 import java.time.*;
 
+import java.util.List;
+
 /**
  * Inicializador de datos del sistema.
  * Carga usuarios, especialidades, médicos, pacientes y citas de prueba.
@@ -44,6 +46,7 @@ public class DataInitializer implements CommandLineRunner {
                 crearUsuarioRecepcionista();
                 crearEspecialidades();
                 crearMedicos();
+                crearMedicosAdicionales(); // ← agregar esta línea
                 crearPacientes();
                 crearSeguros();
                 crearCitasDeHoy();
@@ -318,6 +321,277 @@ public class DataInitializer implements CommandLineRunner {
                                 + "Ramírez, Castro, Paredes, Cabrera, Ortega, Herrera");
         }
 
+        // ─── Médicos adicionales (5 por especialidad) ────────────────────
+        // Datos ficticios generados para ampliar el directorio de médicos.
+
+        private record DatosMedicoAdicional(
+                        String dni, String nombres, String apellidos, String celular,
+                        String correo, String especialidadNombre, DayOfWeek[] dias,
+                        LocalTime horaInicio, LocalTime horaFin) {
+        }
+
+        private void crearMedicosAdicionales() {
+                if (medicoRepository.existsByDni("50000001"))
+                        return;
+
+                List<DatosMedicoAdicional> medicosAdicionales = List.of(
+                                new DatosMedicoAdicional("50000001", "Miguel", "Loayza Cárdenas", "942868828",
+                                                "miguel.loayza@clinica.pe", "Medicina General",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000002", "Diego", "Peña Loayza", "983197857",
+                                                "diego.pena@clinica.pe", "Medicina General",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000003", "Camila", "Quispe Mamani", "939345092",
+                                                "camila.quispe@clinica.pe", "Medicina General",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000004", "Hugo", "Bautista Cabanillas", "997226012",
+                                                "hugo.bautista@clinica.pe", "Medicina General",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000005", "Ximena", "Palacios Aliaga", "947338124",
+                                                "ximena.palacios@clinica.pe", "Medicina General",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000006", "Iván", "Aguilar Cárdenas", "930868105",
+                                                "ivan.aguilar@clinica.pe", "Cardiología",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000007", "Daniela", "Mamani Cruz", "922981052",
+                                                "daniela.mamani@clinica.pe", "Cardiología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                                                                DayOfWeek.THURSDAY },
+                                                LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                                new DatosMedicoAdicional("50000008", "Noelia", "Cárdenas Trujillo", "915831819",
+                                                "noelia.cardenas@clinica.pe", "Cardiología",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000009", "Raúl", "Mamani Medina", "949349722",
+                                                "raul.mamani@clinica.pe", "Cardiología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000010", "Elena", "Bautista Cabanillas", "919335534",
+                                                "elena.bautista@clinica.pe", "Cardiología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000011", "Óscar", "Mamani Solano", "941244663",
+                                                "oscar.mamani@clinica.pe", "Pediatría",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000012", "Paola", "Palacios Reyes", "958966946",
+                                                "paola.palacios@clinica.pe", "Pediatría",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000013", "Rocío", "Bautista Peña", "945833156",
+                                                "rocio.bautista@clinica.pe", "Pediatría",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000014", "Hugo", "Loayza Delgado", "931931511",
+                                                "hugo.loayza@clinica.pe", "Pediatría",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000015", "Paola", "Escobar Reyes", "984752529",
+                                                "paola.escobar@clinica.pe", "Pediatría",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000016", "Camila", "Delgado Bravo", "914308421",
+                                                "camila.delgado@clinica.pe", "Ginecología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                                                                DayOfWeek.THURSDAY },
+                                                LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                                new DatosMedicoAdicional("50000017", "Paola", "Mamani Bautista", "986125617",
+                                                "paola.mamani@clinica.pe", "Ginecología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                                                                DayOfWeek.THURSDAY },
+                                                LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                                new DatosMedicoAdicional("50000018", "Alonso", "Cruz Ibarra", "996282117",
+                                                "alonso.cruz@clinica.pe", "Ginecología",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000019", "Julio", "Chávez Delgado", "985345555",
+                                                "julio.chavez@clinica.pe", "Ginecología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000020", "Elena", "Villanueva Ibarra", "988320463",
+                                                "elena.villanueva@clinica.pe", "Ginecología",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000021", "Ximena", "Chávez Guerrero", "976238574",
+                                                "ximena.chavez@clinica.pe", "Traumatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000022", "Diego", "Chávez Reyes", "931472420",
+                                                "diego.chavez@clinica.pe", "Traumatología",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000023", "Raúl", "Cruz Contreras", "972820592",
+                                                "raul.cruz@clinica.pe", "Traumatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000024", "Marisol", "Solano Quispe", "925374874",
+                                                "marisol.solano@clinica.pe", "Traumatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000025", "Melissa", "Rojas Zúñiga", "968353204",
+                                                "melissa.rojas@clinica.pe", "Traumatología",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000026", "Valeria", "Loayza Ibarra", "945351479",
+                                                "valeria.loayza@clinica.pe", "Dermatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000027", "Gustavo", "Escobar Rojas", "993926371",
+                                                "gustavo.escobar@clinica.pe", "Dermatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                                                                DayOfWeek.THURSDAY },
+                                                LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                                new DatosMedicoAdicional("50000028", "Andrés", "Ríos Ponce", "931682744",
+                                                "andres.rios@clinica.pe", "Dermatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000029", "Wilson", "Aguilar Salcedo", "912614124",
+                                                "wilson.aguilar@clinica.pe", "Dermatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000030", "Karina", "Delgado Huamán", "942329237",
+                                                "karina.delgado@clinica.pe", "Dermatología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000031", "Alejandro", "Loayza Salcedo", "919289546",
+                                                "alejandro.loayza@clinica.pe", "Neurología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000032", "Andrés", "Peña Salcedo", "983793389",
+                                                "andres.pena@clinica.pe", "Neurología",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000033", "Claudia", "Solano Contreras", "966792612",
+                                                "claudia.solano@clinica.pe", "Neurología",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000034", "Óscar", "Cruz Peña", "997225156",
+                                                "oscar.cruz@clinica.pe", "Neurología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                                                                DayOfWeek.THURSDAY },
+                                                LocalTime.of(14, 0), LocalTime.of(18, 0)),
+                                new DatosMedicoAdicional("50000035", "Claudia", "Palacios Rojas", "943273328",
+                                                "claudia.palacios@clinica.pe", "Neurología",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000036", "Renzo", "Quispe Aliaga", "984346088",
+                                                "renzo.quispe@clinica.pe", "Oftalmología",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000037", "Miguel", "Mamani Cabanillas", "994705205",
+                                                "miguel.mamani@clinica.pe", "Oftalmología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000038", "Alejandro", "Ibarra Huamán", "954349361",
+                                                "alejandro.ibarra@clinica.pe", "Oftalmología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000039", "Julio", "Peña Salcedo", "938754377",
+                                                "julio.pena@clinica.pe", "Oftalmología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)),
+                                new DatosMedicoAdicional("50000040", "Percy", "Aliaga Salcedo", "942614537",
+                                                "percy.aliaga@clinica.pe", "Oftalmología",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000041", "Milagros", "Rojas Rojas", "998447167",
+                                                "milagros.rojas@clinica.pe", "Psiquiatría",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000042", "Beatriz", "Villanueva Palacios", "917270733",
+                                                "beatriz.villanueva@clinica.pe", "Psiquiatría",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000043", "Raúl", "Loayza Aguilar", "924665841",
+                                                "raul.loayza@clinica.pe", "Psiquiatría",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000044", "Rodrigo", "Medina Palacios", "928814949",
+                                                "rodrigo.medina@clinica.pe", "Psiquiatría",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000045", "Julio", "Palacios Delgado", "920117988",
+                                                "julio.palacios@clinica.pe", "Psiquiatría",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000046", "Fernando", "Reyes Medina", "911980765",
+                                                "fernando.reyes@clinica.pe", "Endocrinología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY,
+                                                                DayOfWeek.FRIDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000047", "Gonzalo", "Villanueva Salcedo", "974606833",
+                                                "gonzalo.villanueva@clinica.pe", "Endocrinología",
+                                                new DayOfWeek[] { DayOfWeek.TUESDAY, DayOfWeek.THURSDAY },
+                                                LocalTime.of(9, 0), LocalTime.of(13, 0)),
+                                new DatosMedicoAdicional("50000048", "Camila", "Espinoza Cruz", "910289289",
+                                                "camila.espinoza@clinica.pe", "Endocrinología",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000049", "Cecilia", "Zúñiga Villanueva", "984593961",
+                                                "cecilia.zuniga@clinica.pe", "Endocrinología",
+                                                new DayOfWeek[] { DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY,
+                                                                DayOfWeek.SATURDAY },
+                                                LocalTime.of(8, 0), LocalTime.of(12, 0)),
+                                new DatosMedicoAdicional("50000050", "Rodrigo", "Zúñiga Bautista", "917849494",
+                                                "rodrigo.zuniga@clinica.pe", "Endocrinología",
+                                                new DayOfWeek[] { DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY },
+                                                LocalTime.of(10, 0), LocalTime.of(14, 0)));
+
+                for (DatosMedicoAdicional d : medicosAdicionales) {
+                        if (medicoRepository.existsByDni(d.dni()))
+                                continue;
+
+                        Especialidad especialidad = especialidadRepository
+                                        .findByNombreIgnoreCase(d.especialidadNombre()).orElseThrow();
+
+                        Usuario usuario = usuarioRepository.save(Usuario.builder()
+                                        .username(d.correo())
+                                        .password(passwordEncoder.encode("Medico123*"))
+                                        .nombreCompleto(d.nombres() + " " + d.apellidos())
+                                        .rol(RolUsuario.ROLE_MEDICO).activo(true).build());
+
+                        Medico medico = medicoRepository.save(Medico.builder()
+                                        .dni(d.dni()).nombres(d.nombres()).apellidos(d.apellidos())
+                                        .especialidad(especialidad).celular(d.celular())
+                                        .correo(d.correo()).usuario(usuario).activo(true).build());
+
+                        for (DayOfWeek dia : d.dias()) {
+                                horarioRepository.save(HorarioMedico.builder()
+                                                .medico(medico).dia(dia)
+                                                .horaInicio(d.horaInicio())
+                                                .horaFin(d.horaFin()).build());
+                        }
+                }
+
+                log.info("✅ 50 médicos adicionales creados (5 por especialidad)");
+        }
+
         // ─── Pacientes ────────────────────────────────────────────────────
 
         private void crearPacientes() {
@@ -404,8 +678,10 @@ public class DataInitializer implements CommandLineRunner {
                 Usuario admin = usuarioRepository.findByUsername("admin@clinica.pe").orElseThrow();
 
                 LocalDate hoy = LocalDate.now();
-                BigDecimal costoM1 = m1.getEspecialidad().getCosto();
-                BigDecimal costoM2 = m2.getEspecialidad().getCosto();
+                BigDecimal costoM1 = especialidadRepository.findByNombreIgnoreCase("Medicina General").orElseThrow()
+                                .getCosto();
+                BigDecimal costoM2 = especialidadRepository.findByNombreIgnoreCase("Cardiología").orElseThrow()
+                                .getCosto();
 
                 // Cita 1 — CONFIRMADA con pago
                 if (!citaRepository.existeConflictoHorario(m1,
@@ -495,4 +771,5 @@ public class DataInitializer implements CommandLineRunner {
 
                 log.info("✅ Citas de hoy creadas correctamente");
         }
+
 }
