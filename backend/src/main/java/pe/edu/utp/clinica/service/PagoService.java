@@ -136,7 +136,7 @@ public class PagoService {
         @Transactional(readOnly = true)
         public pe.edu.utp.clinica.dto.pago.PrevisualizarPagoResponse previsualizarPago(Long citaId) {
                 CitaMedica cita = citaService.buscarEntidadPorId(citaId);
-                BigDecimal montoBruto = new BigDecimal("80.00");
+                BigDecimal montoBruto = cita.getMedico().getEspecialidad().getCosto();
 
                 return pacienteSeguroRepository
                                 .findFirstByPacienteAndActivoTrue(cita.getPaciente())

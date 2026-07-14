@@ -49,9 +49,6 @@ public class CitaService {
         private final UsuarioRepository usuarioRepository;
         private final ValoracionRepository valoracionRepository;
 
-        /** Monto base de consulta en la clínica */
-        private static final BigDecimal MONTO_BASE = new BigDecimal("80.00");
-
         /**
          * Registra una cita agendada por el propio paciente desde el portal.
          * RF-56 (extendido): el pacienteId se deriva del correo autenticado,
@@ -99,10 +96,14 @@ public class CitaService {
 
                 cita = citaRepository.save(cita);
 
+                // RF-11: el monto del pago es el costo real de la especialidad
+                // del médico (antes estaba fijo en 80.00 para todas).
+                BigDecimal montoBase = medico.getEspecialidad().getCosto();
+
                 Pago pago = Pago.builder()
                                 .cita(cita)
-                                .monto(MONTO_BASE)
-                                .montoFinal(MONTO_BASE)
+                                .monto(montoBase)
+                                .montoFinal(montoBase)
                                 .estado(EstadoPago.PENDIENTE)
                                 .build();
                 pagoRepository.save(pago);
@@ -290,11 +291,14 @@ public class CitaService {
 
                 cita = citaRepository.save(cita);
 
-                // RF-11: Generar pago automático en PENDIENTE
+                // RF-11: Generar pago automático en PENDIENTE, con el costo
+                // real de la especialidad del médico (antes fijo en 80.00).
+                BigDecimal montoBase = medico.getEspecialidad().getCosto();
+
                 Pago pago = Pago.builder()
                                 .cita(cita)
-                                .monto(MONTO_BASE)
-                                .montoFinal(MONTO_BASE)
+                                .monto(montoBase)
+                                .montoFinal(montoBase)
                                 .estado(EstadoPago.PENDIENTE)
                                 .build();
                 pagoRepository.save(pago);
