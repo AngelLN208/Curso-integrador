@@ -91,10 +91,11 @@ function calcularMetricas(pagos) {
 // que se encarga de recortar la página actual y llamar a pintarTabla().
 function renderTabla(pagos) {
   document.getElementById('total-mostrados').textContent = `${pagos.length} registros`;
-  pagerPagos.setDatos(pagos);
+  const ordenados = [...pagos].sort((a, b) => new Date(b.creadoEn) - new Date(a.creadoEn));
+  pagerPagos.setDatos(ordenados);
 }
 
-// pintarTabla recibe SOLO los items de la página actual y los dibuja.
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
 function pintarTabla(pagos) {
   const tbody = document.getElementById('tabla-pagos');
 
@@ -107,7 +108,6 @@ function pintarTabla(pagos) {
   }
 
   tbody.innerHTML = pagos
-    .sort((a, b) => new Date(b.creadoEn) - new Date(a.creadoEn))
     .map(p => {
       const fechaPago = p.fechaPago
         ? new Date(p.fechaPago).toLocaleDateString('es-PE',
