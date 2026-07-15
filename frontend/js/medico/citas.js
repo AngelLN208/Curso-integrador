@@ -41,6 +41,13 @@ themeToggle.addEventListener('click', () =>
 let todasMisCitas = [];
 let citaActivaId = null;
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerCitasMedico = new Paginador({
+    contenedorId: 'pager-citas-medico',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar citas ──────────────────────────────────────────────
 async function cargarCitas() {
     if (!usuario.medicoId) {
@@ -57,8 +64,21 @@ async function cargarCitas() {
     }
 }
 
+// renderTabla ordena (más recientes primero) y entrega el dataset al paginador.
 function renderTabla(citas) {
     document.getElementById('total-mostradas').textContent = `${citas.length} citas`;
+
+    if (!citas.length) {
+        pagerCitasMedico.setDatos([]);
+        return;
+    }
+
+    const ordenadas = [...citas].sort((a, b) => new Date(b.fechaHora) - new Date(a.fechaHora));
+    pagerCitasMedico.setDatos(ordenadas);
+}
+
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTabla(citas) {
     const tbody = document.getElementById('tabla-citas');
 
     if (!citas.length) {
@@ -66,9 +86,7 @@ function renderTabla(citas) {
         return;
     }
 
-    const ordenadas = [...citas].sort((a, b) => new Date(b.fechaHora) - new Date(a.fechaHora));
-
-    tbody.innerHTML = ordenadas.map(c => {
+    tbody.innerHTML = citas.map(c => {
         const fecha = new Date(c.fechaHora).toLocaleDateString('es-PE',
             { day: '2-digit', month: '2-digit', year: 'numeric' });
         const hora = new Date(c.fechaHora).toLocaleTimeString('es-PE',
