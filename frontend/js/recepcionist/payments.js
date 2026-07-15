@@ -37,6 +37,13 @@ let todosPagos = [];
 let citaActivaId = null;
 let montoBaseActivo = null;
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerPagos = new Paginador({
+  contenedorId: 'pager-pagos',
+  porPagina: 10,
+  onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar pagos ──────────────────────────────────────────────
 async function cargarPagos() {
   try {
@@ -80,8 +87,15 @@ function calcularMetricas(pagos) {
   document.getElementById('m-total').textContent = pagos.length;
 }
 
+// renderTabla ahora solo entrega los datos completos (filtrados) al paginador,
+// que se encarga de recortar la página actual y llamar a pintarTabla().
 function renderTabla(pagos) {
   document.getElementById('total-mostrados').textContent = `${pagos.length} registros`;
+  pagerPagos.setDatos(pagos);
+}
+
+// pintarTabla recibe SOLO los items de la página actual y los dibuja.
+function pintarTabla(pagos) {
   const tbody = document.getElementById('tabla-pagos');
 
   if (!pagos.length) {
