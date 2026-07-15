@@ -35,6 +35,7 @@ document.querySelectorAll('[id^="modal"]').forEach(m =>
 // ── Estado global ─────────────────────────────────────────────
 let todosPagos = [];
 let citaActivaId = null;
+let montoBaseActivo = null;
 
 // ── Cargar pagos ──────────────────────────────────────────────
 async function cargarPagos() {
@@ -186,6 +187,7 @@ async function abrirPago(citaId, pacienteNombre, medicoNombre) {
     try {
         const res = await apiFetch(`/pagos/cita/${citaId}/previsualizar`);
         const calculo = res.data ?? res;
+        montoBaseActivo = parseFloat(calculo.monto);
 
         document.getElementById('pago-monto-display').textContent =
             `S/ ${parseFloat(calculo.montoFinal).toFixed(2)}`;
@@ -207,20 +209,22 @@ async function abrirPago(citaId, pacienteNombre, medicoNombre) {
         </div>`;
         }
     } catch (err) {
-        document.getElementById('pago-monto-display').textContent = 'S/ 80.00';
+        montoBaseActivo = null;
+        document.getElementById('pago-monto-display').textContent = 'S/ —';
         document.getElementById('pago-seguro-info').innerHTML =
-            '<span class="text-alerta text-xs">No se pudo calcular el descuento</span>';
+            '<span class="text-alerta text-xs">No se pudo calcular el precio. Cierra e intenta de nuevo.</span>';
     }
 }
 
 async function confirmarPago() {
     const metodo = document.getElementById('pago-metodo').value;
     if (!metodo) return UI.mostrarError({ message: 'Selecciona el método de pago' });
+    if (montoBaseActivo == null) return UI.mostrarError({ message: 'No se pudo calcular el precio. Cierra el modal e inténtalo de nuevo.' });
 
     try {
         await PagoService.registrar({
             citaId: citaActivaId,
-            monto: 80.00,
+            monto: montoBaseActivo,
             metodoPago: metodo
         });
         cerrarModal('modalPago');
