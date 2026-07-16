@@ -37,6 +37,13 @@ let todosPagos = [];
 let citaActivaId = null;
 let montoBaseActivo = null;
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerPagosAdmin = new Paginador({
+    contenedorId: 'pager-pagos-admin',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar pagos ──────────────────────────────────────────────
 async function cargarPagos() {
     try {
@@ -80,8 +87,15 @@ function calcularMetricas(pagos) {
     document.getElementById('m-total').textContent = pagos.length;
 }
 
+// renderTabla ordena (más recientes primero) y entrega el dataset al paginador.
 function renderTabla(pagos) {
     document.getElementById('total-mostrados').textContent = `${pagos.length} registros`;
+    const ordenados = [...pagos].sort((a, b) => new Date(b.creadoEn) - new Date(a.creadoEn));
+    pagerPagosAdmin.setDatos(ordenados);
+}
+
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTabla(pagos) {
     const tbody = document.getElementById('tabla-pagos');
 
     if (!pagos.length) {
@@ -93,7 +107,6 @@ function renderTabla(pagos) {
     }
 
     tbody.innerHTML = pagos
-        .sort((a, b) => new Date(b.creadoEn) - new Date(a.creadoEn))
         .map(p => {
             const fechaPago = p.fechaPago
                 ? new Date(p.fechaPago).toLocaleDateString('es-PE',

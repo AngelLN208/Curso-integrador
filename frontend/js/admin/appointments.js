@@ -38,6 +38,13 @@ let todasLasCitas = [];
 let diasLaborables = [];
 let slotSeleccionado = null;
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerCitasAdmin = new Paginador({
+    contenedorId: 'pager-citas-admin',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar datos iniciales ────────────────────────────────────
 async function cargarContadores() {
     try {
@@ -53,9 +60,16 @@ async function cargarContadores() {
 }
 
 // ── Tabla ─────────────────────────────────────────────────────
+// renderTabla ordena (más recientes primero) y entrega el dataset al paginador.
 function renderTabla(citas) {
-    const tbody = document.getElementById('tabla-citas');
     document.getElementById('total-mostradas').textContent = `${citas.length} citas`;
+    const ordenadas = [...citas].sort((a, b) => new Date(b.fechaHora) - new Date(a.fechaHora));
+    pagerCitasAdmin.setDatos(ordenadas);
+}
+
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTabla(citas) {
+    const tbody = document.getElementById('tabla-citas');
 
     if (!citas.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-[13px]">

@@ -36,6 +36,13 @@ document.querySelectorAll('[id^="modal"]').forEach(m =>
 let pacienteActivoId = null;
 let todosPacientes = [];
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerPacientesAdmin = new Paginador({
+    contenedorId: 'pager-pacientes-admin',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Contadores ────────────────────────────────────────────────
 async function cargarContadores() {
     try {
@@ -55,8 +62,16 @@ async function cargarContadores() {
 }
 
 // ── Tabla ─────────────────────────────────────────────────────
+// renderTabla ordena y entrega el dataset completo al paginador.
 function renderTabla(pacientes) {
     document.getElementById('total-filtrados').textContent = pacientes.length;
+    const ordenados = [...pacientes].sort((a, b) =>
+        `${a.nombres} ${a.apellidos}`.localeCompare(`${b.nombres} ${b.apellidos}`));
+    pagerPacientesAdmin.setDatos(ordenados);
+}
+
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTabla(pacientes) {
     const tbody = document.getElementById('tabla-pacientes');
 
     if (!pacientes.length) {

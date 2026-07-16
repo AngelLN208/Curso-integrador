@@ -21,6 +21,13 @@ themeToggle.addEventListener('click', () =>
 const COLORES_METODO = { EFECTIVO: '#2F9E6E', TARJETA: '#FF7A45', TRANSFERENCIA: '#3B82F6' };
 const COLOR_DEFECTO = '#8A94A6';
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerDesempenoMedicos = new Paginador({
+    contenedorId: 'pager-desempeno-medicos',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTablaMedicos(itemsPagina)
+});
+
 // ── Periodo: mes actual ───────────────────────────────────────
 const ahora = new Date();
 const mesActual = ahora.getMonth();
@@ -105,14 +112,24 @@ async function calcularIngresosYDesempenoMedicos(citasMes, medicos) {
     renderChartMetodosPago(pagosDelMes);
 }
 
+// renderTablaMedicos ordena (más citas primero) y entrega el dataset al paginador.
 function renderTablaMedicos(datos) {
+    if (!datos.length) {
+        pagerDesempenoMedicos.setDatos([]);
+        return;
+    }
+
+    const ordenados = [...datos].sort((a, b) => b.citas - a.citas);
+    pagerDesempenoMedicos.setDatos(ordenados);
+}
+
+// pintarTablaMedicos recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTablaMedicos(datos) {
     const tbody = document.getElementById('tabla-medicos');
     if (!datos.length) {
         tbody.innerHTML = `<tr><td colspan="4" class="text-center text-neblina py-10 text-[13px]">Sin citas registradas este mes</td></tr>`;
         return;
     }
-
-    datos.sort((a, b) => b.citas - a.citas);
 
     tbody.innerHTML = datos.map(m => `
     <tr class="hover:bg-lienzo dark:hover:bg-tinta-dark transition-colors">

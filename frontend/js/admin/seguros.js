@@ -31,6 +31,13 @@ aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
     aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerSeguros = new Paginador({
+    contenedorId: 'pager-seguros',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar seguros ─────────────────────────────────────────────
 async function cargarSeguros() {
     try {
@@ -54,8 +61,15 @@ function calcularMetricas(seguros) {
     }
 }
 
+// renderTabla ordena y entrega el dataset completo al paginador.
 function renderTabla(seguros) {
     document.getElementById('total-mostrados').textContent = `${seguros.length} seguros`;
+    const ordenados = [...seguros].sort((a, b) => a.nombre.localeCompare(b.nombre));
+    pagerSeguros.setDatos(ordenados);
+}
+
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTabla(seguros) {
     const tbody = document.getElementById('tabla-seguros');
 
     if (!seguros.length) {

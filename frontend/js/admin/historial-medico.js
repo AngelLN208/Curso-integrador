@@ -17,6 +17,13 @@ aplicarTema(localStorage.getItem('tema') || 'light');
 themeToggle.addEventListener('click', () =>
     aplicarTema(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerHistorialAdmin = new Paginador({
+    contenedorId: 'pager-historial-admin',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarConsultas(itemsPagina)
+});
+
 // ── Buscar paciente ───────────────────────────────────────────
 let buscarTimeout;
 let todosPacientes = [];
@@ -94,6 +101,7 @@ async function cargarHistorial(pacienteId) {
     }
 }
 
+// calcularMetricas siempre trabaja con el dataset COMPLETO (no paginado).
 function calcularMetricas(consultas) {
     document.getElementById('m-total-consultas').textContent = consultas.length;
 
@@ -113,7 +121,19 @@ function calcularMetricas(consultas) {
     document.getElementById('m-medico-frecuente').textContent = medicoTop ? medicoTop[0] : '—';
 }
 
+// renderConsultas ordena (más recientes primero) y entrega el dataset al paginador.
 function renderConsultas(consultas) {
+    if (!consultas.length) {
+        pagerHistorialAdmin.setDatos([]);
+        return;
+    }
+
+    const ordenadas = [...consultas].sort((a, b) => new Date(b.fechaCita) - new Date(a.fechaCita));
+    pagerHistorialAdmin.setDatos(ordenadas);
+}
+
+// pintarConsultas recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarConsultas(consultas) {
     const cont = document.getElementById('lista-consultas');
 
     if (!consultas.length) {
@@ -124,9 +144,7 @@ function renderConsultas(consultas) {
         return;
     }
 
-    const ordenadas = [...consultas].sort((a, b) => new Date(b.fechaCita) - new Date(a.fechaCita));
-
-    cont.innerHTML = ordenadas.map(c => {
+    cont.innerHTML = consultas.map(c => {
         const fecha = new Date(c.fechaCita).toLocaleDateString('es-PE',
             { day: '2-digit', month: '2-digit', year: 'numeric' });
         const hora = new Date(c.fechaCita).toLocaleTimeString('es-PE',

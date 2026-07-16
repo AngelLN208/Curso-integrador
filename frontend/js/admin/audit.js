@@ -20,6 +20,13 @@ themeToggle.addEventListener('click', () =>
 // ── Estado global ─────────────────────────────────────────────
 let todaAuditoria = [];
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerAuditoria = new Paginador({
+    contenedorId: 'pager-auditoria',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar usuarios para el filtro ───────────────────────────
 async function cargarUsuariosFiltro() {
     try {
@@ -47,8 +54,14 @@ function calcularMetricas(datos) {
     document.getElementById('m-cancelaciones').textContent = datos.filter(a => a.tipoAccion === 'CANCELACION').length;
 }
 
+// renderTabla entrega el dataset (ya ordenado desde cargarAuditoria) al paginador.
 function renderTabla(datos) {
     document.getElementById('total-mostrados').textContent = `${datos.length} registros`;
+    pagerAuditoria.setDatos(datos);
+}
+
+// pintarTabla recibe SOLO los items de la página actual y los dibuja.
+function pintarTabla(datos) {
     const tbody = document.getElementById('tabla-auditoria');
 
     if (!datos.length) {

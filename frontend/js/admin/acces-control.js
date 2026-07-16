@@ -46,6 +46,13 @@ const ROL_ESTILO = {
     ROLE_MEDICO: 'bg-rumbo/10 text-rumbo',
 };
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerAccesos = new Paginador({
+    contenedorId: 'pager-accesos',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar usuarios ───────────────────────────────────────────
 async function cargarUsuarios() {
     try {
@@ -64,8 +71,15 @@ function calcularMetricas(usuarios) {
     document.getElementById('m-admins').textContent = usuarios.filter(u => u.rol === 'ROLE_ADMINISTRADOR').length;
 }
 
+// renderTabla ordena y entrega el dataset completo al paginador.
 function renderTabla(usuarios) {
     document.getElementById('total-mostrados').textContent = `${usuarios.length} cuentas`;
+    const ordenados = [...usuarios].sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto));
+    pagerAccesos.setDatos(ordenados);
+}
+
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTabla(usuarios) {
     const tbody = document.getElementById('tabla-usuarios');
 
     if (!usuarios.length) {

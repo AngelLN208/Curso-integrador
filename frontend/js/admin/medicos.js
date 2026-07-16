@@ -42,6 +42,13 @@ const DIAS_LABEL_ADMIN = {
     THURSDAY: 'Jueves', FRIDAY: 'Viernes', SATURDAY: 'Sábado', SUNDAY: 'Domingo'
 };
 
+// ── Paginación ────────────────────────────────────────────────
+const pagerMedicos = new Paginador({
+    contenedorId: 'pager-medicos',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarTabla(itemsPagina)
+});
+
 // ── Cargar médicos ──────────────────────────────────────────────
 async function cargarMedicos() {
     try {
@@ -73,8 +80,16 @@ function calcularMetricas(medicos) {
     document.getElementById('m-especialidades').textContent = especialidadesUnicas.size;
 }
 
+// renderTabla ordena y entrega el dataset completo al paginador.
 function renderTabla(medicos) {
     document.getElementById('total-mostrados').textContent = `${medicos.length} médicos`;
+    const ordenados = [...medicos].sort((a, b) =>
+        `${a.nombres} ${a.apellidos}`.localeCompare(`${b.nombres} ${b.apellidos}`));
+    pagerMedicos.setDatos(ordenados);
+}
+
+// pintarTabla recibe SOLO los items de la página actual (ya ordenados) y los dibuja.
+function pintarTabla(medicos) {
     const tbody = document.getElementById('tabla-medicos');
 
     if (!medicos.length) {
