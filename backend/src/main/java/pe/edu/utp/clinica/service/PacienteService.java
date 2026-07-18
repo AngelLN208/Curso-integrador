@@ -136,8 +136,7 @@ public class PacienteService {
             usuario.setUsername(correoNuevo);
             usuarioRepository.save(usuario);
 
-            log.info("Correo de paciente actualizado — DNI: {} | correo anterior: {} | correo nuevo: {}",
-                    paciente.getDni(), correoActual, correoNuevo);
+            log.info("Correo de paciente actualizado — paciente ID: {}", paciente.getId());
         }
 
         return toResponse(guardado);

@@ -443,6 +443,6 @@ public class NotificacionScheduler {
                 }
 
                 emailApiService.enviarCorreo(correoDestino, asunto, cuerpoHtml, adjuntoPdf, nombreAdjunto);
-                log.debug("Correo enviado a {} — asunto: {}", correoDestino, asunto);
+                log.debug("Correo enviado — paciente ID: {} | asunto: {}", paciente.getId(), asunto);
         }
 }

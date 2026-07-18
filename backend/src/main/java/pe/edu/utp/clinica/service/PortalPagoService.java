@@ -100,9 +100,8 @@ public class PortalPagoService {
                 pagoRequest.setCitaId(request.getCitaId());
                 pagoRequest.setMonto(cita.getMedico().getEspecialidad().getCosto());
                 pagoRequest.setMetodoPago(request.getMetodoPago());
-
-                log.info("Pago desde portal — paciente: {} | cita: {} | método: {}",
-                                paciente.getDni(), cita.getId(), request.getMetodoPago());
+                log.info("Pago desde portal — paciente ID: {} | cita: {} | método: {}",
+                                paciente.getId(), cita.getId(), request.getMetodoPago());
 
                 return pagoService.registrarPago(pagoRequest, username);
         }

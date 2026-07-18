@@ -41,6 +41,10 @@ import java.util.UUID;
  * NOTA DE DESPLIEGUE: el envío de correo se realiza vía la API HTTPS de
  * SendGrid (EmailApiService), no vía SMTP directo — ver Plan de Despliegue.
  *
+ * RNF-04: Los logs identifican al paciente/usuario por su ID interno,
+ * nunca por DNI o correo — evita exponer datos personales en archivos
+ * de log que puedan quedar accesibles a terceros.
+ *
  * @author Equipo Curso Integrador UTP 2026
  */
 @Slf4j
@@ -105,7 +109,7 @@ public class AuthPacienteService {
                         paciente.setCelular(request.getCelular());
                         paciente = pacienteRepository.save(paciente);
 
-                        log.info("Paciente existente (DNI: {}) vinculado a nueva cuenta de portal", request.getDni());
+                        log.info("Paciente existente (ID: {}) vinculado a nueva cuenta de portal", paciente.getId());
 
                 } else {
                         // Caso 2: paciente completamente nuevo, se crea desde cero.
@@ -120,7 +124,7 @@ public class AuthPacienteService {
                                         .build();
                         paciente = pacienteRepository.save(paciente);
 
-                        log.info("Paciente nuevo registrado — DNI: {}", request.getDni());
+                        log.info("Paciente nuevo registrado — ID: {}", paciente.getId());
                 }
 
                 // Crear entidad Usuario vinculada al paciente
@@ -142,8 +146,7 @@ public class AuthPacienteService {
 
                 String token = jwtUtil.generateToken(userDetails);
 
-                log.info("Cuenta de portal creada exitosamente — DNI: {} | correo: {}",
-                                paciente.getDni(), request.getCorreo());
+                log.info("Cuenta de portal creada exitosamente — paciente ID: {}", paciente.getId());
 
                 return RegistroPacienteResponse.builder()
                                 .pacienteId(paciente.getId())
@@ -192,7 +195,7 @@ public class AuthPacienteService {
                 usuario.setPassword(passwordEncoder.encode(request.getPasswordNueva()));
                 usuarioRepository.save(usuario);
 
-                log.info("Contraseña actualizada para usuario: {}", username);
+                log.info("Contraseña actualizada — usuario ID: {}", usuario.getId());
         }
 
         /**
@@ -239,7 +242,7 @@ public class AuthPacienteService {
                                         "Recuperación de contraseña — Clínica Stella Maris",
                                         cuerpoHtml, null, null);
 
-                        log.info("Correo de recuperación enviado a: {}", correo);
+                        log.info("Correo de recuperación enviado — usuario ID: {}", usuario.getId());
                 });
         }
 
@@ -275,6 +278,6 @@ public class AuthPacienteService {
                 resetToken.setUsado(true);
                 resetTokenRepository.save(resetToken);
 
-                log.info("Contraseña restablecida para usuario: {}", usuario.getUsername());
+                log.info("Contraseña restablecida — usuario ID: {}", usuario.getId());
         }
 }

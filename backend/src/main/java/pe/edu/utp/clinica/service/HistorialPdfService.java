@@ -85,8 +85,8 @@ public class HistorialPdfService {
                         }
 
                         doc.close();
-                        log.info("PDF generado — paciente: {} | consultas: {}",
-                                        paciente.getDni(), consultas.size());
+                        log.info("PDF generado — paciente ID: {} | consultas: {}",
+                                        paciente.getId(), consultas.size());
                         return baos.toByteArray();
 
                 } catch (Exception ex) {
