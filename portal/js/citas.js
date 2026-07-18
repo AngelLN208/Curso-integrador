@@ -331,6 +331,31 @@ function toggleCamposTarjeta() {
     cont.classList.toggle('hidden', !esTarjeta);
 }
 
+/**
+ * Valida un número de tarjeta con el algoritmo de Luhn (mod 10).
+ * RF-56: antes solo se validaba la longitud (16 dígitos); ahora también
+ * se verifica que el número sea matemáticamente válido, como en una
+ * pasarela de pago real.
+ */
+function validarLuhn(numero) {
+    let suma = 0;
+    let esPosicionPar = false;
+
+    for (let i = numero.length - 1; i >= 0; i--) {
+        let digito = parseInt(numero.charAt(i), 10);
+
+        if (esPosicionPar) {
+            digito *= 2;
+            if (digito > 9) digito -= 9;
+        }
+
+        suma += digito;
+        esPosicionPar = !esPosicionPar;
+    }
+
+    return suma % 10 === 0;
+}
+
 async function confirmarPago() {
     const citaId = document.getElementById('pagar-cita-id').value;
     const metodoPago = document.getElementById('pagar-metodo').value;
@@ -340,6 +365,9 @@ async function confirmarPago() {
     if (metodoPago === 'TARJETA') {
         if (!/^\d{16}$/.test(numeroTarjeta)) {
             return PortalNotify.error('El número de tarjeta debe tener exactamente 16 dígitos');
+        }
+        if (!validarLuhn(numeroTarjeta)) {
+            return PortalNotify.error('El número de tarjeta ingresado no es válido');
         }
         if (!titularTarjeta) {
             return PortalNotify.error('Ingresa el nombre del titular de la tarjeta');
