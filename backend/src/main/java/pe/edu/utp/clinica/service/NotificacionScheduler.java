@@ -16,6 +16,7 @@ import pe.edu.utp.clinica.model.Paciente;
 import pe.edu.utp.clinica.repository.CitaMedicaRepository;
 import pe.edu.utp.clinica.repository.NotificacionRepository;
 
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -309,13 +310,19 @@ public class NotificacionScheduler {
                                                 + " " + cita.getMedico().getApellidos();
                                 String especialidad = cita.getMedico().getEspecialidad().getNombre();
 
+                                // Costo real de la especialidad del médico (antes hardcodeado
+                                // en "S/ 80.00" — no reflejaba el precio real por especialidad).
+                                String costoFormateado = "S/ " + cita.getMedico().getEspecialidad()
+                                                .getCosto().setScale(2, RoundingMode.HALF_UP);
+
                                 asunto = "Cita registrada — Clínica Stella Maris";
 
                                 String filas = filaDetalle("Médico", medico, false)
                                                 + filaDetalle("Especialidad", especialidad, false)
                                                 + filaDetalle("Fecha", fecha, false)
                                                 + filaDetalle("Hora", hora, false)
-                                                + filaDetalle("Costo", "S/ 80.00 (puede variar según seguro)", true);
+                                                + filaDetalle("Costo", costoFormateado + " (puede variar según seguro)",
+                                                                true);
 
                                 cuerpoHtml = plantillaCorreo(
                                                 "Confirmación de cita médica",
