@@ -15,6 +15,13 @@ let estadoActivo = '';
 const CLASE_CHIP_INACTIVO = 'flex items-center gap-1.5 bg-white/10 border border-white/15 text-white/80 text-xs font-medium rounded-lg px-3.5 py-2 transition hover:bg-white/[0.16]';
 const CLASE_CHIP_ACTIVO = 'flex items-center gap-1.5 bg-guia text-white text-xs font-semibold rounded-lg px-3.5 py-2 transition';
 
+// Paginador de la lista de citas (10 por página)
+const pagerCitas = new Paginador({
+    contenedorId: 'pager-citas',
+    porPagina: 10,
+    onRenderPagina: (itemsPagina) => pintarCitas(itemsPagina)
+});
+
 function abrirModal(id) {
     const modal = document.getElementById(id);
     modal.classList.remove('hidden');
@@ -87,7 +94,7 @@ async function cargarMisCitas() {
     const cont = document.getElementById('lista-citas');
     try {
         todasLasCitas = await PortalService.misCitas();
-        renderCitas(todasLasCitas);
+        pagerCitas.setDatos(todasLasCitas);
     } catch (err) {
         cont.innerHTML = `
       <div class="bg-white/[0.07] backdrop-blur-md border border-white/15 rounded-card text-center text-sm text-alerta py-8">
@@ -126,7 +133,7 @@ function aplicarFiltrosCitas() {
         citas = citas.filter(c => c.fechaHora.startsWith(fechaSeleccionada));
     }
 
-    renderCitas(citas);
+    pagerCitas.setDatos(citas);
 }
 
 function limpiarFiltrosCitas() {
@@ -135,12 +142,12 @@ function limpiarFiltrosCitas() {
     estadoActivo = '';
     document.querySelectorAll('#filtros-estado button').forEach(b => b.className = CLASE_CHIP_INACTIVO);
     document.querySelector('#filtros-estado button[data-estado=""]').className = CLASE_CHIP_ACTIVO;
-    renderCitas(todasLasCitas);
+    pagerCitas.setDatos(todasLasCitas);
 }
 
-// ── Render de la lista ──────────────────────────────────────────
+// ── Render de la lista (solo los ítems de la página actual) ─────
 
-function renderCitas(citas) {
+function pintarCitas(citas) {
     const cont = document.getElementById('lista-citas');
 
     if (!citas.length) {
@@ -306,9 +313,11 @@ async function abrirModalPagar(cita) {
         </div>`;
         }
     } catch (err) {
-        document.getElementById('pagar-monto-display').textContent = 'S/ 80.00';
+        // No se pudo calcular el monto real: no mostramos un precio hardcodeado
+        // (evita inducir a error, ya que el monto final lo define el backend en confirmarPago()).
+        document.getElementById('pagar-monto-display').textContent = 'S/ —';
         document.getElementById('pagar-seguro-info').innerHTML =
-            '<span class="text-alerta text-xs">No se pudo calcular el descuento</span>';
+            '<span class="text-alerta text-xs">No se pudo calcular el monto. Intenta de nuevo.</span>';
     }
 }
 
