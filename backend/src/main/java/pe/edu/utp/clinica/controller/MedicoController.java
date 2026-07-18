@@ -20,6 +20,11 @@ import java.util.List;
  *
  * RF-37: Registrar médico. Solo ADMINISTRADOR.
  *
+ * RNF-03: Todos los endpoints tienen @PreAuthorize explícito. Los de
+ * solo lectura (listar/buscar) están abiertos a cualquier rol de staff
+ * (Admin, Recepcionista, Médico), ya que los tres necesitan consultar
+ * el directorio interno de médicos en su flujo normal de trabajo.
+ *
  * @author Equipo Curso Integrador UTP 2026
  */
 @RestController
@@ -42,7 +47,8 @@ public class MedicoController {
         }
 
         @GetMapping
-        @Operation(summary = "Listar médicos activos", description = "Todos los roles pueden consultar.")
+        @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', 'MEDICO')")
+        @Operation(summary = "Listar médicos activos", description = "Todos los roles de staff pueden consultar.")
         public ResponseEntity<ApiResponse<List<MedicoResponse>>> listar() {
 
                 List<MedicoResponse> response = medicoService.listarActivos();
@@ -51,6 +57,7 @@ public class MedicoController {
         }
 
         @GetMapping("/especialidad/{especialidadId}")
+        @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', 'MEDICO')")
         @Operation(summary = "Listar médicos por especialidad", description = "Filtra médicos activos por especialidad.")
         public ResponseEntity<ApiResponse<List<MedicoResponse>>> listarPorEspecialidad(
                         @PathVariable Long especialidadId) {
@@ -61,6 +68,7 @@ public class MedicoController {
         }
 
         @GetMapping("/{id}")
+        @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA', 'MEDICO')")
         @Operation(summary = "Obtener médico por ID")
         public ResponseEntity<ApiResponse<MedicoResponse>> obtenerPorId(
                         @PathVariable Long id) {
