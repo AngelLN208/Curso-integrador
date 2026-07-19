@@ -1,0 +1,29 @@
+name: Backup diario de base de datos
+
+on:
+  schedule:
+    # Corre todos los días a las 3:00 AM UTC (10:00 PM hora Perú)
+    - cron: '0 3 * * *'
+  workflow_dispatch: # permite ejecutarlo manualmente desde GitHub también
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar cliente de PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Generar backup con pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          FECHA=$(date +%Y%m%d_%H%M%S)
+          pg_dump "$DATABASE_URL" --format=custom --file="backup_${FECHA}.dump"
+          echo "BACKUP_FILE=backup_${FECHA}.dump" >> $GITHUB_ENV
+
+      - name: Subir backup como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-clinica-stella-maris
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 30
