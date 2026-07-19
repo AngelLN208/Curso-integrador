@@ -16,7 +16,9 @@ import java.util.Date;
  * Utilidad para generación y validación de tokens JWT.
  *
  * RNF-02: Toda petición sin token válido recibe HTTP 401.
- *         El token expira en 24 horas (86400000 ms).
+ * El token expira en 24 horas (86400000 ms).
+ * Al hacer logout, el token se invalida antes de tiempo vía
+ * TokenBlacklistService (ver JwtAuthFilter).
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -61,6 +63,19 @@ public class JwtUtil {
      */
     public String extractUsername(String token) {
         return extractClaims(token).getSubject();
+    }
+
+    /**
+     * Extrae la fecha de expiración del token.
+     * RNF-02: usado por TokenBlacklistService para saber hasta cuándo
+     * mantener un token invalidado en la blacklist (después de esa
+     * fecha, ya no hace falta — expiraría solo de todas formas).
+     *
+     * @param token JWT recibido
+     * @return fecha de expiración del token
+     */
+    public Date extractExpiration(String token) {
+        return extractClaims(token).getExpiration();
     }
 
     /**

@@ -4,6 +4,7 @@ import pe.edu.utp.clinica.service.HistorialPdfService;
 import pe.edu.utp.clinica.service.PortalPagoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import pe.edu.utp.clinica.common.ApiResponse;
 import pe.edu.utp.clinica.dto.portal.*;
+import pe.edu.utp.clinica.security.JwtUtil;
+import pe.edu.utp.clinica.security.TokenBlacklistService;
 import pe.edu.utp.clinica.service.ChatbotService;
 import pe.edu.utp.clinica.service.PortalService;
 import pe.edu.utp.clinica.service.PacienteService;
@@ -53,6 +56,10 @@ public class PortalController {
         private final PacienteService pacienteService;
 
         private final AuthPacienteService authPacienteService;
+
+        private final JwtUtil jwtUtil;
+        private final TokenBlacklistService tokenBlacklistService;
+
         // ─── RF-52: Directorio público ────────────────────────────────────────────
 
         /**
@@ -97,6 +104,38 @@ public class PortalController {
                         @AuthenticationPrincipal UserDetails userDetails) {
                 DashboardPacienteResponse dashboard = portalService.obtenerDashboard(userDetails.getUsername());
                 return ResponseEntity.ok(ApiResponse.success("Dashboard cargado correctamente", dashboard));
+        }
+
+        // ─── Logout ───────────────────────────────────────────────────────────────
+
+        /**
+         * Cierra la sesión del paciente autenticado, invalidando su token
+         * JWT actual.
+         *
+         * RNF-02: A partir de este momento, el token queda rechazado por
+         * JwtAuthFilter aunque técnicamente no haya expirado todavía —
+         * corrige el hecho de que JWT es stateless por diseño.
+         *
+         * @param request usado para leer el header Authorization directamente
+         */
+        @PostMapping("/logout")
+        @Operation(summary = "Cerrar sesión (paciente)", description = "RNF-02: Invalida el token JWT actual — deja de ser válido "
+                        + "de inmediato, sin esperar a que expire solo.")
+        public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+                String authHeader = request.getHeader("Authorization");
+
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                        String token = authHeader.substring(7);
+                        try {
+                                var expiracion = jwtUtil.extractExpiration(token);
+                                tokenBlacklistService.invalidar(token, expiracion);
+                        } catch (Exception ex) {
+                                // Token ya inválido/expirado — no hay nada que invalidar,
+                                // pero no es un error real para el usuario que cierra sesión
+                        }
+                }
+
+                return ResponseEntity.ok(ApiResponse.success("Sesión cerrada correctamente", null));
         }
 
         // ─── RF-54: Valoraciones ──────────────────────────────────────────────────
@@ -353,7 +392,7 @@ public class PortalController {
          * Solicita el envío de un correo de recuperación de contraseña.
          * Endpoint público — el usuario no está autenticado.
          * Por seguridad, siempre responde con éxito sin revelar si el
-         * correo existe o no en el sistema.
+         * correo existe o no.
          *
          * @param request correo del paciente
          */

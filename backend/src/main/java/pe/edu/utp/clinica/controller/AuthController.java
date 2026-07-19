@@ -2,6 +2,7 @@ package pe.edu.utp.clinica.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,8 @@ import pe.edu.utp.clinica.dto.auth.LoginRequest;
 import pe.edu.utp.clinica.dto.auth.LoginResponse;
 import pe.edu.utp.clinica.dto.auth.RegistroPacienteRequest;
 import pe.edu.utp.clinica.dto.auth.RegistroPacienteResponse;
+import pe.edu.utp.clinica.security.JwtUtil;
+import pe.edu.utp.clinica.security.TokenBlacklistService;
 import pe.edu.utp.clinica.service.AuthPacienteService;
 import pe.edu.utp.clinica.service.AuthService;
 
@@ -26,7 +29,8 @@ import pe.edu.utp.clinica.service.StaffPasswordResetService;
  * RF-40: Endpoint público para login de todos los usuarios del sistema.
  * RF-28: Registro de nuevos pacientes desde el portal.
  * RF-29: Login de pacientes con correo y contraseña.
- * RNF-02: Devuelve token JWT válido por 24 horas.
+ * RNF-02: Devuelve token JWT válido por 24 horas. El logout invalida
+ * el token antes de tiempo vía TokenBlacklistService.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -40,6 +44,9 @@ public class AuthController {
         private final AuthPacienteService authPacienteService;
 
         private final StaffPasswordResetService staffPasswordResetService;
+
+        private final JwtUtil jwtUtil;
+        private final TokenBlacklistService tokenBlacklistService;
 
         /**
          * Autentica un usuario del sistema (admin, recepcionista, médico o paciente)
@@ -59,6 +66,36 @@ public class AuthController {
                 LoginResponse response = authService.login(request);
                 return ResponseEntity.ok(
                                 ApiResponse.success("Login exitoso", response));
+        }
+
+        /**
+         * Cierra la sesión del usuario de staff autenticado (Admin,
+         * Recepcionista o Médico), invalidando su token JWT actual.
+         *
+         * RNF-02: A partir de este momento, el token queda rechazado por
+         * JwtAuthFilter aunque técnicamente no haya expirado todavía —
+         * corrige el hecho de que JWT es stateless por diseño.
+         *
+         * @param request usado para leer el header Authorization directamente
+         */
+        @PostMapping("/logout")
+        @Operation(summary = "Cerrar sesión (staff)", description = "RNF-02: Invalida el token JWT actual — deja de ser válido "
+                        + "de inmediato, sin esperar a que expire solo.")
+        public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
+                String authHeader = request.getHeader("Authorization");
+
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                        String token = authHeader.substring(7);
+                        try {
+                                var expiracion = jwtUtil.extractExpiration(token);
+                                tokenBlacklistService.invalidar(token, expiracion);
+                        } catch (Exception ex) {
+                                // Token ya inválido/expirado — no hay nada que invalidar,
+                                // pero no es un error real para el usuario que cierra sesión
+                        }
+                }
+
+                return ResponseEntity.ok(ApiResponse.success("Sesión cerrada correctamente", null));
         }
 
         /**

@@ -51,7 +51,25 @@ const AuthService = {
     AuthService._redirigir(data.rol);
   },
 
-  logout: () => {
+  /**
+   * Cierra sesión: invalida el token en el backend (RNF-02) y luego
+   * limpia el almacenamiento local y redirige al login.
+   * Si la llamada al backend falla (sin conexión, servidor caído),
+   * el logout local se completa igual — no queremos bloquear al
+   * usuario de salir de su cuenta por un problema de red.
+   */
+  logout: async () => {
+    const token = Auth.getToken();
+    if (token) {
+      try {
+        await fetch(`${CONFIG.API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+      } catch (err) {
+        // Falla silenciosa: el logout local continúa de todas formas
+      }
+    }
     Auth.removeToken();
     Auth.removeUsuario();
     window.location.href = CONFIG.ROUTES.LOGIN;
@@ -64,7 +82,7 @@ const AuthService = {
   _redirigir: (rol) => {
     const destinos = {
       ROLE_RECEPCIONISTA: CONFIG.ROUTES.RECEP_DASHBOARD,
-      ROLE_MEDICO:        CONFIG.ROUTES.MEDICO_DASHBOARD,
+      ROLE_MEDICO: CONFIG.ROUTES.MEDICO_DASHBOARD,
       ROLE_ADMINISTRADOR: CONFIG.ROUTES.ADMIN_DASHBOARD,
     };
     if (destinos[rol]) window.location.href = destinos[rol];

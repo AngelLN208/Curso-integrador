@@ -90,7 +90,25 @@ const PortalAuthService = {
     window.location.href = PORTAL_CONFIG.ROUTES.DASHBOARD;
   },
 
-  logout: () => {
+  /**
+   * Cierra sesión: invalida el token en el backend (RNF-02) y luego
+   * limpia el almacenamiento local y redirige al login.
+   * Si la llamada al backend falla (sin conexión, servidor caído),
+   * el logout local se completa igual — no queremos bloquear al
+   * paciente de salir de su cuenta por un problema de red.
+   */
+  logout: async () => {
+    const token = PortalAuth.getToken();
+    if (token) {
+      try {
+        await fetch(`${PORTAL_CONFIG.API_URL}/portal/logout`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+      } catch (err) {
+        // Falla silenciosa: el logout local continúa de todas formas
+      }
+    }
     PortalAuth.removeToken();
     PortalAuth.removePaciente();
     window.location.href = PORTAL_CONFIG.ROUTES.LOGIN;

@@ -20,8 +20,9 @@ import java.io.IOException;
  * Filtro JWT que intercepta cada petición HTTP.
  *
  * RNF-02: Valida el token Bearer en el header Authorization.
- *         Si el token es inválido o falta, la petición no se autentica
- *         y Spring Security retorna HTTP 401.
+ * Si el token es inválido, falta, o fue invalidado por logout
+ * (ver TokenBlacklistService), la petición no se autentica
+ * y Spring Security retorna HTTP 401.
  *
  * @author Equipo Curso Integrador UTP 2026
  */
@@ -32,11 +33,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
@@ -48,6 +50,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         final String token = authHeader.substring(7);
+
+        // RNF-02: rechazar tokens invalidados por logout, antes de
+        // gastar tiempo validando firma/expiración
+        if (tokenBlacklistService.estaInvalidado(token)) {
+            log.debug("Token en blacklist rechazado (logout previo)");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String username;
 
         try {
@@ -63,9 +74,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtUtil.isTokenValid(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
 
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request));
